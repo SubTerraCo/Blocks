@@ -4,7 +4,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTaskStore, TimelineBlock, formatTime, cn } from "@blocks/ui";
 import type { TimeBlock as TimeBlockType, Task } from "@blocks/core";
-import { Clock } from "lucide-react";
+import { calculateDuration } from "@blocks/core";
+import { Clock, CalendarPlus } from "lucide-react";
 
 // Generate time slots for the day (hourly)
 function generateTimeSlots(): Date[] {
@@ -27,7 +28,8 @@ function tasksToTimeBlocks(tasks: Task[]): TimeBlockType[] {
   return tasks
     .filter((t) => t.scheduledAt && (t.status === "todo" || t.status === "doing"))
     .map((task) => {
-      const duration = task.duration ?? 30; // Default 30 minutes
+      // Calculate duration from blockSize * blockCount, fallback to task.duration or 30 min
+      const duration = task.duration ?? calculateDuration(task.blockSize, task.blockCount);
       return {
         id: task.id,
         type: "task" as const,
@@ -42,9 +44,28 @@ export default function TimelinePage() {
   const router = useRouter();
   const tasks = useTaskStore((state) => state.tasks);
   const isLoading = useTaskStore((state) => state.isLoading);
+  const scheduleDoingTasks = useTaskStore((state) => state.scheduleDoingTasks);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isScheduling, setIsScheduling] = useState(false);
   const timeSlots = useMemo(() => generateTimeSlots(), []);
   const timeBlocks = useMemo(() => tasksToTimeBlocks(tasks), [tasks]);
+  
+  // Count tasks in "doing" status that can be scheduled
+  const doingTasksCount = useMemo(
+    () => tasks.filter((t) => t.status === "doing").length,
+    [tasks]
+  );
+
+  const handleScheduleDoingTasks = async () => {
+    setIsScheduling(true);
+    try {
+      await scheduleDoingTasks();
+    } catch (error) {
+      console.error("Failed to schedule tasks:", error);
+    } finally {
+      setIsScheduling(false);
+    }
+  };
 
   const handleBlockPress = (block: TimeBlockType) => {
     // Only navigate if it's a task block
@@ -171,7 +192,29 @@ export default function TimelinePage() {
           <p className="text-center text-sm text-text-secondary">
             Add tasks and schedule them to see them on your timeline
           </p>
+          {doingTasksCount > 0 && (
+            <button
+              onClick={handleScheduleDoingTasks}
+              disabled={isScheduling}
+              className="mt-6 flex items-center gap-2 rounded-xl bg-accent-cyan px-6 py-3 font-medium text-bg-primary transition-colors hover:bg-accent-cyan/80 disabled:opacity-50"
+            >
+              <CalendarPlus className="h-5 w-5" />
+              {isScheduling ? "Scheduling..." : `Schedule ${doingTasksCount} Doing Task${doingTasksCount > 1 ? "s" : ""}`}
+            </button>
+          )}
         </div>
+      )}
+
+      {/* Floating Schedule Button - shown when there are doing tasks */}
+      {doingTasksCount > 0 && timeBlocks.length > 0 && (
+        <button
+          onClick={handleScheduleDoingTasks}
+          disabled={isScheduling}
+          className="fixed bottom-24 right-4 z-20 flex items-center gap-2 rounded-xl bg-accent-cyan px-4 py-3 font-medium text-bg-primary shadow-lg transition-all hover:bg-accent-cyan/80 hover:shadow-xl disabled:opacity-50"
+        >
+          <CalendarPlus className="h-5 w-5" />
+          {isScheduling ? "..." : `Schedule ${doingTasksCount}`}
+        </button>
       )}
     </div>
   );

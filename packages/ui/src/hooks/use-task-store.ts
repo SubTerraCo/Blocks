@@ -5,7 +5,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import type { Task, CreateTaskInput, UpdateTaskInput, TaskStatus } from "@blocks/core";
-import { TaskEngine, DexieStorage } from "@blocks/core";
+import { TaskEngine, DexieStorage, calculateDuration } from "@blocks/core";
 
 interface TaskState {
   tasks: Task[];
@@ -21,6 +21,7 @@ interface TaskState {
   completeTask: (id: string) => Promise<Task>;
   startTask: (id: string) => Promise<Task>;
   setCurrentTask: (task: Task | null) => void;
+  scheduleDoingTasks: () => Promise<void>;
   
   // Filtered getters
   getTasksByStatus: (status: TaskStatus) => Task[];
@@ -132,6 +133,57 @@ export const useTaskStore = create<TaskState>()(
 
       setCurrentTask: (task: Task | null) => {
         set({ currentTask: task });
+      },
+
+      scheduleDoingTasks: async () => {
+        try {
+          const db = await getStorage();
+          
+          // 1. Get all tasks with status "doing"
+          const doingTasks = get().tasks.filter((t) => t.status === "doing");
+          
+          if (doingTasks.length === 0) return;
+          
+          // 2. Sort by priority (1 = highest first, so ascending order)
+          const sortedTasks = [...doingTasks].sort((a, b) => {
+            const priorityA = parseInt(a.priority, 10);
+            const priorityB = parseInt(b.priority, 10);
+            return priorityA - priorityB;
+          });
+          
+          // 3. Starting from current time, assign scheduledAt sequentially
+          let currentTime = new Date();
+          const updatedTasks: Task[] = [];
+          
+          for (const task of sortedTasks) {
+            // Calculate duration: blockSize * blockCount
+            const duration = calculateDuration(task.blockSize, task.blockCount);
+            
+            // Update task with scheduledAt and computed duration
+            const updatedTask = TaskEngine.updateTask(task, {
+              scheduledAt: new Date(currentTime),
+              duration,
+            });
+            
+            // Save to storage
+            await db.updateTask(updatedTask);
+            updatedTasks.push(updatedTask);
+            
+            // Move current time forward by the task's duration
+            currentTime = new Date(currentTime.getTime() + duration * 60000);
+          }
+          
+          // 4. Update state with all scheduled tasks
+          set((state) => ({
+            tasks: state.tasks.map((t) => {
+              const updated = updatedTasks.find((u) => u.id === t.id);
+              return updated || t;
+            }),
+          }));
+        } catch (error) {
+          set({ error: (error as Error).message });
+          throw error;
+        }
       },
 
       getTasksByStatus: (status: TaskStatus) => {
