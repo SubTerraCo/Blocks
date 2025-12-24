@@ -1,0 +1,203 @@
+/* ============================================================================
+   BLOCKS - Global Styles
+   ============================================================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS Variables from Design Tokens */
+:root {
+  /* Background */
+  --bg-primary: #0a0a14;
+  --bg-secondary: #12121f;
+  --bg-tertiary: #1a1a2e;
+  --bg-elevated: #1e1e32;
+  
+  /* Accent */
+  --accent-magenta: #9b4dca;
+  --accent-magenta-light: #b366d9;
+  --accent-magenta-dark: #7a3da1;
+  --accent-teal: #00bcd4;
+  --accent-teal-light: #26c6da;
+  --accent-teal-dark: #00acc1;
+  
+  /* Task Blocks */
+  --block-green: #22c55e;
+  --block-green-light: #4ade80;
+  --block-green-dark: #16a34a;
+  --block-dark-green: #166534;
+  --block-red: #ef4444;
+  --block-red-dark: #7f1d1d;
+  
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+  --text-tertiary: #6b6b7b;
+  --text-muted: #4a4a5a;
+  
+  /* Border */
+  --border-default: #2a2a3e;
+  --border-hover: #3a3a4e;
+  --border-focus: #9b4dca;
+  
+  /* Priority */
+  --priority-1: #ef4444;
+  --priority-2: #f59e0b;
+  --priority-3: #eab308;
+  --priority-4: #22c55e;
+  --priority-5: #6b7280;
+  
+  /* Layout */
+  --bottom-nav-height: 64px;
+  --top-bar-height: 56px;
+}
+
+/* Base Styles */
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  html {
+    font-family: "SF Pro Display", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  
+  /* Custom scrollbar for dark theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-hover);
+  }
+  
+  /* Focus styles */
+  :focus-visible {
+    outline: 2px solid var(--accent-magenta);
+    outline-offset: 2px;
+  }
+  
+  /* Selection */
+  ::selection {
+    background-color: var(--accent-magenta);
+    color: var(--text-primary);
+  }
+}
+
+/* Component Utilities */
+@layer components {
+  /* Glass morphism effect */
+  .glass {
+    background: rgba(18, 18, 31, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  /* Glow effect */
+  .glow {
+    box-shadow: 0 0 20px rgba(155, 77, 202, 0.3);
+  }
+  
+  /* Bottom nav safe area */
+  .pb-nav {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+  
+  /* Top bar safe area */
+  .pt-bar {
+    padding-top: calc(var(--top-bar-height) + env(safe-area-inset-top, 0px));
+  }
+  
+  /* Task card base */
+  .task-card {
+    @apply bg-bg-secondary rounded-lg border border-border-default p-4 transition-all;
+  }
+  
+  .task-card:hover {
+    @apply border-border-hover bg-bg-tertiary;
+  }
+  
+  /* Quick add block */
+  .quick-block {
+    @apply rounded-lg p-4 flex flex-col items-center justify-center text-center transition-transform active:scale-95;
+  }
+  
+  /* Timeline block */
+  .timeline-block {
+    @apply rounded-md px-3 py-2 absolute left-0 right-0 mx-4 overflow-hidden;
+  }
+}
+
+/* Animation Utilities */
+@layer utilities {
+  /* Fade in animation */
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Slide up animation */
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Pulse glow animation */
+  .animate-pulse-glow {
+    animation: pulseGlow 2s infinite;
+  }
+  
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: 0 0 10px rgba(155, 77, 202, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(155, 77, 202, 0.4);
+    }
+  }
+}
+
