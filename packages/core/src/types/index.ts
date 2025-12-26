@@ -165,12 +165,12 @@ export interface KanbanColumn {
 }
 
 export const KANBAN_COLUMNS: KanbanColumn[] = [
-  { id: "backlog", title: "Backlog", color: "#6b7280" },  // Gray
-  { id: "design", title: "Design", color: "#3b82f6" },   // Blue
-  { id: "todo", title: "To-Do", color: "#eab308" },      // Yellow
-  { id: "doing", title: "Doing", color: "#00bcd4" },     // Cyan
-  { id: "review", title: "Review", color: "#f97316" },   // Orange
-  { id: "done", title: "Done", color: "#22c55e" },       // Green
+  { id: "backlog", title: "Backlog", color: "#3B82F6" },  // Blue
+  { id: "design", title: "Design", color: "#A855F7" },    // Purple
+  { id: "todo", title: "To Do", color: "#EC4899" },       // Pink
+  { id: "doing", title: "Doing", color: "#F97316" },      // Orange
+  { id: "review", title: "Review", color: "#EAB308" },    // Yellow
+  { id: "done", title: "Done", color: "#22C55E" },        // Green
 ];
 
 // ----------------------------------------------------------------------------
