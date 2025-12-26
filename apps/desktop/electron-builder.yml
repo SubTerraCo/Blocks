@@ -1,0 +1,54 @@
+appId: com.blocks.app
+productName: Blocks
+copyright: Copyright © 2024 Blocks Team
+
+directories:
+  output: release
+  buildResources: resources
+
+files:
+  - dist/**/*
+  - resources/**/*
+  - "!**/*.{ts,tsx,map}"
+
+win:
+  target:
+    - target: portable
+      arch:
+        - x64
+  icon: resources/icon.ico
+  artifactName: "${productName}-${version}-portable.${ext}"
+  signAndEditExecutable: false
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Blocks
+  uninstallDisplayName: Blocks
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: resources/icon.icns
+  category: public.app-category.productivity
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  icon: resources/icon.png
+  category: Office
+  artifactName: "${productName}-${version}.${ext}"
+
+publish:
+  provider: github
+  releaseType: draft
+

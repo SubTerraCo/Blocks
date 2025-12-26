@@ -9,8 +9,16 @@ export * from "./types";
 export { TaskEngine } from "./tasks";
 
 // AI Service
-export { AIService } from "./ai";
-export type { AIConfig, TimeGap, AIPromptContext } from "./ai";
+export { AIService, GeminiService, AIOfflineError } from "./ai";
+export type {
+  AIConfig,
+  TimeGap,
+  AIPromptContext,
+  GeminiConfig,
+  ChatMessage,
+  SchedulingSuggestion,
+  TaskContext,
+} from "./ai";
 
 // Storage Interface
 export type {
@@ -31,6 +39,24 @@ export type {
   CalendarInfo,
   CalendarSyncOptions,
 } from "./calendar";
+
+// Sync (Yjs CRDT)
+export {
+  YjsStore,
+  taskToYjs,
+  yjsToTask,
+  BaseSyncProvider,
+  NullSyncProvider,
+  WebRTCSyncProvider,
+} from "./sync";
+export type {
+  YjsTask,
+  ISyncProvider,
+  SyncStatus,
+  SyncEvent,
+  SyncEventHandler,
+  WebRTCSyncConfig,
+} from "./sync";
 
 // Version
 export const VERSION = "0.1.0";

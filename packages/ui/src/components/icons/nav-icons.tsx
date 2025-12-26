@@ -11,7 +11,7 @@ interface IconProps {
 }
 
 /**
- * Search Icon - Magnifying glass
+ * Search Icon - Magnifying glass (kept for backward compatibility)
  */
 export function SearchIcon({ className, size = 24 }: IconProps) {
   return (
@@ -36,6 +36,49 @@ export function SearchIcon({ className, size = 24 }: IconProps) {
         stroke="currentColor"
         strokeWidth="2.5"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/**
+ * AI Search Icon - Combined magnifying glass with AI sparkle
+ * Used in nav bar for the AI + Search functionality
+ */
+export function AISearchIcon({ className, size = 24 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Magnifying glass */}
+      <circle
+        cx="10"
+        cy="10"
+        r="5.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M14 14L18 18"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      {/* AI Sparkle/Star - top right */}
+      <path
+        d="M18 3L18.5 4.5L20 5L18.5 5.5L18 7L17.5 5.5L16 5L17.5 4.5L18 3Z"
+        fill="currentColor"
+      />
+      {/* Small sparkle accent */}
+      <path
+        d="M21 8L21.25 8.75L22 9L21.25 9.25L21 10L20.75 9.25L20 9L20.75 8.75L21 8Z"
+        fill="currentColor"
       />
     </svg>
   );
@@ -239,6 +282,7 @@ export function AddButtonIcon({ className, size = 48 }: IconProps) {
 // Export all icons
 export const NavIcons = {
   Search: SearchIcon,
+  AISearch: AISearchIcon,
   Kanban: KanbanIcon,
   Timeline: TimelineIcon,
   Blocks: BlocksIcon,

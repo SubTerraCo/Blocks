@@ -5,7 +5,7 @@
 
 import { cn } from "../lib/utils";
 import {
-  SearchIcon,
+  AISearchIcon,
   KanbanIcon,
   TimelineIcon,
   BlocksIcon,
@@ -44,10 +44,10 @@ export function BottomNav({ activeItem, onItemPress, className }: BottomNavProps
       )}
     >
       <div className="flex h-16 items-center justify-between px-4">
-        {/* Search button - left side, 48x48 */}
+        {/* AI/Search button - left side, 48x48 */}
         <ActionButton
-          icon={SearchIcon}
-          label="Search"
+          icon={AISearchIcon}
+          label="AI"
           isActive={activeItem === "search"}
           onPress={() => onItemPress("search")}
           variant="secondary"

@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { BottomNav, TopBar, type NavItem, useTaskStore, useSettingsStore, useQuickBlocksStore } from "@blocks/ui";
 
 const routeToNav: Record<string, NavItem> = {
-  "/search": "search",
+  "/ai": "search",
   "/kanban": "kanban",
   "/timeline": "timeline",
   "/blocks": "blocks",
@@ -13,7 +13,7 @@ const routeToNav: Record<string, NavItem> = {
 };
 
 const navToRoute: Record<NavItem, string> = {
-  search: "/search",
+  search: "/ai",
   kanban: "/kanban",
   timeline: "/timeline",
   blocks: "/blocks",
@@ -25,7 +25,7 @@ const routeTitles: Record<string, string> = {
   "/timeline": "Timeline",
   "/kanban": "Kanban",
   "/blocks": "Blocks",
-  "/search": "Search",
+  "/ai": "AI Assistant",
   "/add-task": "Add Task",
   "/settings": "Settings",
   "/profile": "Profile",
@@ -58,7 +58,7 @@ export function AppShell({ children }: AppShellProps) {
 
   const activeNav = routeToNav[pathname] ?? "timeline";
   const title = routeTitles[pathname] ?? "Blocks";
-  const showBackButton = pathname === "/add-task" || pathname === "/settings" || pathname === "/profile";
+  const showBackButton = pathname === "/add-task" || pathname === "/settings" || pathname === "/profile" || pathname.startsWith("/edit-task");
 
   const handleNavPress = (item: NavItem) => {
     router.push(navToRoute[item]);
