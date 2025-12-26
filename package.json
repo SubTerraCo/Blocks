@@ -15,12 +15,22 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
-    "test": "turbo test",
+    "test": "playwright test --config=tests/playwright.config.ts",
+    "test:e2e": "playwright test tests/e2e --config=tests/playwright.config.ts",
+    "test:visual": "playwright test tests/visual --config=tests/playwright.config.ts",
+    "test:a11y": "playwright test tests/accessibility --config=tests/playwright.config.ts",
+    "test:perf": "playwright test tests/performance --config=tests/playwright.config.ts",
+    "test:integration": "playwright test tests/integration --config=tests/playwright.config.ts",
+    "test:ui": "playwright test --ui --config=tests/playwright.config.ts",
+    "test:report": "playwright show-report",
+    "test:update-snapshots": "playwright test tests/visual --update-snapshots --config=tests/playwright.config.ts",
     "clean": "turbo clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "^1.57.0",
     "@types/node": "^20.10.0",
     "eslint": "^8.55.0",
     "prettier": "^3.1.1",
@@ -28,4 +38,3 @@
     "typescript": "^5.3.3"
   }
 }
-
