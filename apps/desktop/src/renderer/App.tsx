@@ -59,6 +59,19 @@ import {
   Pencil,
   Check
 } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  useDraggable,
+  useDroppable,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverEvent,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 
 // ============================================================================
 // Desktop Title Bar
@@ -127,19 +140,178 @@ function TitleBar() {
 }
 
 // ============================================================================
-// Kanban Page
+// Kanban Page with Drag & Drop
 // ============================================================================
+
+// Draggable task card wrapper
+function DraggableTaskCard({ 
+  task, 
+  onTaskToggle, 
+  onTaskPress 
+}: { 
+  task: Task; 
+  onTaskToggle: (task: Task) => void; 
+  onTaskPress: (task: Task) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task.id,
+    data: { task },
+  });
+
+  const style = transform
+    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+    : undefined;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={cn("touch-none", isDragging && "opacity-50")}
+    >
+      <TaskCard
+        task={task}
+        onToggleComplete={onTaskToggle}
+        onPress={onTaskPress}
+        className={cn("animate-fade-in cursor-grab active:cursor-grabbing", isDragging && "ring-2 ring-accent-magenta")}
+      />
+    </div>
+  );
+}
+
+// Droppable column wrapper
+function DroppableColumn({
+  id,
+  title,
+  tasks,
+  accentColor,
+  onTaskToggle,
+  onTaskPress,
+  onAddTask,
+  isOver,
+}: {
+  id: TaskStatus;
+  title: string;
+  tasks: Task[];
+  accentColor: string;
+  onTaskToggle: (task: Task) => void;
+  onTaskPress: (task: Task) => void;
+  onAddTask: (status: TaskStatus) => void;
+  isOver: boolean;
+}) {
+  const { setNodeRef } = useDroppable({ id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      data-testid="kanban-column"
+      className={cn(
+        "flex h-full w-72 flex-shrink-0 flex-col rounded-lg",
+        "border border-border-default bg-bg-secondary",
+        "transition-all duration-200",
+        isOver && "border-accent-magenta ring-2 ring-accent-magenta/30"
+      )}
+    >
+      <div
+        className="flex items-center justify-between rounded-t-lg px-3 py-3"
+        style={{ backgroundColor: `${accentColor}20` }}
+      >
+        <div className="flex items-center gap-2">
+          <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: accentColor }} />
+          <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: accentColor }}>
+            {title}
+          </h2>
+        </div>
+        <span
+          className="rounded-full px-2 py-0.5 text-xs font-medium"
+          style={{ backgroundColor: accentColor, color: "#fff" }}
+        >
+          {tasks.length}
+        </span>
+      </div>
+      <div className="flex-1 overflow-y-auto p-3">
+        <div className="space-y-3">
+          {tasks.map((task) => (
+            <DraggableTaskCard
+              key={task.id}
+              task={task}
+              onTaskToggle={onTaskToggle}
+              onTaskPress={onTaskPress}
+            />
+          ))}
+          {tasks.length === 0 && (
+            <div
+              className={cn(
+                "rounded-lg border-2 border-dashed py-8 text-center transition-colors",
+                isOver ? "border-accent-magenta bg-accent-magenta/5" : "border-border-default"
+              )}
+            >
+              <p className="text-sm text-text-muted">{isOver ? "Drop here" : "No tasks"}</p>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="border-t border-border-default p-3 pb-4">
+        <button
+          onClick={() => onAddTask(id)}
+          className="flex w-full items-center justify-center gap-2 rounded-lg py-2 border-2 border-dashed border-border-default text-text-tertiary transition-colors hover:border-accent-magenta hover:text-accent-magenta"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="text-sm font-medium">Add Task</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => void; onAddTask: (status: TaskStatus) => void }) {
   const tasks = useTaskStore((state) => state.tasks);
   const completeTask = useTaskStore((state) => state.completeTask);
   const updateTask = useTaskStore((state) => state.updateTask);
+  
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
-  const groupedTasks = KANBAN_COLUMNS.reduce((acc, column) => {
-    acc[column.id] = tasks.filter((t) => t.status === column.id);
-    return acc;
-  }, {} as Record<TaskStatus, Task[]>);
+  // Configure sensors for drag detection
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement required before drag starts
+      },
+    })
+  );
 
-  const handleToggle = async (task: Task) => {
+  // Group tasks by status
+  const groupedTasks = useMemo(() => {
+    const groups: Record<TaskStatus, Task[]> = {
+      backlog: [],
+      design: [],
+      todo: [],
+      doing: [],
+      review: [],
+      done: [],
+    };
+
+    tasks.forEach((task) => {
+      const status = task.status as TaskStatus;
+      if (groups[status]) {
+        groups[status].push(task);
+      } else {
+        groups.backlog.push(task);
+      }
+    });
+
+    // Sort done tasks by completion date
+    groups.done = groups.done.sort((a, b) => {
+      if (!a.completedAt || !b.completedAt) return 0;
+      return b.completedAt.getTime() - a.completedAt.getTime();
+    });
+
+    return groups;
+  }, [tasks]);
+
+  const handleTaskToggle = async (task: Task) => {
     if (task.status === "done") {
       await updateTask(task.id, { status: "todo", completedAt: undefined });
     } else {
@@ -147,58 +319,76 @@ function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => voi
     }
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = tasks.find((t) => t.id === event.active.id);
+    if (task) setActiveTask(task);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    setOverId(event.over?.id?.toString() ?? null);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveTask(null);
+    setOverId(null);
+
+    if (!over) return;
+
+    const taskId = active.id as string;
+    const newStatus = over.id as TaskStatus;
+    const task = tasks.find((t) => t.id === taskId);
+    
+    if (!task || task.status === newStatus) return;
+
+    const updates: { status: TaskStatus; completedAt?: Date | undefined } = { status: newStatus };
+    
+    if (newStatus === "done") {
+      updates.completedAt = new Date();
+    } else if (task.status === "done") {
+      updates.completedAt = undefined;
+    }
+
+    await updateTask(taskId, updates);
+  };
+
   return (
-    <div className="flex h-[calc(100%-1rem)] gap-4 overflow-x-auto p-4 pb-2">
-      {KANBAN_COLUMNS.map((column) => (
-        <div
-          key={column.id}
-          data-testid="kanban-column"
-          className="flex h-full w-72 flex-shrink-0 flex-col rounded-lg border border-border-default bg-bg-secondary"
-        >
-          <div
-            className="flex items-center justify-between rounded-t-lg px-3 py-3"
-            style={{ backgroundColor: `${column.color}20` }}
-          >
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: column.color }} />
-              <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: column.color }}>
-                {column.title}
-              </h2>
-            </div>
-            <span
-              className="rounded-full px-2 py-0.5 text-xs font-medium"
-              style={{ backgroundColor: column.color, color: "#fff" }}
-            >
-              {groupedTasks[column.id]?.length || 0}
-            </span>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="flex h-[calc(100%-1rem)] gap-4 overflow-x-auto p-4 pb-2">
+        {KANBAN_COLUMNS.map((column) => (
+          <DroppableColumn
+            key={column.id}
+            id={column.id}
+            title={column.title}
+            tasks={groupedTasks[column.id]}
+            accentColor={column.color}
+            onTaskToggle={handleTaskToggle}
+            onTaskPress={onEditTask}
+            onAddTask={onAddTask}
+            isOver={overId === column.id}
+          />
+        ))}
+      </div>
+
+      {/* Drag overlay - shows the dragged item */}
+      <DragOverlay>
+        {activeTask && (
+          <div className="w-72 rotate-3 opacity-90">
+            <TaskCard
+              task={activeTask}
+              showCheckbox={false}
+              className="shadow-2xl ring-2 ring-accent-magenta"
+            />
           </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {groupedTasks[column.id]?.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onToggleComplete={handleToggle}
-                onPress={onEditTask}
-              />
-            ))}
-            {(!groupedTasks[column.id] || groupedTasks[column.id].length === 0) && (
-              <div className="rounded-lg border-2 border-dashed border-border-default py-8 text-center">
-                <p className="text-sm text-text-muted">No tasks</p>
-              </div>
-            )}
-          </div>
-          <div className="border-t border-border-default p-3 pb-4">
-            <button
-              onClick={() => onAddTask(column.id)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg py-2 border-2 border-dashed border-border-default text-text-tertiary transition-colors hover:border-accent-magenta hover:text-accent-magenta"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="text-sm font-medium">Add Task</span>
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
+        )}
+      </DragOverlay>
+    </DndContext>
   );
 }
 

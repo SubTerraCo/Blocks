@@ -121,8 +121,22 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on("error", (err) => {
+    // Handle common errors gracefully without alarming users
+    const errorMessage = err.message || String(err);
+    
+    // 404 = No releases published yet or private repo without token
+    // ENOTFOUND = No internet
+    // These are expected during early development
+    if (errorMessage.includes("404") || errorMessage.includes("ENOTFOUND")) {
+      log.info("Update check skipped - no releases available yet or repo is private");
+      sendUpdateStatus("not-available", { version: app.getVersion() });
+      return;
+    }
+    
+    // Only log actual errors
     log.error("Update error:", err);
-    sendUpdateStatus("error", { message: err.message });
+    // Don't show error to user for update issues - just silently fail
+    sendUpdateStatus("not-available", { version: app.getVersion() });
   });
 
   autoUpdater.on("download-progress", (progressObj) => {
