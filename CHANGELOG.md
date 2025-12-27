@@ -5,6 +5,56 @@ All notable changes to the Blocks project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.3] - 2024-12-27
+
+### Added
+
+#### Sprint 2: Time Tracking & Notifications
+- **Active Timer UI**: Floating timer with minimize/expand views
+- **Timer Controls**: Start, pause, resume, and stop time tracking
+- **Timer Persistence**: Timer state survives app refresh
+- **Overtime Warnings**: Visual and notification alerts when exceeding estimates
+- **Notification System**: Full notification support with permissions
+- **Task Reminders**: Schedulable reminders before tasks
+- **Daily Summary**: End-of-day productivity summary notifications
+
+#### Sprint 3: Recurring Tasks & Advanced Features
+- **Recurring Tasks Schema**: RecurrencePattern with daily/weekly/monthly options
+- **RecurrenceSelector Component**: UI for configuring recurring patterns
+- **Recurring Engine**: Auto-generation of recurring task instances
+- **SubtaskEditor**: Interactive subtask list with progress tracking
+- **TagInput**: Tag input with suggestions and filtering
+- **TaskTemplates System**: Save and reuse task templates
+- **BulkActions Component**: Bulk status, priority, tag, and delete actions
+- **DataExport**: Export tasks to JSON and CSV formats
+
+#### Sprint 4: P2P Sync & Android App
+- **Sync Store**: Room-based sync with auto-generated IDs
+- **SyncSettings Component**: P2P sync configuration UI
+- **Device Discovery**: Track connected devices
+- **React Native Mobile App**: Full mobile app with Expo
+  - Tab-based navigation (AI, Kanban, Timeline, Blocks, Add)
+  - Timeline with daily schedule view
+  - Kanban with horizontal scrolling columns
+  - Blocks quick add with haptic feedback
+  - AI chat interface
+  - Add/Edit task modals
+  - Dark/light theme support
+
+#### Sprint 5: Keyboard Shortcuts & UX Polish
+- **Keyboard Shortcuts**: Ctrl+1-6 for navigation, Ctrl+N/F for actions
+- **KeyboardShortcutsHelp Modal**: Display available shortcuts
+- **Page Transitions**: Smooth animations between pages
+- **Animation Components**: FadeIn, SlideIn, ScaleIn, StaggeredList
+- **CSS Animations**: Slide, scale, bounce, pulse, shimmer effects
+- **Focus and Hover Effects**: Improved interactive feedback
+
+### Changed
+- Updated version to 0.0.3 across all packages
+- Extended Task schema with recurring and subtask fields
+- Added TaskTemplate and Tag types to core
+- Database migrated to version 2
+
 ## [0.0.2] - 2024-12-27
 
 ### Added
