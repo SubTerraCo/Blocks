@@ -20,12 +20,12 @@ test.describe("Task Store Integration", () => {
     // Create a task
     await page.goto("/add-task");
     
-    const nameInput = page.getByPlaceholder(/name|what|task/i).or(
-      page.locator('input[type="text"]').first()
-    );
+    // Use specific label to find the task name input
+    const nameInput = page.getByRole("textbox", { name: /task name/i });
     await nameInput.fill("Persistence Test Task");
     
-    const submitButton = page.getByRole("button", { name: /add|create|save/i });
+    // Use specific button text to avoid ambiguity with nav Add button
+    const submitButton = page.getByRole("button", { name: "Create Task" });
     await submitButton.click();
     
     // Wait for navigation
@@ -43,12 +43,12 @@ test.describe("Task Store Integration", () => {
     // Create a task
     await page.goto("/add-task");
     
-    const nameInput = page.getByPlaceholder(/name|what|task/i).or(
-      page.locator('input[type="text"]').first()
-    );
+    // Use specific label to find the task name input
+    const nameInput = page.getByRole("textbox", { name: /task name/i });
     await nameInput.fill("Refresh Test Task");
     
-    const submitButton = page.getByRole("button", { name: /add|create|save/i });
+    // Use specific button text to avoid ambiguity with nav Add button
+    const submitButton = page.getByRole("button", { name: "Create Task" });
     await submitButton.click();
     
     // Wait for navigation

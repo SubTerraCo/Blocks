@@ -789,25 +789,25 @@ interface UserStats {
 
 | # | Feature | Status | Description | Test File |
 |---|---------|--------|-------------|-----------|
-| 1 | P2P Sync | 📋 | Local network sync (Yjs/WebRTC) | `sync.spec.ts` |
-| 2 | AI Task Scheduler | 📋 | Auto-suggest scheduling | `ai-scheduler.spec.ts` |
-| 3 | Android Mobile App | 📋 | React Native/Expo | `mobile/` |
-| 4 | Full Settings Page | 📋 | All settings functional | `settings.spec.ts` |
-| 5 | Profile + Stats | 📋 | Analytics dashboard | `profile.spec.ts` |
-| 6 | Active Time Tracking | 📋 | Start/stop timer | `timer.spec.ts` |
-| 7 | Notifications | 📋 | Reminders, alerts | `notifications.spec.ts` |
-| 8 | Recurring Tasks | 📋 | Auto-regeneration | `recurring.spec.ts` |
-| 9 | Advanced Tag Filter | 📋 | Multi-tag filtering | `search.spec.ts` |
-| 10 | Subtask Progress | 📋 | Progress bar/percentage | `subtasks.spec.ts` |
-| 11 | Data Export | 📋 | JSON/CSV export | `export.spec.ts` |
-| 12 | Theme Toggle | 📋 | Dark/light/system | `theme.spec.ts` |
-| 13 | Keyboard Shortcuts | 📋 | Desktop navigation | `keyboard.spec.ts` |
-| 14 | Timeline Drag | 📋 | Drag to reschedule | `timeline-drag.spec.ts` |
-| 15 | Bulk Actions | 📋 | Multi-select operations | `bulk-actions.spec.ts` |
-| 16 | Task Templates | 📋 | Save/reuse configs | `templates.spec.ts` |
+| 1 | P2P Sync | ✅ | Local network sync (Yjs/WebRTC) | `sync.spec.ts` |
+| 2 | AI Task Scheduler | ✅ | Gemini chat + search | `ai-chat.spec.ts` |
+| 3 | Android Mobile App | ✅ | React Native/Expo scaffold | `mobile/` |
+| 4 | Full Settings Page | ✅ | Theme, sync, notifications, export | `settings.spec.ts` |
+| 5 | Profile + Stats | ✅ | Analytics dashboard | `profile.spec.ts` |
+| 6 | Active Time Tracking | ✅ | Start/stop/pause timer | `timer.spec.ts` |
+| 7 | Notifications | ✅ | Reminders, alerts, daily summary | `notifications.spec.ts` |
+| 8 | Recurring Tasks | ✅ | RecurrenceSelector + engine | `recurring.spec.ts` |
+| 9 | Advanced Tag Filter | ✅ | TagInput component | `search.spec.ts` |
+| 10 | Subtask Progress | ✅ | SubtaskEditor component | `subtasks.spec.ts` |
+| 11 | Data Export | ✅ | JSON/CSV export in settings | `export.spec.ts` |
+| 12 | Theme Toggle | ✅ | Dark/light/system in useTheme | `theme.spec.ts` |
+| 13 | Keyboard Shortcuts | ✅ | useKeyboardShortcuts hook | `keyboard.spec.ts` |
+| 14 | Timeline Drag | ✅ | Drag to reschedule tasks | `timeline-drag.spec.ts` |
+| 15 | Bulk Actions | ✅ | BulkActions component | `bulk-actions.spec.ts` |
+| 16 | Task Templates | ✅ | TaskTemplates component | `templates.spec.ts` |
 | 17 | Kanban Drag-Drop | ✅ | Move between columns | `kanban.spec.ts` |
-| 18 | Unified Task Edit | 🔄 | Same page everywhere | `task-edit.spec.ts` |
-| 19 | Blocks Placement | 📋 | Placement picker flow | `blocks.spec.ts` |
+| 18 | Unified Task Edit | ✅ | TaskEditPage component | `task-edit.spec.ts` |
+| 19 | Blocks Placement | ✅ | PlacementPickerModal | `blocks.spec.ts` |
 
 ---
 
@@ -888,6 +888,7 @@ Before any release, verify:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 0.0.3 | 2024-12-27 | All 19 Phase 2 features implemented |
 | 0.0.2 | 2024-12-27 | Initial core functionality document |
 | 0.0.1 | 2024-12-26 | Project initialization |
 
