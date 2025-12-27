@@ -19,6 +19,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { useTheme, type Theme } from "../hooks/useTheme";
+import { useNotifications } from "../hooks/useNotifications";
 
 // ============================================================================
 // Types
@@ -195,6 +196,15 @@ export function SettingsPage() {
   // Theme hook
   const { theme: currentTheme, setTheme } = useTheme();
   
+  // Notifications hook
+  const { 
+    permissionStatus, 
+    isEnabled: notificationsEnabled,
+    settings: notifSettings,
+    requestPermission: requestNotificationPermission,
+    updateSettings: updateNotificationSettings,
+  } = useNotifications();
+  
   // Get app version
   const [appVersion, setAppVersion] = useState("0.0.2");
   
@@ -365,43 +375,65 @@ export function SettingsPage() {
         
         {/* Notifications */}
         <SettingsSection title="Notifications" icon={<Bell className="h-4 w-4" />}>
+          {/* Permission status */}
+          {permissionStatus !== "granted" && (
+            <SettingRow 
+              label="Permission Required" 
+              description={
+                permissionStatus === "denied" 
+                  ? "Notifications are blocked. Enable in system settings." 
+                  : "Click to enable notifications"
+              }
+            >
+              <Button 
+                variant="secondary" 
+                size="sm"
+                onClick={requestNotificationPermission}
+                disabled={permissionStatus === "denied"}
+              >
+                {permissionStatus === "denied" ? "Blocked" : "Enable"}
+              </Button>
+            </SettingRow>
+          )}
+          
           <SettingRow label="Enable Notifications" description="Allow Blocks to send notifications">
             <ToggleSwitch
-              enabled={settings.notificationsEnabled}
-              onChange={(v) => updateSetting("notificationsEnabled", v)}
+              enabled={notifSettings.enabled}
+              onChange={(v) => updateNotificationSettings({ enabled: v })}
+              disabled={permissionStatus !== "granted"}
             />
           </SettingRow>
           
           <SettingRow label="Task Reminders" description="Remind you before scheduled tasks">
             <ToggleSwitch
-              enabled={settings.taskReminders}
-              onChange={(v) => updateSetting("taskReminders", v)}
-              disabled={!settings.notificationsEnabled}
+              enabled={notifSettings.taskReminders}
+              onChange={(v) => updateNotificationSettings({ taskReminders: v })}
+              disabled={!notificationsEnabled}
             />
           </SettingRow>
           
           <SettingRow label="Timer Alerts" description="Alert when task time is up">
             <ToggleSwitch
-              enabled={settings.timerAlerts}
-              onChange={(v) => updateSetting("timerAlerts", v)}
-              disabled={!settings.notificationsEnabled}
+              enabled={notifSettings.timerAlerts}
+              onChange={(v) => updateNotificationSettings({ timerAlerts: v })}
+              disabled={!notificationsEnabled}
             />
           </SettingRow>
           
           <SettingRow label="Daily Summary" description="End of day task summary">
             <ToggleSwitch
-              enabled={settings.dailySummary}
-              onChange={(v) => updateSetting("dailySummary", v)}
-              disabled={!settings.notificationsEnabled}
+              enabled={notifSettings.dailySummary}
+              onChange={(v) => updateNotificationSettings({ dailySummary: v })}
+              disabled={!notificationsEnabled}
             />
           </SettingRow>
           
-          {settings.dailySummary && settings.notificationsEnabled && (
+          {notifSettings.dailySummary && notificationsEnabled && (
             <SettingRow label="Summary Time">
               <input
                 type="time"
-                value={settings.dailySummaryTime}
-                onChange={(e) => updateSetting("dailySummaryTime", e.target.value)}
+                value={notifSettings.dailySummaryTime}
+                onChange={(e) => updateNotificationSettings({ dailySummaryTime: e.target.value })}
                 className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary focus:border-accent-magenta focus:outline-none"
               />
             </SettingRow>

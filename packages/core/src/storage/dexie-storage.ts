@@ -11,6 +11,8 @@ import type {
   TimeEntry,
   SearchFilters,
   SearchResult,
+  TaskTemplate,
+  Tag,
 } from "../types";
 import type {
   IStorageWithEvents,
@@ -29,16 +31,30 @@ class BlocksDatabase extends Dexie {
   users!: Table<User, string>;
   settings!: Table<Settings & { id: string }, string>;
   timeEntries!: Table<TimeEntry, string>;
+  taskTemplates!: Table<TaskTemplate, string>;
+  tags!: Table<Tag, string>;
 
   constructor() {
     super("BlocksDB");
 
+    // Version 1: Original schema
     this.version(1).stores({
       tasks: "id, name, status, priority, category, scheduledAt, dueDate, createdAt, updatedAt",
       quickAddBlocks: "id, name, sortOrder, createdAt",
       users: "id, email",
       settings: "id",
       timeEntries: "id, taskId, startTime, createdAt",
+    });
+    
+    // Version 2: Add templates and tags
+    this.version(2).stores({
+      tasks: "id, name, status, priority, category, scheduledAt, dueDate, createdAt, updatedAt, parentTaskId, recurrence, *tags",
+      quickAddBlocks: "id, name, sortOrder, createdAt",
+      users: "id, email",
+      settings: "id",
+      timeEntries: "id, taskId, startTime, createdAt",
+      taskTemplates: "id, name, category, usageCount, createdAt",
+      tags: "id, name, usageCount, createdAt",
     });
   }
 }
@@ -350,6 +366,100 @@ export class DexieStorage implements IStorageWithEvents {
         await this.db.users.clear();
       }
     );
+  }
+
+  // -------------------------------------------------------------------------
+  // Task Templates
+  // -------------------------------------------------------------------------
+
+  async getTaskTemplates(): Promise<TaskTemplate[]> {
+    return this.db.taskTemplates.orderBy("usageCount").reverse().toArray();
+  }
+
+  async getTaskTemplate(id: string): Promise<TaskTemplate | undefined> {
+    return this.db.taskTemplates.get(id);
+  }
+
+  async createTaskTemplate(template: TaskTemplate): Promise<TaskTemplate> {
+    await this.db.taskTemplates.add(template);
+    return template;
+  }
+
+  async updateTaskTemplate(id: string, updates: Partial<TaskTemplate>): Promise<TaskTemplate> {
+    await this.db.taskTemplates.update(id, { ...updates, updatedAt: new Date() });
+    const updated = await this.db.taskTemplates.get(id);
+    if (!updated) throw new Error(`Template ${id} not found`);
+    return updated;
+  }
+
+  async deleteTaskTemplate(id: string): Promise<void> {
+    await this.db.taskTemplates.delete(id);
+  }
+
+  async incrementTemplateUsage(id: string): Promise<void> {
+    const template = await this.db.taskTemplates.get(id);
+    if (template) {
+      await this.db.taskTemplates.update(id, { usageCount: (template.usageCount || 0) + 1 });
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Tags
+  // -------------------------------------------------------------------------
+
+  async getTags(): Promise<Tag[]> {
+    return this.db.tags.orderBy("usageCount").reverse().toArray();
+  }
+
+  async getTag(id: string): Promise<Tag | undefined> {
+    return this.db.tags.get(id);
+  }
+
+  async getTagByName(name: string): Promise<Tag | undefined> {
+    return this.db.tags.where("name").equalsIgnoreCase(name).first();
+  }
+
+  async createTag(tag: Tag): Promise<Tag> {
+    await this.db.tags.add(tag);
+    return tag;
+  }
+
+  async updateTag(id: string, updates: Partial<Tag>): Promise<Tag> {
+    await this.db.tags.update(id, updates);
+    const updated = await this.db.tags.get(id);
+    if (!updated) throw new Error(`Tag ${id} not found`);
+    return updated;
+  }
+
+  async deleteTag(id: string): Promise<void> {
+    await this.db.tags.delete(id);
+  }
+
+  async incrementTagUsage(name: string): Promise<void> {
+    const tag = await this.getTagByName(name);
+    if (tag) {
+      await this.db.tags.update(tag.id, { usageCount: (tag.usageCount || 0) + 1 });
+    }
+  }
+
+  async getTasksByTag(tagName: string): Promise<Task[]> {
+    return this.db.tasks.where("tags").equals(tagName).toArray();
+  }
+
+  // -------------------------------------------------------------------------
+  // Recurring Tasks
+  // -------------------------------------------------------------------------
+
+  async getRecurringTasks(): Promise<Task[]> {
+    return this.db.tasks
+      .where("recurrence")
+      .notEqual("none")
+      .filter((t) => !t.isRecurringInstance)
+      .toArray();
+  }
+
+  async getRecurringInstances(parentTaskId: string): Promise<Task[]> {
+    return this.db.tasks.where("parentTaskId").equals(parentTaskId).toArray();
   }
 
   // -------------------------------------------------------------------------

@@ -94,6 +94,23 @@ export function formatBlockSize(blockSize: BlockSize): string {
 export const RecurrenceType = z.enum(["none", "daily", "weekly", "monthly", "custom"]);
 export type RecurrenceType = z.infer<typeof RecurrenceType>;
 
+// Day of week for recurring tasks
+export const DayOfWeek = z.enum(["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]);
+export type DayOfWeek = z.infer<typeof DayOfWeek>;
+
+// Detailed recurrence pattern
+export const RecurrencePatternSchema = z.object({
+  type: RecurrenceType,
+  interval: z.number().min(1).max(99).default(1), // e.g., every 2 weeks
+  daysOfWeek: z.array(DayOfWeek).optional(), // For weekly recurrence
+  dayOfMonth: z.number().min(1).max(31).optional(), // For monthly
+  endDate: z.date().optional(), // When recurrence ends
+  occurrences: z.number().min(1).optional(), // Number of times to repeat
+  excludeDates: z.array(z.date()).default([]), // Skip these dates
+});
+
+export type RecurrencePattern = z.infer<typeof RecurrencePatternSchema>;
+
 export const TaskSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(200),
@@ -122,6 +139,9 @@ export const TaskSchema = z.object({
   dueDate: z.date().optional(),
   recurrence: RecurrenceType.default("none"),
   recurrenceRule: z.string().optional(), // iCal RRULE format for custom
+  recurrencePattern: RecurrencePatternSchema.optional(), // Detailed pattern
+  parentTaskId: z.string().uuid().optional(), // For recurring instances, points to template
+  isRecurringInstance: z.boolean().default(false), // Is this an auto-generated instance?
   
   // Subtasks
   subtasks: z.array(z.object({
@@ -151,8 +171,57 @@ export const TaskSchema = z.object({
 
 export type Task = z.infer<typeof TaskSchema>;
 
-export type CreateTaskInput = Omit<Task, "id" | "createdAt" | "updatedAt" | "timeSpent" | "completedAt">;
+export type CreateTaskInput = Omit<Task, "id" | "createdAt" | "updatedAt" | "timeSpent" | "completedAt" | "isRecurringInstance" | "parentTaskId">;
 export type UpdateTaskInput = Partial<Omit<Task, "id" | "createdAt">>;
+
+// ----------------------------------------------------------------------------
+// Task Template Types
+// ----------------------------------------------------------------------------
+
+export const TaskTemplateSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  
+  // Template settings (applied to new tasks)
+  defaultName: z.string().max(200).optional(), // Pre-fill task name
+  defaultDescription: z.string().max(2000).optional(),
+  defaultPriority: TaskPriority.optional(),
+  defaultBlockSize: BlockSize.optional(),
+  defaultBlockCount: z.number().min(1).max(5).optional(),
+  defaultAccessContexts: z.array(AccessContext).optional(),
+  defaultTags: z.array(z.string().max(30)).max(10).optional(),
+  defaultSubtasks: z.array(z.object({
+    name: z.string().min(1).max(200),
+  })).optional(),
+  
+  // Metadata
+  category: z.string().max(50).optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  icon: z.string().max(50).optional(),
+  usageCount: z.number().default(0),
+  
+  // Timestamps
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type TaskTemplate = z.infer<typeof TaskTemplateSchema>;
+export type CreateTemplateInput = Omit<TaskTemplate, "id" | "createdAt" | "updatedAt" | "usageCount">;
+
+// ----------------------------------------------------------------------------
+// Tag Types
+// ----------------------------------------------------------------------------
+
+export const TagSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(30),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  usageCount: z.number().default(0),
+  createdAt: z.date(),
+});
+
+export type Tag = z.infer<typeof TagSchema>;
 
 // ----------------------------------------------------------------------------
 // Kanban Column Configuration

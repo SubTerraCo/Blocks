@@ -5,6 +5,8 @@ import { PlacementPickerModal } from "./components/PlacementPickerModal";
 import { SettingsPage } from "./components/SettingsPage";
 import { ProfilePage } from "./components/ProfilePage";
 import { useTheme } from "./hooks/useTheme";
+import { ActiveTimer, TimerButton } from "./components/ActiveTimer";
+import { notificationService } from "./hooks/useNotifications";
 import { 
   useTaskStore, 
   useQuickBlocksStore,
@@ -448,7 +450,7 @@ function DraggableTimelineBlock({
       {...attributes}
       {...listeners}
       style={dragStyle}
-      className="absolute left-0 right-4"
+      className="absolute left-0 right-4 group"
       onClick={(e) => {
         // Only trigger onPress if not dragging
         if (!isDragging) {
@@ -462,6 +464,12 @@ function DraggableTimelineBlock({
         onPress={() => {}} 
         className={cn("h-full transition-shadow", isDragging && "shadow-2xl ring-2 ring-accent-magenta")} 
       />
+      {/* Timer button overlay */}
+      {block.task && (
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <TimerButton task={block.task} size="sm" />
+        </div>
+      )}
     </div>
   );
 }
@@ -1090,6 +1098,28 @@ export default function App() {
     loadTasks();
     loadBlocks().then(() => initializeDefaultBlocks());
   }, [loadTasks, loadBlocks, initializeDefaultBlocks]);
+  
+  // Daily summary notification listener
+  useEffect(() => {
+    const handleDailySummary = () => {
+      const tasks = useTaskStore.getState().tasks;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const completedToday = tasks.filter((t) => {
+        if (t.status !== "done" || !t.completedAt) return false;
+        const completedDate = new Date(t.completedAt);
+        completedDate.setHours(0, 0, 0, 0);
+        return completedDate.getTime() === today.getTime();
+      });
+      
+      const totalTime = completedToday.reduce((sum, t) => sum + (t.timeSpent || 0), 0);
+      notificationService.sendDailySummary(completedToday.length, totalTime);
+    };
+    
+    window.addEventListener("daily-summary-trigger", handleDailySummary);
+    return () => window.removeEventListener("daily-summary-trigger", handleDailySummary);
+  }, []);
 
   useEffect(() => {
     if (window.electronAPI) {
@@ -1215,6 +1245,10 @@ export default function App() {
         </div>
       </div>
       <main className="flex-1 overflow-hidden">{renderPage()}</main>
+      <ActiveTimer onTaskClick={(taskId) => {
+        const task = useTaskStore.getState().tasks.find(t => t.id === taskId);
+        if (task) handleEditTask(task);
+      }} />
       <UpdateNotification />
       <BottomNav 
         activeItem={
