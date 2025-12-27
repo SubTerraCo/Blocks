@@ -4,7 +4,7 @@
 
 Blocks is a cross-platform time/task management application that uses AI to help schedule tasks and optimize your time. Built with a local-first architecture, your data stays on your device with optional sync capabilities.
 
-**Current Version: 0.0.2** (Pre-release development)
+**Current Version: 0.0.3** (Pre-release development)
 
 ## Features
 
@@ -52,7 +52,7 @@ Following an Anytype-inspired object model:
 | Monorepo | Turborepo + pnpm |
 | Web | Next.js 14 (App Router) |
 | Desktop | Electron + electron-builder |
-| Mobile | React Native (Expo) - Planned |
+| Mobile | React Native (Expo) |
 | Styling | Tailwind CSS |
 | State | Zustand |
 | Local DB | Dexie.js (IndexedDB) |
@@ -70,7 +70,7 @@ blocks/
 ├── apps/
 │   ├── web/           # Next.js PWA
 │   ├── desktop/       # Electron app (Windows, macOS planned)
-│   └── mobile/        # React Native (Expo) - Planned
+│   └── mobile/        # React Native (Expo) Android app
 ├── tests/
 │   ├── e2e/           # End-to-end tests
 │   ├── integration/   # Integration tests
@@ -151,6 +151,52 @@ pnpm test:e2e tests/e2e/kanban.spec.ts
 - Click "Install" to download and apply, or "Later" to dismiss
 - Updates are never forced - you choose when to update
 
+## Mobile App (Android)
+
+### Download APK
+
+**From your web browser (any device):**
+1. Go to [GitHub Releases](https://github.com/poweredupbass/Blocks/releases)
+2. Find the latest Android release (tagged `vX.X.X-android`)
+3. Download `blocks-preview.apk` from the Assets section
+
+**Alternative:** Download from [GitHub Actions artifacts](https://github.com/poweredupbass/Blocks/actions/workflows/build-android.yml) for the latest dev builds.
+
+### Install on Android
+
+1. Transfer the APK to your Android device (or download directly on device)
+2. Go to **Settings > Security** and enable **"Install from unknown sources"**
+3. Open the APK file to install
+4. Launch Blocks from your app drawer
+
+### Building Locally
+
+```bash
+# Navigate to mobile app
+cd apps/mobile
+
+# Install Expo CLI & EAS CLI
+npm install -g expo-cli eas-cli
+
+# Login to Expo
+eas login
+
+# Build APK locally
+eas build --platform android --profile preview --local
+
+# Or trigger cloud build
+eas build --platform android --profile preview
+```
+
+### CI/CD Setup (for maintainers)
+
+To enable automatic Android builds, add the `EXPO_TOKEN` secret to your GitHub repository:
+
+1. Create an Expo account at [expo.dev](https://expo.dev)
+2. Generate an access token at [expo.dev/settings/access-tokens](https://expo.dev/settings/access-tokens)
+3. Add the token as a GitHub secret named `EXPO_TOKEN`
+4. The `build-android.yml` workflow will automatically build APKs on push to main/master
+
 ## Environment Variables
 
 ### Web App (`apps/web/.env.local`)
@@ -180,6 +226,9 @@ pnpm dev --filter web
 # Desktop app (development mode)
 pnpm --filter desktop dev
 
+# Mobile app (Expo development)
+cd apps/mobile && npx expo start
+
 # Build desktop for Windows
 pnpm --filter desktop build:win
 ```
@@ -205,8 +254,9 @@ We use semantic versioning:
 
 ### Phase 2 - Sync & Mobile
 - [ ] Local-first P2P sync (Yjs/WebRTC)
-- [ ] React Native mobile app
-- [ ] iOS/Android builds
+- [x] React Native mobile app (Expo)
+- [x] Android APK builds via GitHub Actions
+- [ ] iOS builds (planned)
 - [ ] Cross-device sync
 
 ### Phase 3 - Integrations
