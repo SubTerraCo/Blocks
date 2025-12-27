@@ -32,6 +32,11 @@ const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 // Auto-Updater Configuration
 // =============================================================================
 
+// Store for tracking update check timing
+const UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+let lastUpdateCheck: number = 0;
+let availableUpdateVersion: string | null = null;
+
 // Check internet connectivity
 async function isOnline(): Promise<boolean> {
   try {
@@ -42,12 +47,27 @@ async function isOnline(): Promise<boolean> {
   }
 }
 
-// Check for updates only when online
-async function checkForUpdatesIfOnline() {
+// Check if we should check for updates (24h cooldown)
+function shouldCheckForUpdates(): boolean {
+  const now = Date.now();
+  if (now - lastUpdateCheck > UPDATE_CHECK_INTERVAL) {
+    return true;
+  }
+  return false;
+}
+
+// Check for updates only when online and cooldown passed
+async function checkForUpdatesIfOnline(force: boolean = false) {
+  if (!force && !shouldCheckForUpdates()) {
+    log.info("Update check skipped - checked within last 24 hours");
+    return;
+  }
+  
   const online = await isOnline();
   if (online) {
     log.info("Internet connected - checking for updates...");
-    autoUpdater.checkForUpdatesAndNotify();
+    lastUpdateCheck = Date.now();
+    autoUpdater.checkForUpdates();
   } else {
     log.info("No internet connection - skipping update check");
     sendUpdateStatus("offline");
@@ -60,9 +80,9 @@ function setupAutoUpdater() {
     return;
   }
 
-  // Configure auto-updater
-  autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  // Configure auto-updater - USER CHOICE, no auto-download
+  autoUpdater.autoDownload = false;  // User must choose to download
+  autoUpdater.autoInstallOnAppQuit = false;  // User must choose to install
   
   // Set update feed URL to GitHub releases
   autoUpdater.setFeedURL({
@@ -71,15 +91,12 @@ function setupAutoUpdater() {
     repo: "Blocks",
   });
 
-  // Check for updates on startup (after a short delay to let app initialize)
+  // Check for updates on startup (after a short delay)
   setTimeout(() => {
     checkForUpdatesIfOnline();
   }, 5000);
 
-  // Check for updates every hour (only when online)
-  setInterval(() => {
-    checkForUpdatesIfOnline();
-  }, 60 * 60 * 1000);
+  // NO hourly checks - only on startup or manual trigger
 
   // Update events
   autoUpdater.on("checking-for-update", () => {
@@ -89,20 +106,18 @@ function setupAutoUpdater() {
 
   autoUpdater.on("update-available", (info) => {
     log.info("Update available:", info.version);
-    sendUpdateStatus("available", info);
-    
-    dialog.showMessageBox(mainWindow!, {
-      type: "info",
-      title: "Update Available",
-      message: `A new version (${info.version}) is available!`,
-      detail: "Downloading now. You'll be notified when it's ready to install.",
-      buttons: ["OK"],
+    availableUpdateVersion = info.version;
+    // Send to renderer for in-app notification (no dialog popup)
+    sendUpdateStatus("available", {
+      version: info.version,
+      releaseDate: info.releaseDate,
+      releaseNotes: info.releaseNotes,
     });
   });
 
   autoUpdater.on("update-not-available", (info) => {
-    log.info("Update not available:", info.version);
-    sendUpdateStatus("not-available", info);
+    log.info("App is up to date:", info.version);
+    sendUpdateStatus("not-available", { version: info.version });
   });
 
   autoUpdater.on("error", (err) => {
@@ -123,23 +138,8 @@ function setupAutoUpdater() {
   autoUpdater.on("update-downloaded", (info) => {
     log.info("Update downloaded:", info.version);
     updateDownloaded = true;
-    sendUpdateStatus("downloaded", info);
-    
-    dialog
-      .showMessageBox(mainWindow!, {
-        type: "info",
-        title: "Update Ready",
-        message: `Version ${info.version} has been downloaded.`,
-        detail: "Would you like to restart now to apply the update?",
-        buttons: ["Restart Now", "Later"],
-        defaultId: 0,
-        cancelId: 1,
-      })
-      .then((result) => {
-        if (result.response === 0) {
-          autoUpdater.quitAndInstall(false, true);
-        }
-      });
+    // Notify renderer - user can install when ready
+    sendUpdateStatus("downloaded", { version: info.version });
   });
 }
 
@@ -256,7 +256,8 @@ function createTray() {
           return;
         }
         
-        autoUpdater.checkForUpdatesAndNotify();
+        // Force check bypasses 24h cooldown
+        checkForUpdatesIfOnline(true);
       },
     },
     { type: "separator" },
@@ -345,6 +346,23 @@ function setupIpcHandlers() {
     return await isOnline();
   });
 
+  // Download the update (user-initiated)
+  ipcMain.handle("app:downloadUpdate", async () => {
+    if (availableUpdateVersion) {
+      log.info("User initiated download for version:", availableUpdateVersion);
+      await autoUpdater.downloadUpdate();
+      return { success: true };
+    }
+    return { success: false, message: "No update available to download" };
+  });
+
+  // Dismiss the update notification (user chose "Later")
+  ipcMain.handle("app:dismissUpdate", () => {
+    availableUpdateVersion = null;
+    sendUpdateStatus("dismissed");
+    return { success: true };
+  });
+
   ipcMain.handle("app:installUpdate", () => {
     if (updateDownloaded) {
       autoUpdater.quitAndInstall(false, true);
@@ -352,7 +370,17 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle("app:getUpdateStatus", () => {
-    return { updateDownloaded };
+    return { 
+      updateDownloaded,
+      availableVersion: availableUpdateVersion,
+      currentVersion: app.getVersion(),
+    };
+  });
+
+  // Force check for updates (bypasses 24h cooldown)
+  ipcMain.handle("app:forceCheckUpdates", async () => {
+    await checkForUpdatesIfOnline(true);
+    return { success: true };
   });
 }
 

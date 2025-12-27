@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { UpdateNotification } from "./components/UpdateNotification";
 import { 
   useTaskStore, 
   useQuickBlocksStore,
@@ -1050,6 +1051,7 @@ export default function App() {
       <TitleBar />
       <TopBar title={getPageTitle()} showBackButton={currentPage === "add-task" || currentPage === "edit-task"} onBackPress={handleBack} />
       <main className="flex-1 overflow-hidden">{renderPage()}</main>
+      <UpdateNotification />
       <BottomNav activeItem={currentPage === "ai" ? "search" : currentPage === "add-task" || currentPage === "edit-task" ? "add" : currentPage as "kanban" | "timeline" | "blocks"} onItemPress={handleNavigation} />
     </div>
   );

@@ -5,7 +5,7 @@ All notable changes to the Blocks project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2024-12-27
+## [0.0.2] - 2024-12-27
 
 ### Added
 - **Desktop App Installer**: Full NSIS installer with Install/Uninstall/Modify support
@@ -60,8 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.2.0 | 2024-12-27 | Desktop installer, auto-updater, Blocks page overhaul |
-| 0.1.0 | 2024-12-26 | Initial release |
+| 0.0.2 | 2024-12-27 | Desktop installer, optional auto-updater, Blocks page overhaul |
+| 0.0.1 | 2024-12-26 | Initial development release |
+
+**Note:** We're using 0.0.x versioning during active development. Version 0.1.0 will be the first MVP release.
 
 ---
 
