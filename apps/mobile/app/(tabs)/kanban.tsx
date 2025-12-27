@@ -1,9 +1,11 @@
 // ============================================================================
 // BLOCKS Mobile - Kanban Page
 // Horizontal scrolling kanban board
+// BUG-001 FIX: TopBar with hamburger left, title center, profile right
+// BUG-002 FIX: Proper bottom padding to avoid nav bar overlap
 // ============================================================================
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -18,6 +20,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTaskStore } from "@/hooks/useTaskStore";
 import { TaskCard } from "@/components/TaskCard";
+import { TopBar } from "@/components/TopBar";
 import type { TaskStatus } from "@blocks/core";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -87,15 +90,8 @@ export default function KanbanPage() {
   
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.bgSecondary }]}>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-          Kanban
-        </Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>
-          {tasks.length} tasks
-        </Text>
-      </View>
+      {/* BUG-001 FIX: TopBar with hamburger left, title center, profile right */}
+      <TopBar title="Kanban" subtitle={`${tasks.length} tasks`} />
       
       {/* Kanban columns */}
       <ScrollView
@@ -174,22 +170,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    marginTop: 4,
-  },
   columnsContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 100,
+    paddingBottom: 120, // BUG-002 FIX: Increased for nav bar
     gap: 12,
   },
   column: {

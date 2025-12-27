@@ -106,6 +106,8 @@ export default function AddTaskModal() {
         subtasks: [],
         reminders: [],
         recurrence: "none",
+        isQuickAdd: false,
+        isPutzing: false,
       });
       
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
   form: {
     padding: 16,
     gap: 20,
-    paddingBottom: 100,
+    paddingBottom: 120, // BUG-002 FIX: Bottom padding for nav bar
   },
   field: {
     gap: 8,

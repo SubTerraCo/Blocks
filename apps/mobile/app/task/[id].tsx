@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     gap: 16,
-    paddingBottom: 100,
+    paddingBottom: 120, // BUG-002 FIX: Bottom padding for nav bar
   },
   field: {
     gap: 8,

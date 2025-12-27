@@ -1,6 +1,7 @@
 // ============================================================================
 // BLOCKS Mobile - AI Assistant Page
 // Chat with AI for task scheduling assistance
+// BUG-001 FIX: TopBar with hamburger left, title center, profile right
 // ============================================================================
 
 import { useState, useRef, useCallback } from "react";
@@ -17,6 +18,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { TopBar } from "@/components/TopBar";
 
 // Colors
 const COLORS = {
@@ -105,15 +107,8 @@ export default function AIPage() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={100}
     >
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.bgSecondary }]}>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-          AI Assistant
-        </Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>
-          Ask me about your tasks
-        </Text>
-      </View>
+      {/* BUG-001 FIX: TopBar with hamburger left, title center, profile right */}
+      <TopBar title="AI Assistant" subtitle="Ask me about your tasks" />
       
       {/* Messages */}
       <ScrollView
@@ -223,19 +218,6 @@ export default function AIPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    marginTop: 4,
   },
   messagesContainer: {
     flex: 1,

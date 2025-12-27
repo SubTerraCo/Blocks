@@ -1,6 +1,7 @@
 // ============================================================================
 // BLOCKS Mobile - Quick Add Blocks Page
 // Tap to instantly add tasks to timeline
+// BUG-001 FIX: TopBar with hamburger left, title center, profile right
 // ============================================================================
 
 import { useState, useCallback } from "react";
@@ -18,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useQuickBlocksStore } from "@/hooks/useQuickBlocksStore";
 import { useTaskStore } from "@/hooks/useTaskStore";
+import { TopBar } from "@/components/TopBar";
 
 // Colors
 const COLORS = {
@@ -102,20 +104,8 @@ export default function BlocksPage() {
   
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.bgSecondary }]}>
-        <View style={styles.headerRow}>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            Blocks
-          </Text>
-          <Pressable style={styles.editButton}>
-            <Ionicons name="create-outline" size={20} color={colors.textMuted} />
-          </Pressable>
-        </View>
-        <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>
-          Tap to add to timeline
-        </Text>
-      </View>
+      {/* BUG-001 FIX: TopBar with hamburger left, title center, profile right */}
+      <TopBar title="Blocks" subtitle="Tap to add to timeline" />
       
       {/* Stats */}
       {totalBlocks > 0 && (
@@ -230,27 +220,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    marginTop: 4,
-  },
-  editButton: {
-    padding: 8,
-  },
   statsRow: {
     flexDirection: "row",
     paddingHorizontal: 20,
@@ -276,6 +245,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     padding: 16,
+    paddingBottom: 120, // BUG-002 FIX: Bottom padding for nav bar
     gap: 12,
   },
   blockTile: {

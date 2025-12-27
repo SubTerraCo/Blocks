@@ -1,6 +1,7 @@
 // ============================================================================
 // BLOCKS Mobile - Timeline Page
 // Daily schedule view with time blocks
+// BUG-003 FIX: HOUR_HEIGHT increased to 120px for proper block sizing
 // ============================================================================
 
 import { useState, useEffect, useRef } from "react";
@@ -17,6 +18,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTaskStore } from "@/hooks/useTaskStore";
 import { TimeBlock } from "@/components/TimeBlock";
+import { TopBar } from "@/components/TopBar";
 
 // Colors
 const COLORS = {
@@ -59,7 +61,8 @@ function generateTimeSlots() {
 }
 
 const TIME_SLOTS = generateTimeSlots();
-const HOUR_HEIGHT = 60; // Height of each hour slot in pixels
+// BUG-003 FIX: Increased from 60 to 120 for proper block sizing
+const HOUR_HEIGHT = 120; // Height of each hour slot in pixels
 
 export default function TimelinePage() {
   const colorScheme = useColorScheme();
@@ -115,21 +118,17 @@ export default function TimelinePage() {
   const currentMinutes = currentTime.getMinutes();
   const timeIndicatorTop = currentHour * HOUR_HEIGHT + (currentMinutes / 60) * HOUR_HEIGHT;
   
+  // Format date for subtitle
+  const dateString = today.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+  
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.bgSecondary }]}>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-          Timeline
-        </Text>
-        <Text style={[styles.headerDate, { color: colors.textMuted }]}>
-          {today.toLocaleDateString("en-US", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
-        </Text>
-      </View>
+      {/* BUG-001 FIX: TopBar with hamburger left, title center, profile right */}
+      <TopBar title="Timeline" subtitle={dateString} />
       
       {/* Timeline */}
       <ScrollView
@@ -213,8 +212,8 @@ export default function TimelinePage() {
           </View>
         </View>
         
-        {/* Bottom padding */}
-        <View style={{ height: 100 }} />
+        {/* BUG-002 FIX: Bottom padding to avoid nav bar overlap */}
+        <View style={{ height: 120 }} />
       </ScrollView>
       
       {/* Empty state */}
@@ -236,19 +235,6 @@ export default function TimelinePage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-  },
-  headerDate: {
-    fontSize: 14,
-    marginTop: 4,
   },
   scrollView: {
     flex: 1,
