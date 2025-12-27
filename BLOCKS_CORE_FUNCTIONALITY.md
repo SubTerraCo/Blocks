@@ -1,4 +1,4 @@
-# Blocks Core Functionality Specification
+# Blocks Core Functionality Specification v0.0.2
 
 > **Version:** 0.0.2  
 > **Last Updated:** 2024-12-27  
