@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   checkForUpdates: () => ipcRenderer.invoke("app:checkForUpdates"),
   installUpdate: () => ipcRenderer.invoke("app:installUpdate"),
   getUpdateStatus: () => ipcRenderer.invoke("app:getUpdateStatus"),
+  isOnline: () => ipcRenderer.invoke("app:isOnline"),
   
   // Update events listener
   onUpdateStatus: (callback: (status: UpdateStatusEvent) => void) => {
@@ -40,7 +41,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
 // Type definitions for renderer
 export interface UpdateStatusEvent {
-  status: "checking" | "available" | "not-available" | "downloading" | "downloaded" | "error";
+  status: "checking" | "available" | "not-available" | "downloading" | "downloaded" | "error" | "offline";
   data?: {
     version?: string;
     percent?: number;
@@ -54,8 +55,10 @@ export interface UpdateStatusEvent {
 export interface UpdateCheckResult {
   available: boolean;
   version?: string;
+  currentVersion?: string;
   message?: string;
   error?: string;
+  online: boolean;
 }
 
 export interface ElectronAPI {
@@ -73,6 +76,7 @@ export interface ElectronAPI {
   checkForUpdates: () => Promise<UpdateCheckResult>;
   installUpdate: () => Promise<void>;
   getUpdateStatus: () => Promise<{ updateDownloaded: boolean }>;
+  isOnline: () => Promise<boolean>;
   onUpdateStatus: (callback: (status: UpdateStatusEvent) => void) => () => void;
   
   // Navigation

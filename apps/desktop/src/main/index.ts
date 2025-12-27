@@ -31,6 +31,29 @@ const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 // =============================================================================
 // Auto-Updater Configuration
 // =============================================================================
+
+// Check internet connectivity
+async function isOnline(): Promise<boolean> {
+  try {
+    const { net } = await import("electron");
+    return net.isOnline();
+  } catch {
+    return false;
+  }
+}
+
+// Check for updates only when online
+async function checkForUpdatesIfOnline() {
+  const online = await isOnline();
+  if (online) {
+    log.info("Internet connected - checking for updates...");
+    autoUpdater.checkForUpdatesAndNotify();
+  } else {
+    log.info("No internet connection - skipping update check");
+    sendUpdateStatus("offline");
+  }
+}
+
 function setupAutoUpdater() {
   if (isDev) {
     log.info("Running in development mode - auto-updater disabled");
@@ -40,13 +63,22 @@ function setupAutoUpdater() {
   // Configure auto-updater
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
+  
+  // Set update feed URL to GitHub releases
+  autoUpdater.setFeedURL({
+    provider: "github",
+    owner: "poweredupbass",
+    repo: "Blocks",
+  });
 
-  // Check for updates on startup
-  autoUpdater.checkForUpdatesAndNotify();
+  // Check for updates on startup (after a short delay to let app initialize)
+  setTimeout(() => {
+    checkForUpdatesIfOnline();
+  }, 5000);
 
-  // Check for updates every hour
+  // Check for updates every hour (only when online)
   setInterval(() => {
-    autoUpdater.checkForUpdatesAndNotify();
+    checkForUpdatesIfOnline();
   }, 60 * 60 * 1000);
 
   // Update events
@@ -204,16 +236,27 @@ function createTray() {
     { type: "separator" },
     {
       label: "Check for Updates",
-      click: () => {
-        if (!isDev) {
-          autoUpdater.checkForUpdatesAndNotify();
-        } else {
+      click: async () => {
+        if (isDev) {
           dialog.showMessageBox({
             type: "info",
             title: "Development Mode",
             message: "Auto-updates are disabled in development mode.",
           });
+          return;
         }
+        
+        const online = await isOnline();
+        if (!online) {
+          dialog.showMessageBox({
+            type: "warning",
+            title: "No Internet Connection",
+            message: "Please connect to the internet to check for updates.",
+          });
+          return;
+        }
+        
+        autoUpdater.checkForUpdatesAndNotify();
       },
     },
     { type: "separator" },
@@ -275,17 +318,31 @@ function setupIpcHandlers() {
   // Update controls
   ipcMain.handle("app:checkForUpdates", async () => {
     if (isDev) {
-      return { available: false, message: "Updates disabled in dev mode" };
+      return { available: false, message: "Updates disabled in dev mode", online: true };
     }
+    
+    // Check internet connectivity first
+    const online = await isOnline();
+    if (!online) {
+      return { available: false, message: "No internet connection", online: false };
+    }
+    
     try {
       const result = await autoUpdater.checkForUpdates();
       return { 
         available: result?.updateInfo?.version !== app.getVersion(),
-        version: result?.updateInfo?.version 
+        version: result?.updateInfo?.version,
+        currentVersion: app.getVersion(),
+        online: true
       };
     } catch (error) {
-      return { available: false, error: (error as Error).message };
+      return { available: false, error: (error as Error).message, online: true };
     }
+  });
+  
+  // Check if online
+  ipcMain.handle("app:isOnline", async () => {
+    return await isOnline();
   });
 
   ipcMain.handle("app:installUpdate", () => {
