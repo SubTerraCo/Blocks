@@ -884,12 +884,154 @@ Before any release, verify:
 
 ---
 
+## v0.0.3 Bug Fixes & Changes
+
+### Critical Bug Fixes
+
+#### BUG-001: Top Bar Design Revert
+**Priority:** P0  
+**Status:** 🔄 In Progress  
+**Affected:** Desktop, Mobile, PWA
+
+**Issue:** Current top bar design doesn't match Figma design language.
+
+**Required Design (from `Blocks Figma GUI 0.0.1 2025-12-14 224125.png`):**
+```
+┌─────────────────────────────────────┐
+│  ☰    │      Page Title      │  👤  │
+│ Menu  │      (centered)      │ Prof │
+└─────────────────────────────────────┘
+```
+
+**Changes Required:**
+- [ ] Hamburger menu (☰) on far LEFT → Opens Settings
+- [ ] Page title centered in middle
+- [ ] Profile icon (circle) on far RIGHT → Opens Profile
+- [ ] Remove current Settings/Profile buttons from right side
+- [ ] Apply consistently across ALL pages
+
+**Files to Update:**
+- `apps/desktop/src/renderer/App.tsx` - TitleBar + TopBar components
+- `apps/web/src/components/app-shell.tsx`
+- `apps/mobile/app/_layout.tsx`
+
+---
+
+#### BUG-002: Bottom Nav Bar Covering Content
+**Priority:** P0  
+**Status:** 🔄 In Progress  
+**Affected:** Desktop, Mobile, PWA
+
+**Issue:** Bottom navigation bar overlaps and covers important UI elements:
+- Kanban "Add Task" buttons at bottom of columns
+- Save/Cancel buttons on Task Edit pages
+- Any footer content on other pages
+
+**Root Cause:** Main content area not properly accounting for fixed nav bar height.
+
+**Required Fix:**
+```css
+/* Nav bar should be FIXED at bottom */
+nav.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  height: 64px; /* or defined height */
+  z-index: 30;
+}
+
+/* Main content should have bottom padding */
+main.content-area {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom) + 16px);
+  /* nav height + safe area + buffer */
+}
+```
+
+**Specific Fixes:**
+- [ ] Kanban page: Add Task buttons must be ABOVE nav bar
+- [ ] Task Edit page: Save/Cancel buttons must be ABOVE nav bar
+- [ ] Timeline page: Content scrolls with nav visible
+- [ ] Blocks page: All tiles visible above nav
+- [ ] All pages: Add `pb-24` or similar bottom padding to main content
+
+**Files to Update:**
+- `apps/desktop/src/renderer/App.tsx` - main container padding
+- `apps/desktop/src/renderer/components/TaskEditPage.tsx` - button positioning
+- `packages/ui/src/components/bottom-nav.tsx` - ensure fixed positioning
+- All page components need bottom padding
+
+---
+
+#### BUG-003: Timeline Blocks Not Filling Duration
+**Priority:** P1  
+**Status:** 🔄 In Progress  
+**Affected:** Desktop, Mobile, PWA
+
+**Issue:** Task blocks on Timeline don't visually fill their full scheduled duration.
+
+**Current Behavior:** Blocks have fixed small height regardless of duration.
+
+**Required Behavior (from `Blocks Timeline page GUI.png`):**
+- Each task block should fill the ENTIRE vertical space of its duration
+- Block height = (task_duration_minutes / 60) * hour_slot_height
+- Block should use task's assigned color as background
+- Green "current time" line shows real-time position
+
+**Visual Reference:**
+```
+2:00p ─────────────────────────
+      ┌─────────────────────┐
+      │ Laundry             │  ← Purple block
+      │ Home | 1 | 10       │     10 min = small height
+      └─────────────────────┘
+2:10p ─────────────────────────
+      ┌─────────────────────┐
+      │ Saxophone Practice  │  ← Magenta block
+      │ Home | 2 | 50       │     50 min = LARGE height
+      │                     │     fills 2:10 to 3:00
+      │   [current time]────│──── Green line at 2:30
+      │                     │
+      └─────────────────────┘
+3:00p ─────────────────────────
+      ┌─────────────────────┐
+      │ Nap                 │  ← Teal block
+      │ Home | 2 | ∞        │
+      └─────────────────────┘
+```
+
+**Calculation:**
+```typescript
+const hourHeight = 80; // pixels per hour slot
+const blockHeight = (durationMinutes / 60) * hourHeight;
+const topOffset = (startMinute / 60) * hourHeight;
+```
+
+**Files to Update:**
+- `apps/desktop/src/renderer/App.tsx` - TimelinePage component
+- `packages/ui/src/components/timeline-block.tsx`
+- `apps/web/src/app/timeline/page.tsx`
+
+---
+
+### Design Language Reference
+
+**Source of Truth:** `Docs/Blocks Figma GUI 0.0.1 2025-12-14 224125.png`
+
+All future GUI decisions should reference this Figma export for:
+- Color palette
+- Component styling
+- Layout structure
+- Icon usage
+- Typography
+- Spacing
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 0.0.3 | 2024-12-27 | All 19 Phase 2 features implemented |
-| 0.0.2 | 2024-12-27 | Initial core functionality document |
+| 0.0.3 | 2024-12-27 | Bug fixes: Top bar, Nav overlap, Timeline blocks |
+| 0.0.2 | 2024-12-27 | All 19 Phase 2 features implemented |
 | 0.0.1 | 2024-12-26 | Project initialization |
 
 ---

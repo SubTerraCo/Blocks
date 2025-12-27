@@ -1,6 +1,7 @@
 # Blocks Phase 2 Build Plan
 
-> **Reference:** [BLOCKS_CORE_FUNCTIONALITY.md](BLOCKS_CORE_FUNCTIONALITY.md)  
+> **Reference:** [BLOCKS_CORE_FUNCTIONALITY v0.0.3.md](BLOCKS_CORE_FUNCTIONALITY%20v0.0.3.md)  
+> **Current Version:** 0.0.3 (Bug Fix Release)  
 > **Target Version:** 0.1.0 (MVP Release)  
 > **Primary Platform:** Win11 Desktop App
 
@@ -13,9 +14,66 @@ All features built in this order:
 2. **Android App** → Test → Commit  
 3. **PWA Web** → Test → Commit
 
+**Design Reference:** `Docs/Blocks Figma GUI 0.0.1 2025-12-14 224125.png`
+
 ---
 
 ## Phase 2 Sprints
+
+### Sprint 0: v0.0.3 Critical Bug Fixes (CURRENT)
+
+**Goal:** Fix foundational UI/UX issues before continuing feature development
+
+| Task | Priority | Est. Hours | Dependencies |
+|------|----------|------------|--------------|
+| 0.1 Top Bar Revert to Figma Design | P0 | 4h | None |
+| 0.2 Fix Nav Bar Covering Content | P0 | 4h | None |
+| 0.3 Timeline Blocks Fill Duration | P1 | 6h | None |
+
+**Bug Details:**
+
+#### 0.1 Top Bar Revert (BUG-001)
+Current: Settings + Profile buttons on right side
+Required: 
+- Hamburger menu (☰) on LEFT → Opens Settings sheet
+- Page title CENTERED
+- Profile icon on RIGHT → Opens Profile sheet
+
+**Files:** 
+- `apps/desktop/src/renderer/App.tsx`
+- `apps/web/src/components/app-shell.tsx`
+
+#### 0.2 Nav Bar Overlap Fix (BUG-002)
+Issue: Nav bar covers Kanban "Add Task" buttons, Save/Cancel on edit pages
+Fix: Add proper bottom padding to main content area (pb-24 minimum)
+
+**Files:**
+- `apps/desktop/src/renderer/App.tsx`
+- `apps/desktop/src/renderer/components/TaskEditPage.tsx`
+- `packages/ui/src/components/bottom-nav.tsx`
+
+#### 0.3 Timeline Block Height (BUG-003)
+Issue: Task blocks don't visually fill their duration
+Fix: Block height = (duration_minutes / 60) * hour_slot_height
+
+**Reference:** `Docs/Blocks Timeline page GUI.png`
+
+**Files:**
+- `apps/desktop/src/renderer/App.tsx` (TimelinePage)
+- `packages/ui/src/components/timeline-block.tsx`
+
+**Deliverables:**
+- [ ] Top bar matches Figma design across all apps
+- [ ] No content hidden behind nav bar
+- [ ] Timeline blocks properly sized to duration
+- [ ] Build and test desktop installer v0.0.3
+
+**Playwright Tests:**
+- `top-bar.spec.ts` (new)
+- `nav-bar-overlap.spec.ts` (new)
+- `timeline-blocks.spec.ts` (update existing)
+
+---
 
 ### Sprint 1: Foundation (Week 1-2)
 
