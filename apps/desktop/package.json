@@ -1,21 +1,31 @@
 {
   "name": "blocks-desktop",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Blocks - Time Management Desktop App",
   "main": "dist/main/index.js",
   "author": "Blocks Team",
   "license": "MIT",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/poweredupbass/Blocks.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder --dir",
     "build:win": "tsc && vite build && electron-builder --win",
+    "build:mac": "tsc && vite build && electron-builder --mac",
+    "build:linux": "tsc && vite build && electron-builder --linux",
+    "build:all": "tsc && vite build && electron-builder -mwl",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release": "electron-builder --publish always"
   },
   "dependencies": {
     "@blocks/core": "workspace:*",
     "@blocks/ui": "workspace:*",
+    "electron-updater": "^6.1.7",
+    "electron-log": "^5.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zustand": "^4.4.0",
@@ -37,31 +47,6 @@
     "vite-plugin-electron-renderer": "^0.14.5"
   },
   "build": {
-    "appId": "com.blocks.app",
-    "productName": "Blocks",
-    "directories": {
-      "output": "release",
-      "buildResources": "resources"
-    },
-    "files": [
-      "dist/**/*",
-      "resources/**/*"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        }
-      ],
-      "icon": "resources/icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    }
+    "extends": "electron-builder.yml"
   }
 }
-

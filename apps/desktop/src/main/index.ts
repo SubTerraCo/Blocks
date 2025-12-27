@@ -1,5 +1,12 @@
-import { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage } from "electron";
+import { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, dialog } from "electron";
 import path from "path";
+import log from "electron-log";
+import { autoUpdater } from "electron-updater";
+
+// Configure logging
+log.transports.file.level = "info";
+autoUpdater.logger = log;
+log.info("App starting...");
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // This is only needed for NSIS installer
@@ -16,9 +23,101 @@ try {
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let isAppQuitting = false;
+let updateDownloaded = false;
 
 const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 
+// =============================================================================
+// Auto-Updater Configuration
+// =============================================================================
+function setupAutoUpdater() {
+  if (isDev) {
+    log.info("Running in development mode - auto-updater disabled");
+    return;
+  }
+
+  // Configure auto-updater
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  // Check for updates on startup
+  autoUpdater.checkForUpdatesAndNotify();
+
+  // Check for updates every hour
+  setInterval(() => {
+    autoUpdater.checkForUpdatesAndNotify();
+  }, 60 * 60 * 1000);
+
+  // Update events
+  autoUpdater.on("checking-for-update", () => {
+    log.info("Checking for updates...");
+    sendUpdateStatus("checking");
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    log.info("Update available:", info.version);
+    sendUpdateStatus("available", info);
+    
+    dialog.showMessageBox(mainWindow!, {
+      type: "info",
+      title: "Update Available",
+      message: `A new version (${info.version}) is available!`,
+      detail: "Downloading now. You'll be notified when it's ready to install.",
+      buttons: ["OK"],
+    });
+  });
+
+  autoUpdater.on("update-not-available", (info) => {
+    log.info("Update not available:", info.version);
+    sendUpdateStatus("not-available", info);
+  });
+
+  autoUpdater.on("error", (err) => {
+    log.error("Update error:", err);
+    sendUpdateStatus("error", { message: err.message });
+  });
+
+  autoUpdater.on("download-progress", (progressObj) => {
+    log.info(`Download progress: ${progressObj.percent.toFixed(1)}%`);
+    sendUpdateStatus("downloading", {
+      percent: progressObj.percent,
+      bytesPerSecond: progressObj.bytesPerSecond,
+      transferred: progressObj.transferred,
+      total: progressObj.total,
+    });
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    log.info("Update downloaded:", info.version);
+    updateDownloaded = true;
+    sendUpdateStatus("downloaded", info);
+    
+    dialog
+      .showMessageBox(mainWindow!, {
+        type: "info",
+        title: "Update Ready",
+        message: `Version ${info.version} has been downloaded.`,
+        detail: "Would you like to restart now to apply the update?",
+        buttons: ["Restart Now", "Later"],
+        defaultId: 0,
+        cancelId: 1,
+      })
+      .then((result) => {
+        if (result.response === 0) {
+          autoUpdater.quitAndInstall(false, true);
+        }
+      });
+  });
+}
+
+function sendUpdateStatus(status: string, data?: unknown) {
+  mainWindow?.webContents.send("update-status", { status, data });
+}
+
+// =============================================================================
+// Window Creation
+// =============================================================================
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -68,6 +167,9 @@ function createWindow() {
   });
 }
 
+// =============================================================================
+// System Tray
+// =============================================================================
 function createTray() {
   // Create a simple tray icon (you can replace with actual icon)
   const iconPath = path.join(__dirname, "../../resources/icon.png");
@@ -101,6 +203,25 @@ function createTray() {
     },
     { type: "separator" },
     {
+      label: "Check for Updates",
+      click: () => {
+        if (!isDev) {
+          autoUpdater.checkForUpdatesAndNotify();
+        } else {
+          dialog.showMessageBox({
+            type: "info",
+            title: "Development Mode",
+            message: "Auto-updates are disabled in development mode.",
+          });
+        }
+      },
+    },
+    { type: "separator" },
+    {
+      label: `Version ${app.getVersion()}`,
+      enabled: false,
+    },
+    {
       label: "Quit",
       click: () => {
         isAppQuitting = true;
@@ -109,7 +230,7 @@ function createTray() {
     },
   ]);
 
-  tray.setToolTip("Blocks - Time Management");
+  tray.setToolTip(`Blocks v${app.getVersion()}`);
   tray.setContextMenu(contextMenu);
 
   tray.on("click", () => {
@@ -117,7 +238,9 @@ function createTray() {
   });
 }
 
+// =============================================================================
 // IPC Handlers
+// =============================================================================
 function setupIpcHandlers() {
   // Window controls
   ipcMain.handle("window:minimize", () => {
@@ -148,13 +271,44 @@ function setupIpcHandlers() {
   ipcMain.handle("app:getPlatform", () => {
     return process.platform;
   });
+
+  // Update controls
+  ipcMain.handle("app:checkForUpdates", async () => {
+    if (isDev) {
+      return { available: false, message: "Updates disabled in dev mode" };
+    }
+    try {
+      const result = await autoUpdater.checkForUpdates();
+      return { 
+        available: result?.updateInfo?.version !== app.getVersion(),
+        version: result?.updateInfo?.version 
+      };
+    } catch (error) {
+      return { available: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle("app:installUpdate", () => {
+    if (updateDownloaded) {
+      autoUpdater.quitAndInstall(false, true);
+    }
+  });
+
+  ipcMain.handle("app:getUpdateStatus", () => {
+    return { updateDownloaded };
+  });
 }
 
-// App lifecycle
+// =============================================================================
+// App Lifecycle
+// =============================================================================
 app.whenReady().then(() => {
+  log.info(`Blocks v${app.getVersion()} starting...`);
+  
   setupIpcHandlers();
   createWindow();
   createTray();
+  setupAutoUpdater();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -173,6 +327,15 @@ app.on("before-quit", () => {
   isAppQuitting = true;
 });
 
-// App quitting state
-let isAppQuitting = false;
-
+// Handle second instance - focus existing window
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
