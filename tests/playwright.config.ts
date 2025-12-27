@@ -46,7 +46,7 @@ export default defineConfig({
   // Shared settings for all projects
   use: {
     // Base URL for navigation
-    baseURL: "http://localhost:3000",
+    baseURL: "http://localhost:3002",
 
     // Collect trace on first retry
     trace: "on-first-retry",
@@ -97,14 +97,14 @@ export default defineConfig({
     },
   ],
 
-  // Web server configuration
-  webServer: {
-    command: "pnpm dev --filter web",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-    cwd: "..",
-  },
+  // Web server configuration - disabled when server already running
+  // webServer: {
+  //   command: "pnpm dev --filter web",
+  //   url: "http://localhost:3002",
+  //   reuseExistingServer: true,
+  //   timeout: 120000,
+  //   cwd: "..",
+  // },
 
   // Output directory for test artifacts
   outputDir: "../test-results",

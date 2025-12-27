@@ -17,9 +17,8 @@ test.describe("Create Task", () => {
   });
 
   test("should have task name input", async ({ page }) => {
-    const nameInput = page.getByPlaceholder(/name|what|task/i).or(
-      page.locator('input[type="text"]').first()
-    );
+    // Use the label to find the specific task name input
+    const nameInput = page.getByLabel(/task name/i);
     await expect(nameInput).toBeVisible();
   });
 
@@ -46,22 +45,21 @@ test.describe("Create Task", () => {
   });
 
   test("should have submit and cancel buttons", async ({ page }) => {
-    const submitButton = page.getByRole("button", { name: /add|create|save/i });
-    const cancelButton = page.getByRole("button", { name: /cancel|back/i });
+    // Use exact name for Create Task button to avoid matching nav Add button
+    const submitButton = page.getByRole("button", { name: "Create Task" });
+    const cancelButton = page.getByRole("button", { name: /cancel/i });
     
     await expect(submitButton).toBeVisible();
     await expect(cancelButton).toBeVisible();
   });
 
   test("should create task and navigate away", async ({ page }) => {
-    // Fill in task name
-    const nameInput = page.getByPlaceholder(/name|what|task/i).or(
-      page.locator('input[type="text"]').first()
-    );
+    // Fill in task name using label
+    const nameInput = page.getByLabel(/task name/i);
     await nameInput.fill("Test Task from Playwright");
     
-    // Submit form
-    const submitButton = page.getByRole("button", { name: /add|create|save/i });
+    // Submit form - use exact name
+    const submitButton = page.getByRole("button", { name: "Create Task" });
     await submitButton.click();
     
     // Should navigate away from add-task page
@@ -69,9 +67,11 @@ test.describe("Create Task", () => {
   });
 
   test("should not submit with empty name", async ({ page }) => {
-    // Try to submit without filling name
-    const submitButton = page.getByRole("button", { name: /add|create|save/i });
-    await submitButton.click();
+    // Try to submit without filling name - use exact name
+    const submitButton = page.getByRole("button", { name: "Create Task" });
+    
+    // Button should be disabled when name is empty
+    await expect(submitButton).toBeDisabled();
     
     // Should still be on add-task page
     await expect(page).toHaveURL("/add-task");
@@ -105,12 +105,13 @@ test.describe("Task Validation", () => {
   });
 
   test("should show required field validation", async ({ page }) => {
-    // Click submit without filling anything
-    const submitButton = page.getByRole("button", { name: /add|create|save/i });
-    await submitButton.click();
+    // Use exact name for Create Task button
+    const submitButton = page.getByRole("button", { name: "Create Task" });
+    
+    // Button should be disabled when form is invalid
+    await expect(submitButton).toBeDisabled();
     
     // Form should not submit - still on same page
     await expect(page).toHaveURL("/add-task");
   });
 });
-

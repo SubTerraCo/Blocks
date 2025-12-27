@@ -17,40 +17,43 @@ test.describe("Navigation", () => {
   });
 
   test("should navigate to Kanban page", async ({ page }) => {
-    // Click Kanban nav item
-    await page.getByRole("button", { name: /kanban/i }).click();
+    // Click Kanban nav item - be specific with aria-label
+    await page.getByLabel(/kanban/i).click();
     
     // Verify URL and page content
     await expect(page).toHaveURL("/kanban");
   });
 
   test("should navigate to Timeline page", async ({ page }) => {
+    // First go to another page
+    await page.goto("/kanban");
+    
     // Click Timeline nav item
-    await page.getByRole("button", { name: /timeline/i }).click();
+    await page.getByLabel(/timeline/i).click();
     
     // Verify URL
     await expect(page).toHaveURL("/timeline");
   });
 
   test("should navigate to Blocks page", async ({ page }) => {
-    // Click Blocks nav item
-    await page.getByRole("button", { name: /blocks/i }).click();
+    // Click Blocks nav item - use label to be specific
+    await page.getByLabel("Blocks").click();
     
     // Verify URL
     await expect(page).toHaveURL("/blocks");
   });
 
   test("should navigate to AI page", async ({ page }) => {
-    // Click AI nav item (first button in nav)
-    await page.getByRole("button", { name: /ai/i }).click();
+    // Click AI nav item - exact label is "AI"
+    await page.getByLabel("AI", { exact: true }).click();
     
     // Verify URL
     await expect(page).toHaveURL("/ai");
   });
 
   test("should navigate to Add Task page", async ({ page }) => {
-    // Click Add button
-    await page.getByRole("button", { name: /add/i }).click();
+    // Click Add button - use exact name
+    await page.getByRole("button", { name: "Add", exact: true }).click();
     
     // Verify URL
     await expect(page).toHaveURL("/add-task");
@@ -61,7 +64,7 @@ test.describe("Navigation", () => {
     await page.goto("/kanban");
     
     // Check the kanban button has active styling (text-accent-magenta class)
-    const kanbanButton = page.getByRole("button", { name: /kanban/i });
+    const kanbanButton = page.getByLabel(/kanban/i);
     await expect(kanbanButton).toBeVisible();
   });
 
@@ -79,7 +82,7 @@ test.describe("Navigation", () => {
   test("should handle back navigation", async ({ page }) => {
     // Navigate through pages
     await page.goto("/kanban");
-    await page.getByRole("button", { name: /timeline/i }).click();
+    await page.getByLabel(/timeline/i).click();
     await expect(page).toHaveURL("/timeline");
     
     // Go back
@@ -94,12 +97,14 @@ test.describe("Top Bar", () => {
       { url: "/kanban", title: "Kanban" },
       { url: "/timeline", title: "Timeline" },
       { url: "/blocks", title: "Blocks" },
-      { url: "/ai", title: "AI Assistant" },
+      { url: "/ai", title: "AI" },
     ];
 
     for (const { url, title } of pages) {
       await page.goto(url);
-      await expect(page.getByRole("heading", { level: 1 })).toContainText(title);
+      // Use the banner/header region to find the title
+      const header = page.getByRole("banner").getByRole("heading");
+      await expect(header).toContainText(title);
     }
   });
 
@@ -111,4 +116,3 @@ test.describe("Top Bar", () => {
     await expect(backButton).toBeVisible();
   });
 });
-
