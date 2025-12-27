@@ -289,7 +289,8 @@ export default function KanbanPage() {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-[calc(100vh-8rem)] gap-4 overflow-x-auto px-4 py-4">
+      {/* Height accounts for: top bar (56px) + nav bar (64px) + padding */}
+      <div className="flex h-[calc(100vh-10rem)] gap-4 overflow-x-auto px-4 py-4 pb-20">
         {KANBAN_COLUMNS.map((column) => (
           <DroppableColumn
             key={column.id}

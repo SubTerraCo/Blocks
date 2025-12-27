@@ -44,7 +44,8 @@ import {
   Plus,
   Pencil,
   Check,
-  Settings,
+  Menu,
+  ChevronLeft,
   User
 } from "lucide-react";
 import {
@@ -348,7 +349,8 @@ function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => voi
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-[calc(100%-1rem)] gap-4 overflow-x-auto p-4 pb-2">
+      {/* h-full with parent pb-20 ensures columns don't go behind nav bar */}
+      <div className="flex h-full gap-4 overflow-x-auto p-4">
         {KANBAN_COLUMNS.map((column) => (
           <DroppableColumn
             key={column.id}
@@ -450,7 +452,7 @@ function DraggableTimelineBlock({
       {...attributes}
       {...listeners}
       style={dragStyle}
-      className="absolute left-0 right-4 group"
+      className="absolute left-0 right-4 group overflow-hidden"
       onClick={(e) => {
         // Only trigger onPress if not dragging
         if (!isDragging) {
@@ -459,10 +461,14 @@ function DraggableTimelineBlock({
         }
       }}
     >
+      {/* TimelineBlock fills full height of container with task color */}
       <TimelineBlock 
         block={block} 
         onPress={() => {}} 
-        className={cn("h-full transition-shadow", isDragging && "shadow-2xl ring-2 ring-accent-magenta")} 
+        className={cn(
+          "h-full w-full transition-shadow overflow-hidden",
+          isDragging && "shadow-2xl ring-2 ring-accent-magenta"
+        )} 
       />
       {/* Timer button overlay */}
       {block.task && (
@@ -648,14 +654,17 @@ function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
             const isCurrentHour = hour === currentHour;
             const blocksInHour = timeBlocks.filter((block) => block.startTime.getHours() === hour);
 
+            // HOUR_HEIGHT in pixels - each hour slot is 120px tall
+            const HOUR_HEIGHT = 120;
+            
             return (
-              <div key={hour} id={`hour-${hour}`} className="relative flex min-h-[80px] border-t border-border-default">
+              <div key={hour} id={`hour-${hour}`} className="relative flex border-t border-border-default" style={{ height: `${HOUR_HEIGHT}px` }}>
                 <div className="w-16 shrink-0 pr-3 pt-2 text-right">
                   <span className={cn("text-sm", isCurrentHour ? "font-semibold text-accent-magenta" : "text-text-tertiary")}>
                     {formatTime(slot)}
                   </span>
                 </div>
-                <div className="relative flex-1 py-2">
+                <div className="relative flex-1">
                   {/* Drop zones for 15-minute increments */}
                   {generateDropZones(hour)}
                   
@@ -667,11 +676,14 @@ function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
                     </div>
                   )}
                   
-                  {/* Time blocks */}
+                  {/* Time blocks - height based on FULL duration, can overflow into next hours */}
                   {blocksInHour.map((block) => {
                     const startMinute = block.startTime.getMinutes();
-                    const durationMinutes = Math.min(60 - startMinute, (block.endTime.getTime() - block.startTime.getTime()) / 60000);
-                    const heightPercent = (durationMinutes / 60) * 100;
+                    // Calculate FULL duration in minutes (don't clip to hour)
+                    const fullDurationMinutes = (block.endTime.getTime() - block.startTime.getTime()) / 60000;
+                    // Height in pixels = (duration / 60 minutes) * HOUR_HEIGHT
+                    const heightPx = (fullDurationMinutes / 60) * HOUR_HEIGHT;
+                    // Top position as percentage of hour
                     const topPercent = (startMinute / 60) * 100;
                     
                     return (
@@ -681,8 +693,8 @@ function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
                         onPress={handleBlockPress}
                         style={{ 
                           top: `${topPercent}%`, 
-                          height: `${Math.max(heightPercent, 30)}%`, 
-                          minHeight: "40px" 
+                          height: `${Math.max(heightPx, 40)}px`,
+                          zIndex: 5, // Ensure blocks appear above hour lines
                         }}
                       />
                     );
@@ -1186,65 +1198,67 @@ export default function App() {
     setCurrentPage("profile");
   }, []);
 
-  const showBackButton = ["add-task", "edit-task", "settings", "profile"].includes(currentPage);
+  // Show back button on sub-pages (edit-task, add-task)
+  const showBackButton = ["add-task", "edit-task"].includes(currentPage);
   
   return (
     <div className="flex flex-col h-screen bg-bg-primary">
       <TitleBar />
-      <div className="flex items-center justify-between border-b border-border-default bg-bg-primary px-4 h-14">
-        {/* Left: Back button or title */}
-        <div className="flex items-center gap-3">
+      {/* ============================================================
+          TOP BAR - Figma Design: [☰ Menu] [Page Title] [Profile 👤]
+          ============================================================ */}
+      <div className="flex items-center justify-between border-b border-border-default bg-bg-primary px-4 h-14 relative">
+        {/* LEFT: Hamburger Menu (Settings) or Back button */}
+        <div className="flex items-center w-12">
           {showBackButton ? (
             <button
               onClick={handleBack}
-              className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
+              className="h-10 w-10 rounded-lg flex items-center justify-center text-text-secondary hover:bg-bg-tertiary hover:text-text-primary transition-colors"
+              aria-label="Back"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span className="text-sm">Back</span>
+              <ChevronLeft className="h-6 w-6" />
             </button>
           ) : (
-            <h1 className="text-lg font-semibold text-text-primary">{getPageTitle()}</h1>
+            <button
+              onClick={handleOpenSettings}
+              className={cn(
+                "h-10 w-10 rounded-lg flex items-center justify-center transition-colors",
+                currentPage === "settings" 
+                  ? "bg-accent-magenta/20 text-accent-magenta" 
+                  : "text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
+              )}
+              aria-label="Settings Menu"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
           )}
         </div>
         
-        {/* Center: Title (when back button shown) */}
-        {showBackButton && (
-          <h1 className="text-lg font-semibold text-text-primary absolute left-1/2 -translate-x-1/2">
-            {getPageTitle()}
-          </h1>
-        )}
+        {/* CENTER: Page Title (always centered) */}
+        <h1 className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold text-text-primary">
+          {getPageTitle()}
+        </h1>
         
-        {/* Right: Profile & Settings buttons */}
-        <div className="flex items-center gap-2">
+        {/* RIGHT: Profile button */}
+        <div className="flex items-center w-12 justify-end">
           <button
             onClick={handleOpenProfile}
             className={cn(
-              "h-9 w-9 rounded-lg flex items-center justify-center transition-colors",
+              "h-10 w-10 rounded-lg flex items-center justify-center transition-colors",
               currentPage === "profile" 
                 ? "bg-accent-magenta/20 text-accent-magenta" 
-                : "text-text-muted hover:bg-bg-tertiary hover:text-text-primary"
+                : "text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
             )}
-            title="Profile"
+            aria-label="Profile"
           >
-            <User className="h-5 w-5" />
-          </button>
-          <button
-            onClick={handleOpenSettings}
-            className={cn(
-              "h-9 w-9 rounded-lg flex items-center justify-center transition-colors",
-              currentPage === "settings" 
-                ? "bg-accent-magenta/20 text-accent-magenta" 
-                : "text-text-muted hover:bg-bg-tertiary hover:text-text-primary"
-            )}
-            title="Settings"
-          >
-            <Settings className="h-5 w-5" />
+            <User className="h-6 w-6" />
           </button>
         </div>
       </div>
-      <main className="flex-1 overflow-hidden">{renderPage()}</main>
+      {/* ============================================================
+          MAIN CONTENT - pb-24 ensures nav bar doesn't cover content
+          ============================================================ */}
+      <main className="flex-1 overflow-hidden pb-20">{renderPage()}</main>
       <ActiveTimer onTaskClick={(taskId) => {
         const task = useTaskStore.getState().tasks.find(t => t.id === taskId);
         if (task) handleEditTask(task);

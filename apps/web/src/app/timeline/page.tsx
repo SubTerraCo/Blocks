@@ -103,7 +103,7 @@ export default function TimelinePage() {
   }
 
   return (
-    <div className="relative px-4 py-6">
+    <div className="relative px-4 py-6 pb-24">
       {/* Time slots */}
       <div className="space-y-0">
         {timeSlots.map((slot) => {
@@ -116,11 +116,15 @@ export default function TimelinePage() {
             return blockHour === hour;
           });
 
+          // HOUR_HEIGHT in pixels - each hour slot is 120px tall
+          const HOUR_HEIGHT = 120;
+          
           return (
             <div
               key={hour}
               id={`hour-${hour}`}
-              className="relative flex min-h-[80px] border-t border-border-default"
+              className="relative flex border-t border-border-default"
+              style={{ height: `${HOUR_HEIGHT}px` }}
             >
               {/* Time label */}
               <div className="w-16 shrink-0 pr-3 pt-2 text-right">
@@ -135,11 +139,11 @@ export default function TimelinePage() {
               </div>
 
               {/* Time slot content area */}
-              <div className="relative flex-1 py-2">
+              <div className="relative flex-1">
                 {/* Current time indicator */}
                 {isCurrentHour && (
                   <div
-                    className="absolute left-0 right-0 z-10 flex items-center"
+                    className="absolute left-0 right-0 z-10 flex items-center pointer-events-none"
                     style={{ top: `${currentMinutePercent}%` }}
                   >
                     <div className="h-3 w-3 rounded-full bg-accent-magenta shadow-glow" />
@@ -147,27 +151,27 @@ export default function TimelinePage() {
                   </div>
                 )}
 
-                {/* Task blocks */}
+                {/* Task blocks - height based on FULL duration */}
                 {blocksInHour.map((block) => {
                   const startMinute = block.startTime.getMinutes();
-                  const durationMinutes = Math.min(
-                    60 - startMinute,
-                    (block.endTime.getTime() - block.startTime.getTime()) / 60000
-                  );
-                  const heightPercent = (durationMinutes / 60) * 100;
+                  // Calculate FULL duration in minutes (don't clip to hour)
+                  const fullDurationMinutes = (block.endTime.getTime() - block.startTime.getTime()) / 60000;
+                  // Height in pixels = (duration / 60 minutes) * HOUR_HEIGHT
+                  const heightPx = (fullDurationMinutes / 60) * HOUR_HEIGHT;
+                  // Top position as percentage of hour
                   const topPercent = (startMinute / 60) * 100;
 
                   return (
                     <div
                       key={block.id}
-                      className="absolute left-0 right-4"
+                      className="absolute left-0 right-4 overflow-hidden"
                       style={{
                         top: `${topPercent}%`,
-                        height: `${Math.max(heightPercent, 30)}%`,
-                        minHeight: "40px",
+                        height: `${Math.max(heightPx, 40)}px`,
+                        zIndex: 5,
                       }}
                     >
-                      <TimelineBlock block={block} onPress={handleBlockPress} className="h-full" />
+                      <TimelineBlock block={block} onPress={handleBlockPress} className="h-full w-full" />
                     </div>
                   );
                 })}

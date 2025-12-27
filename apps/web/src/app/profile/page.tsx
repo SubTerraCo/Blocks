@@ -119,7 +119,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 pb-24">
       {/* Profile header */}
       <div className="mb-6 flex items-center gap-4">
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent-magenta text-3xl font-bold text-white">

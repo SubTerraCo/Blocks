@@ -186,7 +186,7 @@ export default function AddTaskPage() {
   };
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 pb-24">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name (required) */}
         <Input

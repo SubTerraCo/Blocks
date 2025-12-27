@@ -113,7 +113,7 @@ export default function SearchPage() {
   const hasActiveFilters = selectedStatuses.length > 0 || selectedPriorities.length > 0;
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 pb-24">
       {/* Search input */}
       <form onSubmit={handleSearch} className="mb-4">
         <Input
