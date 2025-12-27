@@ -2,8 +2,16 @@ import { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage } from "ele
 import path from "path";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require("electron-squirrel-startup")) {
-  app.quit();
+// This is only needed for NSIS installer
+try {
+  if (require.resolve("electron-squirrel-startup")) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    if (require("electron-squirrel-startup")) {
+      app.quit();
+    }
+  }
+} catch {
+  // Module not installed - running in dev mode or without installer
 }
 
 let mainWindow: BrowserWindow | null = null;

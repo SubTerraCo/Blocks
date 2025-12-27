@@ -1,9 +1,64 @@
-import { useState, useEffect, useCallback } from "react";
-import { useTaskStore, BottomNav, TopBar, TaskCard } from "@blocks/ui";
-import type { Task, TaskStatus } from "@blocks/core";
-import { KANBAN_COLUMNS } from "@blocks/core";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { 
+  useTaskStore, 
+  useQuickBlocksStore,
+  useOnlineStatus,
+  BottomNav, 
+  TopBar, 
+  TaskCard,
+  TimelineBlock,
+  QuickAddGrid,
+  Button,
+  Input,
+  Textarea,
+  Select,
+  cn,
+  formatTime
+} from "@blocks/ui";
+import type { 
+  Task, 
+  TaskStatus, 
+  TaskPriority,
+  TimeBlock as TimeBlockType,
+  QuickAddBlock,
+  BlockSize,
+  AccessContext,
+  RecurrenceType
+} from "@blocks/core";
+import { 
+  KANBAN_COLUMNS, 
+  calculateDuration, 
+  formatBlockSize,
+  GeminiService,
+  type ChatMessage
+} from "@blocks/core";
+import { 
+  Clock, 
+  CalendarPlus, 
+  Grid3X3, 
+  Sparkles, 
+  Search, 
+  MessageSquare,
+  Send,
+  Wifi,
+  WifiOff,
+  Plus,
+  X,
+  Tag,
+  Calendar,
+  Palette,
+  Timer,
+  MapPin,
+  Home,
+  Car,
+  Monitor,
+  Smartphone,
+  Trash2
+} from "lucide-react";
 
-// Desktop-specific title bar component
+// ============================================================================
+// Desktop Title Bar
+// ============================================================================
 function TitleBar() {
   const [isMaximized, setIsMaximized] = useState(false);
 
@@ -67,10 +122,10 @@ function TitleBar() {
   );
 }
 
-// Page components
-type Page = "kanban" | "timeline" | "blocks" | "ai" | "add-task" | "edit-task";
-
-function KanbanPage({ onEditTask }: { onEditTask: (task: Task) => void }) {
+// ============================================================================
+// Kanban Page
+// ============================================================================
+function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => void; onAddTask: (status: TaskStatus) => void }) {
   const tasks = useTaskStore((state) => state.tasks);
   const completeTask = useTaskStore((state) => state.completeTask);
   const updateTask = useTaskStore((state) => state.updateTask);
@@ -127,172 +182,735 @@ function KanbanPage({ onEditTask }: { onEditTask: (task: Task) => void }) {
               </div>
             )}
           </div>
+          <div className="border-t border-border-default p-3">
+            <button
+              onClick={() => onAddTask(column.id)}
+              className="flex w-full items-center justify-center gap-2 rounded-lg py-2 border-2 border-dashed border-border-default text-text-tertiary transition-colors hover:border-accent-magenta hover:text-accent-magenta"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="text-sm font-medium">Add Task</span>
+            </button>
+          </div>
         </div>
       ))}
     </div>
   );
 }
 
-function TimelinePage() {
+// ============================================================================
+// Timeline Page
+// ============================================================================
+function generateTimeSlots(): Date[] {
+  const slots: Date[] = [];
+  const now = new Date();
+  const startOfDay = new Date(now);
+  startOfDay.setHours(0, 0, 0, 0);
+  for (let hour = 0; hour < 24; hour++) {
+    const slot = new Date(startOfDay);
+    slot.setHours(hour);
+    slots.push(slot);
+  }
+  return slots;
+}
+
+function tasksToTimeBlocks(tasks: Task[]): TimeBlockType[] {
+  return tasks
+    .filter((t) => t.scheduledAt && (t.status === "todo" || t.status === "doing"))
+    .map((task) => {
+      const duration = task.duration ?? calculateDuration(task.blockSize, task.blockCount);
+      return {
+        id: task.id,
+        type: "task" as const,
+        startTime: task.scheduledAt!,
+        endTime: new Date(task.scheduledAt!.getTime() + duration * 60000),
+        task,
+      };
+    });
+}
+
+function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
+  const tasks = useTaskStore((state) => state.tasks);
+  const scheduleDoingTasks = useTaskStore((state) => state.scheduleDoingTasks);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isScheduling, setIsScheduling] = useState(false);
+  const timeSlots = useMemo(() => generateTimeSlots(), []);
+  const timeBlocks = useMemo(() => tasksToTimeBlocks(tasks), [tasks]);
+  
+  const doingTasksCount = useMemo(
+    () => tasks.filter((t) => t.status === "doing").length,
+    [tasks]
+  );
+
+  const handleScheduleDoingTasks = async () => {
+    setIsScheduling(true);
+    try {
+      await scheduleDoingTasks();
+    } catch (error) {
+      console.error("Failed to schedule tasks:", error);
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
+  const handleBlockPress = (block: TimeBlockType) => {
+    if (block.type === "task" && block.task) {
+      onEditTask(block.task);
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const currentHour = new Date().getHours();
+    const element = document.getElementById(`hour-${currentHour}`);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
+
+  const currentHour = currentTime.getHours();
+  const currentMinutePercent = (currentTime.getMinutes() / 60) * 100;
+
   return (
-    <div className="flex h-full items-center justify-center">
-      <div className="text-center">
-        <div className="text-6xl mb-4">📅</div>
-        <h2 className="text-xl font-semibold text-text-primary mb-2">Timeline View</h2>
-        <p className="text-text-secondary">Schedule your tasks throughout the day</p>
+    <div className="relative h-full overflow-y-auto px-4 py-6">
+      <div className="space-y-0">
+        {timeSlots.map((slot) => {
+          const hour = slot.getHours();
+          const isCurrentHour = hour === currentHour;
+          const blocksInHour = timeBlocks.filter((block) => block.startTime.getHours() === hour);
+
+          return (
+            <div key={hour} id={`hour-${hour}`} className="relative flex min-h-[80px] border-t border-border-default">
+              <div className="w-16 shrink-0 pr-3 pt-2 text-right">
+                <span className={cn("text-sm", isCurrentHour ? "font-semibold text-accent-magenta" : "text-text-tertiary")}>
+                  {formatTime(slot)}
+                </span>
+              </div>
+              <div className="relative flex-1 py-2">
+                {isCurrentHour && (
+                  <div className="absolute left-0 right-0 z-10 flex items-center" style={{ top: `${currentMinutePercent}%` }}>
+                    <div className="h-3 w-3 rounded-full bg-accent-magenta shadow-glow" />
+                    <div className="h-0.5 flex-1 bg-accent-magenta shadow-glow" />
+                  </div>
+                )}
+                {blocksInHour.map((block) => {
+                  const startMinute = block.startTime.getMinutes();
+                  const durationMinutes = Math.min(60 - startMinute, (block.endTime.getTime() - block.startTime.getTime()) / 60000);
+                  const heightPercent = (durationMinutes / 60) * 100;
+                  const topPercent = (startMinute / 60) * 100;
+                  return (
+                    <div key={block.id} className="absolute left-0 right-4" style={{ top: `${topPercent}%`, height: `${Math.max(heightPercent, 30)}%`, minHeight: "40px" }}>
+                      <TimelineBlock block={block} onPress={handleBlockPress} className="h-full" />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
+
+      {timeBlocks.length === 0 && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-8">
+          <Clock className="mb-4 h-16 w-16 text-text-muted" />
+          <h3 className="mb-2 text-lg font-semibold text-text-primary">No tasks scheduled</h3>
+          <p className="text-center text-sm text-text-secondary">Add tasks and schedule them to see them on your timeline</p>
+          {doingTasksCount > 0 && (
+            <button onClick={handleScheduleDoingTasks} disabled={isScheduling} className="mt-6 flex items-center gap-2 rounded-xl bg-accent-cyan px-6 py-3 font-medium text-bg-primary transition-colors hover:bg-accent-cyan/80 disabled:opacity-50">
+              <CalendarPlus className="h-5 w-5" />
+              {isScheduling ? "Scheduling..." : `Schedule ${doingTasksCount} Doing Task${doingTasksCount > 1 ? "s" : ""}`}
+            </button>
+          )}
+        </div>
+      )}
+
+      {doingTasksCount > 0 && timeBlocks.length > 0 && (
+        <button onClick={handleScheduleDoingTasks} disabled={isScheduling} className="fixed bottom-24 right-4 z-20 flex items-center gap-2 rounded-xl bg-accent-cyan px-4 py-3 font-medium text-bg-primary shadow-lg transition-all hover:bg-accent-cyan/80 disabled:opacity-50">
+          <CalendarPlus className="h-5 w-5" />
+          {isScheduling ? "..." : `Schedule ${doingTasksCount}`}
+        </button>
+      )}
     </div>
   );
 }
 
+// ============================================================================
+// Blocks Page
+// ============================================================================
 function BlocksPage() {
-  return (
-    <div className="flex h-full items-center justify-center">
-      <div className="text-center">
-        <div className="text-6xl mb-4">⬡</div>
-        <h2 className="text-xl font-semibold text-text-primary mb-2">Quick Blocks</h2>
-        <p className="text-text-secondary">Tap to quickly log activities</p>
+  const blocks = useQuickBlocksStore((state) => state.blocks);
+  const timeLoggedToday = useQuickBlocksStore((state) => state.timeLoggedToday);
+  const logTime = useQuickBlocksStore((state) => state.logTime);
+  const isLoading = useQuickBlocksStore((state) => state.isLoading);
+
+  const handleBlockPress = async (block: QuickAddBlock) => {
+    await logTime(block.id);
+    console.log(`Logged ${block.defaultDuration} minutes for ${block.name}`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="animate-pulse text-text-secondary">Loading blocks...</div>
       </div>
+    );
+  }
+
+  if (blocks.length === 0) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center px-8">
+        <Grid3X3 className="mb-4 h-16 w-16 text-text-muted" />
+        <h3 className="mb-2 text-lg font-semibold text-text-primary">No quick blocks</h3>
+        <p className="text-center text-sm text-text-secondary">Quick blocks will appear here for fast time logging</p>
+      </div>
+    );
+  }
+
+  const totalTimeLogged = Object.values(timeLoggedToday).reduce((sum, time) => sum + time, 0);
+  const productiveTime = blocks.filter((b) => !b.isPutzing).reduce((sum, b) => sum + (timeLoggedToday[b.id] ?? 0), 0);
+  const putzingTime = blocks.filter((b) => b.isPutzing).reduce((sum, b) => sum + (timeLoggedToday[b.id] ?? 0), 0);
+
+  return (
+    <div className="h-full overflow-y-auto px-4 py-6">
+      <div className="mb-6 grid grid-cols-3 gap-3">
+        <div className="rounded-lg bg-bg-secondary p-3 text-center">
+          <p className="text-2xl font-bold text-text-primary">{totalTimeLogged}</p>
+          <p className="text-xs text-text-secondary">Total mins</p>
+        </div>
+        <div className="rounded-lg bg-bg-secondary p-3 text-center">
+          <p className="text-2xl font-bold text-block-green">{productiveTime}</p>
+          <p className="text-xs text-text-secondary">Productive</p>
+        </div>
+        <div className="rounded-lg bg-bg-secondary p-3 text-center">
+          <p className="text-2xl font-bold text-status-warning">{putzingTime}</p>
+          <p className="text-xs text-text-secondary">Putzing</p>
+        </div>
+      </div>
+      <QuickAddGrid blocks={blocks} timeLoggedMap={timeLoggedToday} onBlockPress={handleBlockPress} />
+      <p className="mt-6 text-center text-xs text-text-muted">Tap a block to log time. Green = productive, dark = putzing.</p>
     </div>
   );
 }
 
-function AIPage() {
+// ============================================================================
+// AI Page
+// ============================================================================
+function AIPage({ onEditTask }: { onEditTask: (task: Task) => void }) {
+  const [activeTab, setActiveTab] = useState<"chat" | "search">("chat");
+  const [chatInput, setChatInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [geminiService, setGeminiService] = useState<GeminiService | null>(null);
+  const isOnline = useOnlineStatus();
+  const tasks = useTaskStore((state) => state.tasks);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const apiKey = (window as { GEMINI_API_KEY?: string }).GEMINI_API_KEY;
+    if (apiKey) {
+      setGeminiService(new GeminiService({ apiKey }));
+    }
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSendMessage = async () => {
+    if (!chatInput.trim() || !geminiService || !isOnline) return;
+    const userMessage = chatInput.trim();
+    setChatInput("");
+    setIsLoading(true);
+    setMessages((prev) => [...prev, { role: "user", content: userMessage, timestamp: new Date() }]);
+
+    try {
+      const response = await geminiService.chat(userMessage, { tasks, currentTime: new Date(), workStartTime: "09:00", workEndTime: "17:00" });
+      setMessages((prev) => [...prev, { role: "assistant", content: response, timestamp: new Date() }]);
+    } catch {
+      setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I couldn't process that request.", timestamp: new Date() }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredTasks = tasks.filter((task) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return task.name.toLowerCase().includes(query) || task.description?.toLowerCase().includes(query) || task.tags.some((tag) => tag.toLowerCase().includes(query));
+  });
+
   return (
-    <div className="flex h-full items-center justify-center">
-      <div className="text-center">
-        <div className="text-6xl mb-4">🤖</div>
-        <h2 className="text-xl font-semibold text-text-primary mb-2">AI Assistant</h2>
-        <p className="text-text-secondary">Chat with AI to schedule your tasks</p>
-        <p className="text-text-muted text-sm mt-2">(Coming in Phase 2.3)</p>
+    <div className="flex flex-col h-full bg-bg-primary">
+      <div className="border-b border-border-default bg-bg-secondary">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Sparkles className="h-5 w-5 text-accent-cyan" />
+            <h1 className="text-lg font-semibold text-text-primary">AI Assistant</h1>
+          </div>
+          <div className={cn("flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium", isOnline ? "bg-accent-green/20 text-accent-green" : "bg-red-500/20 text-red-400")}>
+            {isOnline ? <><Wifi className="h-3 w-3" /> Online</> : <><WifiOff className="h-3 w-3" /> Offline</>}
+          </div>
+        </div>
+        <div className="flex px-4 gap-4">
+          <button onClick={() => setActiveTab("chat")} className={cn("flex items-center gap-2 pb-3 border-b-2 transition-colors", activeTab === "chat" ? "border-accent-cyan text-accent-cyan" : "border-transparent text-text-tertiary hover:text-text-secondary")}>
+            <MessageSquare className="h-4 w-4" /> Chat
+          </button>
+          <button onClick={() => setActiveTab("search")} className={cn("flex items-center gap-2 pb-3 border-b-2 transition-colors", activeTab === "search" ? "border-accent-cyan text-accent-cyan" : "border-transparent text-text-tertiary hover:text-text-secondary")}>
+            <Search className="h-4 w-4" /> Search
+          </button>
+        </div>
       </div>
+
+      <div className="flex-1 overflow-hidden">
+        {activeTab === "chat" ? (
+          <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full px-8 text-center">
+                  <Sparkles className="h-16 w-16 text-accent-cyan mb-4" />
+                  <h2 className="text-lg font-semibold text-text-primary mb-2">AI Task Assistant</h2>
+                  <p className="text-text-secondary max-w-sm mb-6">Ask me to help schedule your tasks, prioritize your work, or get recommendations!</p>
+                </div>
+              ) : (
+                messages.map((msg, i) => (
+                  <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
+                    <div className={cn("max-w-[80%] rounded-2xl px-4 py-3", msg.role === "user" ? "bg-accent-cyan text-bg-primary rounded-br-md" : "bg-bg-tertiary text-text-primary rounded-bl-md")}>
+                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-bg-tertiary rounded-2xl px-4 py-3 flex gap-1">
+                    <div className="w-2 h-2 bg-accent-cyan rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-accent-cyan rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+                    <div className="w-2 h-2 bg-accent-cyan rounded-full animate-bounce" style={{ animationDelay: "0.4s" }} />
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col h-full">
+            <div className="p-4">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-text-muted" />
+                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search tasks..." className="w-full bg-bg-tertiary border border-border-default rounded-xl pl-12 pr-4 py-3 text-text-primary placeholder:text-text-muted focus:border-accent-magenta focus:outline-none" />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
+              {filteredTasks.length === 0 ? (
+                <div className="text-center text-text-secondary py-12">No tasks found</div>
+              ) : (
+                filteredTasks.map((task) => <TaskCard key={task.id} task={task} onPress={onEditTask} />)
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {activeTab === "chat" && (
+        <div className="border-t border-border-default bg-bg-secondary p-4">
+          <div className="flex items-center gap-3">
+            <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendMessage()} placeholder={!isOnline ? "AI unavailable offline..." : !geminiService ? "Configure API key..." : "Ask about your tasks..."} disabled={!isOnline || !geminiService || isLoading} className="flex-1 bg-bg-tertiary border border-border-default rounded-xl px-4 py-3 text-text-primary placeholder:text-text-muted focus:border-accent-cyan focus:outline-none disabled:opacity-50" />
+            <button onClick={handleSendMessage} disabled={!isOnline || !geminiService || !chatInput.trim() || isLoading} className="flex items-center justify-center h-12 w-12 rounded-xl bg-accent-cyan text-bg-primary hover:bg-accent-cyan/80 disabled:opacity-50">
+              <Send className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function AddTaskPage({ onBack }: { onBack: () => void }) {
+// ============================================================================
+// Add Task Page
+// ============================================================================
+const PRIORITY_OPTIONS = [
+  { value: "1", label: "1 - Urgent" },
+  { value: "2", label: "2 - High" },
+  { value: "3", label: "3 - Medium" },
+  { value: "4", label: "4 - Low" },
+  { value: "5", label: "5 - Minimal" },
+];
+
+const STATUS_OPTIONS = KANBAN_COLUMNS.map((col) => ({ value: col.id, label: col.title }));
+const BLOCK_SIZE_OPTIONS = [
+  { value: "15min", label: "15 Min" },
+  { value: "30min", label: "30 Min" },
+  { value: "1hour", label: "1 Hour" },
+  { value: "1week", label: "1 Week" },
+];
+const BLOCK_COUNT_OPTIONS = [1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(n) }));
+const ACCESS_CONTEXTS: { value: AccessContext; label: string; icon: React.ReactNode }[] = [
+  { value: "home", label: "Home", icon: <Home className="h-4 w-4" /> },
+  { value: "errand", label: "Errand", icon: <Car className="h-4 w-4" /> },
+  { value: "computer", label: "Computer", icon: <Monitor className="h-4 w-4" /> },
+  { value: "phone", label: "Phone", icon: <Smartphone className="h-4 w-4" /> },
+];
+const RECURRENCE_OPTIONS = [
+  { value: "none", label: "No repeat" },
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+];
+const COLOR_OPTIONS = ["#9b4dca", "#00bcd4", "#22c55e", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6", "#ec4899"];
+
+function AddTaskPage({ onBack, initialStatus }: { onBack: () => void; initialStatus?: TaskStatus }) {
   const createTask = useTaskStore((state) => state.createTask);
   const [name, setName] = useState("");
-  const [priority, setPriority] = useState<"1" | "2" | "3" | "4" | "5">("3");
-  const [status, setStatus] = useState<TaskStatus>("backlog");
+  const [priority, setPriority] = useState<TaskPriority>("3");
+  const [status, setStatus] = useState<TaskStatus>(initialStatus || "backlog");
+  const [blockSize, setBlockSize] = useState<BlockSize>("30min");
+  const [blockCount, setBlockCount] = useState(1);
+  const [accessContexts, setAccessContexts] = useState<AccessContext[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
+  const [recurrence, setRecurrence] = useState<RecurrenceType>("none");
+  const [dueDate, setDueDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [color, setColor] = useState(COLOR_OPTIONS[0]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const computedDuration = useMemo(() => calculateDuration(blockSize, blockCount), [blockSize, blockCount]);
+  const formattedDuration = useMemo(() => {
+    const mins = computedDuration;
+    if (mins >= 10080) return `${Math.floor(mins / 10080)} week(s)`;
+    if (mins >= 60) return `${Math.floor(mins / 60)}h ${mins % 60 > 0 ? `${mins % 60}m` : ""}`;
+    return `${mins}m`;
+  }, [computedDuration]);
+
+  const handleToggleAccess = (ctx: AccessContext) => {
+    setAccessContexts((prev) => prev.includes(ctx) ? prev.filter((c) => c !== ctx) : [...prev, ctx]);
+  };
+
+  const handleAddTag = () => {
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      setTags([...tags, tagInput.trim()]);
+      setTagInput("");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-
-    await createTask({
-      name: name.trim(),
-      priority,
-      status,
-      blockSize: "30min",
-      blockCount: 1,
-      assigneeId: "me",
-      accessContexts: [],
-      tags: [],
-      subtasks: [],
-      reminders: [],
-      recurrence: "none",
-      isQuickAdd: false,
-      isPutzing: false,
-    });
-
-    setName("");
-    onBack();
+    setIsSubmitting(true);
+    try {
+      await createTask({
+        name: name.trim(),
+        description: notes.trim() || undefined,
+        priority,
+        status,
+        blockSize,
+        blockCount,
+        accessContexts,
+        assigneeId: "me",
+        tags,
+        color,
+        recurrence,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+        notes: notes.trim() || undefined,
+        subtasks: [],
+        reminders: [],
+        isQuickAdd: false,
+        isPutzing: false,
+      });
+      onBack();
+    } catch (error) {
+      console.error("Failed to create task:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="p-6 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold text-text-primary mb-6">Add New Task</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-text-secondary mb-2">Task Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full bg-bg-secondary border border-border-default rounded-lg px-4 py-3 text-text-primary focus:border-accent-magenta focus:outline-none"
-            placeholder="What needs to be done?"
-            autoFocus
-          />
+    <div className="h-full overflow-y-auto px-4 py-6">
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+        <Input label="Task Name *" placeholder="What do you need to do?" value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
+
+        <div className="space-y-2">
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+            <Timer className="mr-1 inline h-4 w-4" />
+            Duration: {formatBlockSize(blockSize)} × {blockCount} = <span className="text-accent-magenta">{formattedDuration}</span>
+          </label>
+          <div className="grid grid-cols-2 gap-4">
+            <Select label="Block Size" options={BLOCK_SIZE_OPTIONS} value={blockSize} onChange={(v) => setBlockSize(v as BlockSize)} />
+            <Select label="Block Count" options={BLOCK_COUNT_OPTIONS} value={String(blockCount)} onChange={(v) => setBlockCount(parseInt(v, 10))} />
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-text-secondary mb-2">Priority</label>
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as typeof priority)}
-            className="w-full bg-bg-secondary border border-border-default rounded-lg px-4 py-3 text-text-primary focus:border-accent-magenta focus:outline-none"
-          >
-            <option value="1">1 - Highest</option>
-            <option value="2">2 - High</option>
-            <option value="3">3 - Medium</option>
-            <option value="4">4 - Low</option>
-            <option value="5">5 - Lowest</option>
-          </select>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Select label="Priority" options={PRIORITY_OPTIONS} value={priority} onChange={(v) => setPriority(v as TaskPriority)} />
+          <Select label="Status" options={STATUS_OPTIONS} value={status} onChange={(v) => setStatus(v as TaskStatus)} />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-text-secondary mb-2">Status</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as TaskStatus)}
-            className="w-full bg-bg-secondary border border-border-default rounded-lg px-4 py-3 text-text-primary focus:border-accent-magenta focus:outline-none"
-          >
-            {KANBAN_COLUMNS.map((col) => (
-              <option key={col.id} value={col.id}>
-                {col.title}
-              </option>
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary"><MapPin className="mr-1 inline h-4 w-4" /> Access</label>
+          <div className="flex flex-wrap gap-2">
+            {ACCESS_CONTEXTS.map((ctx) => (
+              <button key={ctx.value} type="button" onClick={() => handleToggleAccess(ctx.value)} className={cn("flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border", accessContexts.includes(ctx.value) ? "border-accent-magenta bg-accent-magenta/20 text-accent-magenta" : "border-border-default bg-bg-secondary text-text-secondary hover:border-accent-magenta/50")}>
+                {ctx.icon} {ctx.label}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary">Tags</label>
+          <div className="flex gap-2">
+            <Input placeholder="Add a tag" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())} leftIcon={<Tag className="h-4 w-4" />} />
+            <Button type="button" variant="secondary" onClick={handleAddTag}><Plus className="h-4 w-4" /></Button>
+          </div>
+          {tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <span key={tag} className="flex items-center gap-1 rounded-full bg-bg-tertiary px-3 py-1 text-sm text-text-secondary">
+                  {tag} <button type="button" onClick={() => setTags(tags.filter((t) => t !== tag))} className="ml-1 text-text-muted hover:text-text-primary"><X className="h-3 w-3" /></button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Select label="Repeat" options={RECURRENCE_OPTIONS} value={recurrence} onChange={(v) => setRecurrence(v as RecurrenceType)} />
+          <Input label="Due Date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} leftIcon={<Calendar className="h-4 w-4" />} />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary"><Palette className="mr-1 inline h-4 w-4" /> Color</label>
+          <div className="flex gap-2">
+            {COLOR_OPTIONS.map((c) => (
+              <button key={c} type="button" onClick={() => setColor(c)} className={cn("h-8 w-8 rounded-full transition-transform", color === c && "scale-125 ring-2 ring-white ring-offset-2 ring-offset-bg-primary")} style={{ backgroundColor: c }} />
+            ))}
+          </div>
+        </div>
+
+        <Textarea label="Notes" placeholder="Additional details..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+
         <div className="flex gap-3 pt-4">
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex-1 px-4 py-3 rounded-lg border border-border-default text-text-secondary hover:bg-bg-tertiary transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="flex-1 px-4 py-3 rounded-lg bg-accent-magenta text-white font-medium hover:bg-accent-magenta/80 transition-colors"
-          >
-            Add Task
-          </button>
+          <Button type="button" variant="secondary" className="flex-1" onClick={onBack}>Cancel</Button>
+          <Button type="submit" variant="primary" className="flex-1" isLoading={isSubmitting} disabled={!name.trim()}>Create Task</Button>
         </div>
       </form>
     </div>
   );
 }
 
+// ============================================================================
+// Edit Task Page
+// ============================================================================
+function EditTaskPage({ task, onBack }: { task: Task; onBack: () => void }) {
+  const updateTask = useTaskStore((state) => state.updateTask);
+  const deleteTask = useTaskStore((state) => state.deleteTask);
+  const [name, setName] = useState(task.name);
+  const [priority, setPriority] = useState<TaskPriority>(task.priority);
+  const [status, setStatus] = useState<TaskStatus>(task.status);
+  const [blockSize, setBlockSize] = useState<BlockSize>(task.blockSize || "30min");
+  const [blockCount, setBlockCount] = useState(task.blockCount || 1);
+  const [accessContexts, setAccessContexts] = useState<AccessContext[]>(task.accessContexts || []);
+  const [tags, setTags] = useState<string[]>(task.tags || []);
+  const [tagInput, setTagInput] = useState("");
+  const [recurrence, setRecurrence] = useState<RecurrenceType>(task.recurrence || "none");
+  const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.toISOString().split("T")[0] : "");
+  const [notes, setNotes] = useState(task.notes || "");
+  const [color, setColor] = useState(task.color || COLOR_OPTIONS[0]);
+  const [subtasks, setSubtasks] = useState(task.subtasks || []);
+  const [subtaskInput, setSubtaskInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const computedDuration = useMemo(() => calculateDuration(blockSize, blockCount), [blockSize, blockCount]);
+  const formattedDuration = useMemo(() => {
+    const mins = computedDuration;
+    if (mins >= 10080) return `${Math.floor(mins / 10080)} week(s)`;
+    if (mins >= 60) return `${Math.floor(mins / 60)}h ${mins % 60 > 0 ? `${mins % 60}m` : ""}`;
+    return `${mins}m`;
+  }, [computedDuration]);
+
+  const handleToggleAccess = (ctx: AccessContext) => setAccessContexts((prev) => prev.includes(ctx) ? prev.filter((c) => c !== ctx) : [...prev, ctx]);
+  const handleAddTag = () => { if (tagInput.trim() && !tags.includes(tagInput.trim())) { setTags([...tags, tagInput.trim()]); setTagInput(""); } };
+  const handleAddSubtask = () => { if (subtaskInput.trim()) { setSubtasks([...subtasks, { id: `st-${Date.now()}`, name: subtaskInput.trim(), completed: false }]); setSubtaskInput(""); } };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setIsSubmitting(true);
+    try {
+      await updateTask(task.id, { name: name.trim(), description: notes.trim() || undefined, duration: computedDuration, priority, status, blockSize, blockCount, accessContexts, tags, color, recurrence, dueDate: dueDate ? new Date(dueDate) : undefined, notes: notes.trim() || undefined, subtasks });
+      onBack();
+    } catch (error) {
+      console.error("Failed to update task:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteTask(task.id);
+      onBack();
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className="h-full overflow-y-auto px-4 py-6">
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-xl bg-bg-secondary p-6">
+            <h3 className="text-lg font-semibold text-text-primary">Delete Task?</h3>
+            <p className="mt-2 text-sm text-text-secondary">Are you sure you want to delete &ldquo;{task.name}&rdquo;?</p>
+            <div className="mt-6 flex gap-3">
+              <Button variant="secondary" className="flex-1" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+              <Button variant="primary" className="flex-1 bg-status-error hover:bg-status-error/80" onClick={handleDelete} isLoading={isDeleting}>Delete</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-text-primary">Edit Task</h1>
+          <button type="button" onClick={() => setShowDeleteConfirm(true)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-status-error hover:bg-status-error/10">
+            <Trash2 className="h-4 w-4" /> Delete
+          </button>
+        </div>
+
+        <Input label="Task Name *" placeholder="What do you need to do?" value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
+
+        <div className="space-y-2">
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+            <Timer className="mr-1 inline h-4 w-4" />
+            Duration: {formatBlockSize(blockSize)} × {blockCount} = <span className="text-accent-magenta">{formattedDuration}</span>
+          </label>
+          <div className="grid grid-cols-2 gap-4">
+            <Select label="Block Size" options={BLOCK_SIZE_OPTIONS} value={blockSize} onChange={(v) => setBlockSize(v as BlockSize)} />
+            <Select label="Block Count" options={BLOCK_COUNT_OPTIONS} value={String(blockCount)} onChange={(v) => setBlockCount(parseInt(v, 10))} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Select label="Priority" options={PRIORITY_OPTIONS} value={priority} onChange={(v) => setPriority(v as TaskPriority)} />
+          <Select label="Status" options={STATUS_OPTIONS} value={status} onChange={(v) => setStatus(v as TaskStatus)} />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary"><MapPin className="mr-1 inline h-4 w-4" /> Access</label>
+          <div className="flex flex-wrap gap-2">
+            {ACCESS_CONTEXTS.map((ctx) => (
+              <button key={ctx.value} type="button" onClick={() => handleToggleAccess(ctx.value)} className={cn("flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border", accessContexts.includes(ctx.value) ? "border-accent-magenta bg-accent-magenta/20 text-accent-magenta" : "border-border-default bg-bg-secondary text-text-secondary")}>
+                {ctx.icon} {ctx.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary">Tags</label>
+          <div className="flex gap-2">
+            <Input placeholder="Add a tag" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())} leftIcon={<Tag className="h-4 w-4" />} />
+            <Button type="button" variant="secondary" onClick={handleAddTag}><Plus className="h-4 w-4" /></Button>
+          </div>
+          {tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <span key={tag} className="flex items-center gap-1 rounded-full bg-bg-tertiary px-3 py-1 text-sm text-text-secondary">
+                  {tag} <button type="button" onClick={() => setTags(tags.filter((t) => t !== tag))} className="ml-1 text-text-muted hover:text-text-primary"><X className="h-3 w-3" /></button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Select label="Repeat" options={RECURRENCE_OPTIONS} value={recurrence} onChange={(v) => setRecurrence(v as RecurrenceType)} />
+          <Input label="Due Date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} leftIcon={<Calendar className="h-4 w-4" />} />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary"><Palette className="mr-1 inline h-4 w-4" /> Color</label>
+          <div className="flex gap-2">
+            {COLOR_OPTIONS.map((c) => (
+              <button key={c} type="button" onClick={() => setColor(c)} className={cn("h-8 w-8 rounded-full transition-transform", color === c && "scale-125 ring-2 ring-white ring-offset-2 ring-offset-bg-primary")} style={{ backgroundColor: c }} />
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary">Subtasks</label>
+          <div className="flex gap-2">
+            <Input placeholder="Add a subtask" value={subtaskInput} onChange={(e) => setSubtaskInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSubtask())} />
+            <Button type="button" variant="secondary" onClick={handleAddSubtask}><Plus className="h-4 w-4" /></Button>
+          </div>
+          {subtasks.length > 0 && (
+            <ul className="mt-2 space-y-2">
+              {subtasks.map((st) => (
+                <li key={st.id} className="flex items-center justify-between rounded-lg bg-bg-secondary px-3 py-2">
+                  <div className="flex items-center gap-3">
+                    <button type="button" onClick={() => setSubtasks(subtasks.map((s) => s.id === st.id ? { ...s, completed: !s.completed } : s))} className={cn("flex h-5 w-5 items-center justify-center rounded border-2", st.completed ? "border-accent-magenta bg-accent-magenta" : "border-border-default")}>
+                      {st.completed && <svg className="h-3 w-3 text-white" viewBox="0 0 12 12"><path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="2" fill="none" /></svg>}
+                    </button>
+                    <span className={cn("text-sm text-text-primary", st.completed && "line-through opacity-60")}>{st.name}</span>
+                  </div>
+                  <button type="button" onClick={() => setSubtasks(subtasks.filter((s) => s.id !== st.id))} className="text-text-muted hover:text-status-error"><X className="h-4 w-4" /></button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <Textarea label="Notes" placeholder="Additional details..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+
+        <div className="flex gap-3 pt-4">
+          <Button type="button" variant="secondary" className="flex-1" onClick={onBack}>Cancel</Button>
+          <Button type="submit" variant="primary" className="flex-1" isLoading={isSubmitting} disabled={!name.trim()}>Save Changes</Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ============================================================================
+// Main App
+// ============================================================================
+type Page = "kanban" | "timeline" | "blocks" | "ai" | "add-task" | "edit-task";
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("kanban");
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [addTaskInitialStatus, setAddTaskInitialStatus] = useState<TaskStatus>("backlog");
   const loadTasks = useTaskStore((state) => state.loadTasks);
+  const loadBlocks = useQuickBlocksStore((state) => state.loadBlocks);
+  const initializeDefaultBlocks = useQuickBlocksStore((state) => state.initializeDefaultBlocks);
 
-  // Load tasks on mount
   useEffect(() => {
     loadTasks();
-  }, [loadTasks]);
+    loadBlocks().then(() => initializeDefaultBlocks());
+  }, [loadTasks, loadBlocks, initializeDefaultBlocks]);
 
-  // Listen for navigation from main process
   useEffect(() => {
     if (window.electronAPI) {
       const unsubscribe = window.electronAPI.onNavigate((path) => {
-        if (path === "/add-task") {
-          setCurrentPage("add-task");
-        }
+        if (path === "/add-task") setCurrentPage("add-task");
       });
       return unsubscribe;
     }
   }, []);
 
   const handleNavigation = useCallback((item: "search" | "kanban" | "timeline" | "blocks" | "add") => {
-    const pageMap: Record<string, Page> = {
-      "search": "ai",
-      "kanban": "kanban",
-      "timeline": "timeline",
-      "blocks": "blocks",
-      "add": "add-task",
-    };
+    const pageMap: Record<string, Page> = { search: "ai", kanban: "kanban", timeline: "timeline", blocks: "blocks", add: "add-task" };
     setCurrentPage(pageMap[item] || "kanban");
   }, []);
 
@@ -301,67 +919,39 @@ export default function App() {
     setCurrentPage("edit-task");
   }, []);
 
+  const handleAddTask = useCallback((status: TaskStatus) => {
+    setAddTaskInitialStatus(status);
+    setCurrentPage("add-task");
+  }, []);
+
+  const handleBack = useCallback(() => {
+    setEditingTask(null);
+    setCurrentPage("kanban");
+  }, []);
+
   const renderPage = () => {
     switch (currentPage) {
-      case "kanban":
-        return <KanbanPage onEditTask={handleEditTask} />;
-      case "timeline":
-        return <TimelinePage />;
-      case "blocks":
-        return <BlocksPage />;
-      case "ai":
-        return <AIPage />;
-      case "add-task":
-        return <AddTaskPage onBack={() => setCurrentPage("kanban")} />;
-      case "edit-task":
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-text-primary mb-4">Edit Task</h1>
-            <p className="text-text-secondary mb-4">Editing: {editingTask?.name}</p>
-            <button
-              onClick={() => setCurrentPage("kanban")}
-              className="px-4 py-2 rounded-lg bg-accent-magenta text-white"
-            >
-              Back to Kanban
-            </button>
-          </div>
-        );
-      default:
-        return <KanbanPage onEditTask={handleEditTask} />;
+      case "kanban": return <KanbanPage onEditTask={handleEditTask} onAddTask={handleAddTask} />;
+      case "timeline": return <TimelinePage onEditTask={handleEditTask} />;
+      case "blocks": return <BlocksPage />;
+      case "ai": return <AIPage onEditTask={handleEditTask} />;
+      case "add-task": return <AddTaskPage onBack={handleBack} initialStatus={addTaskInitialStatus} />;
+      case "edit-task": return editingTask ? <EditTaskPage task={editingTask} onBack={handleBack} /> : <KanbanPage onEditTask={handleEditTask} onAddTask={handleAddTask} />;
+      default: return <KanbanPage onEditTask={handleEditTask} onAddTask={handleAddTask} />;
     }
   };
 
   const getPageTitle = () => {
-    switch (currentPage) {
-      case "kanban":
-        return "Kanban Board";
-      case "timeline":
-        return "Timeline";
-      case "blocks":
-        return "Quick Blocks";
-      case "ai":
-        return "AI Assistant";
-      case "add-task":
-        return "Add Task";
-      case "edit-task":
-        return "Edit Task";
-      default:
-        return "Blocks";
-    }
+    const titles: Record<Page, string> = { kanban: "Kanban Board", timeline: "Timeline", blocks: "Quick Blocks", ai: "AI Assistant", "add-task": "Add Task", "edit-task": "Edit Task" };
+    return titles[currentPage] || "Blocks";
   };
 
   return (
     <div className="flex flex-col h-screen bg-bg-primary">
       <TitleBar />
-      <TopBar title={getPageTitle()} />
-      <main className="flex-1 overflow-hidden">
-        {renderPage()}
-      </main>
-      <BottomNav 
-        activeItem={currentPage === "ai" ? "search" : currentPage === "add-task" ? "add" : currentPage as "kanban" | "timeline" | "blocks"} 
-        onItemPress={handleNavigation} 
-      />
+      <TopBar title={getPageTitle()} showBackButton={currentPage === "add-task" || currentPage === "edit-task"} onBackPress={handleBack} />
+      <main className="flex-1 overflow-hidden">{renderPage()}</main>
+      <BottomNav activeItem={currentPage === "ai" ? "search" : currentPage === "add-task" || currentPage === "edit-task" ? "add" : currentPage as "kanban" | "timeline" | "blocks"} onItemPress={handleNavigation} />
     </div>
   );
 }
-
