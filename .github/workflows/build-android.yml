@@ -51,6 +51,38 @@ jobs:
           VERSION=$(node -p "require('./apps/mobile/app.json').expo.version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Initialize EAS Project
+        working-directory: apps/mobile
+        env:
+          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
+        run: |
+          # Check if project is already configured
+          if grep -q "projectId" app.json 2>/dev/null; then
+            echo "✅ EAS project already configured in app.json"
+          elif [ -n "$EAS_PROJECT_ID" ]; then
+            echo "📝 Configuring EAS with project ID from secrets..."
+            # Add projectId to app.json using Node.js
+            node -e "
+              const fs = require('fs');
+              const config = JSON.parse(fs.readFileSync('app.json'));
+              config.expo.extra = config.expo.extra || {};
+              config.expo.extra.eas = config.expo.extra.eas || {};
+              config.expo.extra.eas.projectId = '$EAS_PROJECT_ID';
+              fs.writeFileSync('app.json', JSON.stringify(config, null, 2));
+              console.log('✅ Added projectId to app.json');
+            "
+          else
+            echo "⚠️ EAS project not configured and no EAS_PROJECT_ID secret found."
+            echo "Please run 'cd apps/mobile && eas init' locally and commit the changes,"
+            echo "OR add EAS_PROJECT_ID to your GitHub repository secrets."
+            echo ""
+            echo "To get your project ID:"
+            echo "1. Run: cd apps/mobile && eas init"
+            echo "2. The projectId will be added to app.json"
+            echo "3. Copy the projectId value and add it as a GitHub secret named EAS_PROJECT_ID"
+            exit 1
+          fi
+
       - name: Build Android APK (EAS Cloud)
         id: eas-build
         working-directory: apps/mobile
