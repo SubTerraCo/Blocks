@@ -7,7 +7,8 @@ import {
   TopBar, 
   TaskCard,
   TimelineBlock,
-  QuickAddGrid,
+  EditableQuickAddGrid,
+  CreateBlockModal,
   Button,
   Input,
   Textarea,
@@ -53,7 +54,9 @@ import {
   Car,
   Monitor,
   Smartphone,
-  Trash2
+  Trash2,
+  Pencil,
+  Check
 } from "lucide-react";
 
 // ============================================================================
@@ -144,10 +147,11 @@ function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => voi
   };
 
   return (
-    <div className="flex h-full gap-4 overflow-x-auto p-4">
+    <div className="flex h-[calc(100%-1rem)] gap-4 overflow-x-auto p-4 pb-2">
       {KANBAN_COLUMNS.map((column) => (
         <div
           key={column.id}
+          data-testid="kanban-column"
           className="flex h-full w-72 flex-shrink-0 flex-col rounded-lg border border-border-default bg-bg-secondary"
         >
           <div
@@ -182,7 +186,7 @@ function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => voi
               </div>
             )}
           </div>
-          <div className="border-t border-border-default p-3">
+          <div className="border-t border-border-default p-3 pb-4">
             <button
               onClick={() => onAddTask(column.id)}
               className="flex w-full items-center justify-center gap-2 rounded-lg py-2 border-2 border-dashed border-border-default text-text-tertiary transition-colors hover:border-accent-magenta hover:text-accent-magenta"
@@ -343,12 +347,47 @@ function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
 function BlocksPage() {
   const blocks = useQuickBlocksStore((state) => state.blocks);
   const timeLoggedToday = useQuickBlocksStore((state) => state.timeLoggedToday);
-  const logTime = useQuickBlocksStore((state) => state.logTime);
   const isLoading = useQuickBlocksStore((state) => state.isLoading);
+  const addTaskFromBlock = useQuickBlocksStore((state) => state.addTaskFromBlock);
+  const deleteBlock = useQuickBlocksStore((state) => state.deleteBlock);
+  const reorderBlocks = useQuickBlocksStore((state) => state.reorderBlocks);
+  const createBlock = useQuickBlocksStore((state) => state.createBlock);
+  const loadTasks = useTaskStore((state) => state.loadTasks);
+  
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [lastAddedTask, setLastAddedTask] = useState<string | null>(null);
+
+  // Clear toast after delay
+  useEffect(() => {
+    if (lastAddedTask) {
+      loadTasks();
+      const timer = setTimeout(() => setLastAddedTask(null), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [lastAddedTask, loadTasks]);
 
   const handleBlockPress = async (block: QuickAddBlock) => {
-    await logTime(block.id);
-    console.log(`Logged ${block.defaultDuration} minutes for ${block.name}`);
+    if (isEditMode) return;
+    const task = await addTaskFromBlock(block.id);
+    if (task) {
+      setLastAddedTask(task.name);
+      await loadTasks();
+    }
+  };
+
+  const handleBlockDelete = async (block: QuickAddBlock) => {
+    if (confirm(`Delete "${block.name}" block?`)) {
+      await deleteBlock(block.id);
+    }
+  };
+
+  const handleBlockReorder = async (orderedIds: string[]) => {
+    await reorderBlocks(orderedIds);
+  };
+
+  const handleCreateBlock = async (blockData: Omit<QuickAddBlock, "id" | "createdAt" | "usageCount">) => {
+    await createBlock(blockData);
   };
 
   if (isLoading) {
@@ -359,12 +398,15 @@ function BlocksPage() {
     );
   }
 
-  if (blocks.length === 0) {
+  if (blocks.length === 0 && !isEditMode) {
     return (
       <div className="flex h-full flex-col items-center justify-center px-8">
         <Grid3X3 className="mb-4 h-16 w-16 text-text-muted" />
         <h3 className="mb-2 text-lg font-semibold text-text-primary">No quick blocks</h3>
-        <p className="text-center text-sm text-text-secondary">Quick blocks will appear here for fast time logging</p>
+        <p className="text-center text-sm text-text-secondary mb-4">Quick blocks will appear here for fast time logging</p>
+        <button onClick={() => setIsEditMode(true)} className="px-4 py-2 rounded-lg bg-accent-magenta text-white font-medium hover:bg-accent-magenta/80 transition-colors">
+          Add Blocks
+        </button>
       </div>
     );
   }
@@ -372,25 +414,82 @@ function BlocksPage() {
   const totalTimeLogged = Object.values(timeLoggedToday).reduce((sum, time) => sum + time, 0);
   const productiveTime = blocks.filter((b) => !b.isPutzing).reduce((sum, b) => sum + (timeLoggedToday[b.id] ?? 0), 0);
   const putzingTime = blocks.filter((b) => b.isPutzing).reduce((sum, b) => sum + (timeLoggedToday[b.id] ?? 0), 0);
+  const nextSortOrder = blocks.length > 0 ? Math.max(...blocks.map(b => b.sortOrder)) + 1 : 0;
 
   return (
     <div className="h-full overflow-y-auto px-4 py-6">
-      <div className="mb-6 grid grid-cols-3 gap-3">
-        <div className="rounded-lg bg-bg-secondary p-3 text-center">
-          <p className="text-2xl font-bold text-text-primary">{totalTimeLogged}</p>
-          <p className="text-xs text-text-secondary">Total mins</p>
-        </div>
-        <div className="rounded-lg bg-bg-secondary p-3 text-center">
-          <p className="text-2xl font-bold text-block-green">{productiveTime}</p>
-          <p className="text-xs text-text-secondary">Productive</p>
-        </div>
-        <div className="rounded-lg bg-bg-secondary p-3 text-center">
-          <p className="text-2xl font-bold text-status-warning">{putzingTime}</p>
-          <p className="text-xs text-text-secondary">Putzing</p>
-        </div>
+      {/* Header with Edit button */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-text-primary">{isEditMode ? "Edit Blocks" : "Quick Blocks"}</h2>
+        <button
+          onClick={() => setIsEditMode(!isEditMode)}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors",
+            isEditMode ? "bg-accent-green text-white hover:bg-accent-green/80" : "bg-bg-secondary text-text-secondary hover:bg-bg-tertiary"
+          )}
+        >
+          {isEditMode ? <><Check className="h-4 w-4" /> Done</> : <><Pencil className="h-4 w-4" /> Edit</>}
+        </button>
       </div>
-      <QuickAddGrid blocks={blocks} timeLoggedMap={timeLoggedToday} onBlockPress={handleBlockPress} />
-      <p className="mt-6 text-center text-xs text-text-muted">Tap a block to log time. Green = productive, dark = putzing.</p>
+
+      {/* Success toast */}
+      {lastAddedTask && (
+        <div className="mb-4 flex items-center justify-center">
+          <div className="animate-fade-in rounded-lg bg-accent-green/20 px-4 py-2 text-accent-green text-sm font-medium">
+            ✓ Added &quot;{lastAddedTask}&quot; to timeline
+          </div>
+        </div>
+      )}
+
+      {/* Stats summary (hide in edit mode) */}
+      {!isEditMode && (
+        <div className="mb-6 grid grid-cols-3 gap-3">
+          <div className="rounded-lg bg-bg-secondary p-3 text-center">
+            <p className="text-2xl font-bold text-text-primary">{totalTimeLogged}</p>
+            <p className="text-xs text-text-secondary">Total mins</p>
+          </div>
+          <div className="rounded-lg bg-bg-secondary p-3 text-center">
+            <p className="text-2xl font-bold text-accent-green">{productiveTime}</p>
+            <p className="text-xs text-text-secondary">Productive</p>
+          </div>
+          <div className="rounded-lg bg-bg-secondary p-3 text-center">
+            <p className="text-2xl font-bold text-status-warning">{putzingTime}</p>
+            <p className="text-xs text-text-secondary">Putzing</p>
+          </div>
+        </div>
+      )}
+
+      {/* Edit mode instructions */}
+      {isEditMode && (
+        <div className="mb-4 rounded-lg bg-accent-magenta/10 p-3 text-sm text-accent-magenta">
+          <p>Drag to reorder • Tap X to delete • Tap + to add new block</p>
+        </div>
+      )}
+
+      {/* Editable Quick add grid */}
+      <EditableQuickAddGrid
+        blocks={blocks}
+        timeLoggedMap={timeLoggedToday}
+        isEditMode={isEditMode}
+        onBlockPress={handleBlockPress}
+        onBlockDelete={handleBlockDelete}
+        onBlockReorder={handleBlockReorder}
+        onCreateBlock={() => setShowCreateModal(true)}
+        maxSlots={15}
+      />
+
+      {/* Tip (hide in edit mode) */}
+      {!isEditMode && (
+        <p className="mt-6 text-center text-xs text-text-muted">Tap a block to add task to timeline. Tasks scheduled immediately.</p>
+      )}
+
+      {/* Create Block Modal */}
+      <CreateBlockModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSave={handleCreateBlock}
+        nextSortOrder={nextSortOrder}
+      />
     </div>
   );
 }

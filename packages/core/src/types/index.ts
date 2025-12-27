@@ -177,11 +177,23 @@ export const KANBAN_COLUMNS: KanbanColumn[] = [
 // Quick Add Block Types
 // ----------------------------------------------------------------------------
 
+// Block category enum for color presets
+export const BlockCategory = z.enum(["productive", "chores", "putzing", "custom"]);
+export type BlockCategory = z.infer<typeof BlockCategory>;
+
+// Category color presets
+export const BLOCK_CATEGORY_COLORS: Record<BlockCategory, string> = {
+  productive: "#6B4423", // Brown (activities like Get Ready, Meeting, Friends)
+  chores: "#16a34a",     // Green (activities like Laundry, Dishes, Vacuum)
+  putzing: "#166534",    // Dark green (non-productive time)
+  custom: "#9b4dca",     // Magenta (user-defined)
+};
+
 export const QuickAddBlockSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(50),
   defaultDuration: z.number().min(1).max(480), // Default duration in minutes
-  category: z.string().max(50).optional(),
+  category: BlockCategory.default("productive"),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   isPutzing: z.boolean().default(false),
   icon: z.string().max(50).optional(), // Emoji or icon name

@@ -89,6 +89,7 @@ function DroppableColumn({
   return (
     <div
       ref={setNodeRef}
+      data-testid="kanban-column"
       className={cn(
         "flex h-full w-72 flex-shrink-0 flex-col rounded-lg",
         "border border-border-default bg-bg-secondary",

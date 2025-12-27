@@ -4,8 +4,16 @@
 
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
-import type { QuickAddBlock } from "@blocks/core";
-import { DexieStorage } from "@blocks/core";
+import type { QuickAddBlock, BlockSize, Task, BlockCategory } from "@blocks/core";
+import { DexieStorage, TaskEngine } from "@blocks/core";
+
+// Helper to map duration to blockSize + blockCount
+function durationToBlocks(minutes: number): { blockSize: BlockSize; blockCount: number } {
+  if (minutes <= 15) return { blockSize: "15min", blockCount: 1 };
+  if (minutes <= 30) return { blockSize: "15min", blockCount: Math.ceil(minutes / 15) };
+  if (minutes <= 60) return { blockSize: "30min", blockCount: Math.ceil(minutes / 30) };
+  return { blockSize: "1hour", blockCount: Math.ceil(minutes / 60) };
+}
 
 interface QuickBlocksState {
   blocks: QuickAddBlock[];
@@ -21,27 +29,38 @@ interface QuickBlocksState {
   logTime: (blockId: string, minutes?: number) => Promise<void>;
   resetDailyLogs: () => void;
   
+  // NEW: Create task from block and schedule immediately
+  addTaskFromBlock: (blockId: string) => Promise<Task | null>;
+  
+  // NEW: Reorder blocks (for drag-and-drop)
+  reorderBlocks: (orderedIds: string[]) => Promise<void>;
+  
   // Default blocks initialization
   initializeDefaultBlocks: () => Promise<void>;
 }
 
-// Default quick add blocks based on Figma mockups
+// Default quick add blocks based on Figma mockups - with proper colors from screenshot
 const DEFAULT_BLOCKS: Omit<QuickAddBlock, "id" | "createdAt" | "usageCount">[] = [
-  { name: "Get Ready", defaultDuration: 40, color: "#22c55e", isPutzing: false, sortOrder: 0 },
-  { name: "Meeting", defaultDuration: 60, color: "#22c55e", isPutzing: false, sortOrder: 1 },
-  { name: "Friends", defaultDuration: 120, color: "#22c55e", isPutzing: false, sortOrder: 2 },
-  { name: "Food", defaultDuration: 60, color: "#22c55e", isPutzing: false, sortOrder: 3 },
-  { name: "Work", defaultDuration: 120, color: "#22c55e", isPutzing: false, sortOrder: 4 },
-  { name: "Commute", defaultDuration: 30, color: "#22c55e", isPutzing: false, sortOrder: 5 },
-  { name: "Saxophone", defaultDuration: 60, color: "#22c55e", isPutzing: false, sortOrder: 6 },
-  { name: "Walk", defaultDuration: 30, color: "#22c55e", isPutzing: false, sortOrder: 7 },
-  { name: "Break", defaultDuration: 30, color: "#22c55e", isPutzing: false, sortOrder: 8 },
-  { name: "Laundry", defaultDuration: 10, color: "#16a34a", isPutzing: false, sortOrder: 9 },
-  { name: "Dishes", defaultDuration: 30, color: "#16a34a", isPutzing: false, sortOrder: 10 },
-  { name: "Vacuum", defaultDuration: 30, color: "#16a34a", isPutzing: false, sortOrder: 11 },
-  { name: "Putzing", defaultDuration: 5, color: "#166534", isPutzing: true, sortOrder: 12 },
-  { name: "Putzing", defaultDuration: 15, color: "#166534", isPutzing: true, sortOrder: 13 },
-  { name: "Putzing", defaultDuration: 30, color: "#166534", isPutzing: true, sortOrder: 14 },
+  // Row 1: Activities (brown/maroon tones)
+  { name: "Get Ready", defaultDuration: 40, color: "#6B4423", category: "productive" as BlockCategory, isPutzing: false, sortOrder: 0 },
+  { name: "Meeting", defaultDuration: 60, color: "#6B4423", category: "productive" as BlockCategory, isPutzing: false, sortOrder: 1 },
+  { name: "Friends", defaultDuration: 120, color: "#6B4423", category: "productive" as BlockCategory, isPutzing: false, sortOrder: 2 },
+  // Row 2: Mixed activities
+  { name: "Food", defaultDuration: 60, color: "#5D4E37", category: "productive" as BlockCategory, isPutzing: false, sortOrder: 3 },
+  { name: "Work", defaultDuration: 120, color: "#4A5D23", category: "productive" as BlockCategory, isPutzing: false, sortOrder: 4 },
+  { name: "Commute", defaultDuration: 30, color: "#8B5A2B", category: "productive" as BlockCategory, isPutzing: false, sortOrder: 5 },
+  // Row 3: More activities
+  { name: "Saxophone", defaultDuration: 60, color: "#4A5D23", category: "productive" as BlockCategory, isPutzing: false, sortOrder: 6 },
+  { name: "Walk", defaultDuration: 30, color: "#4A5D23", category: "chores" as BlockCategory, isPutzing: false, sortOrder: 7 },
+  { name: "Break", defaultDuration: 30, color: "#8B5A2B", category: "chores" as BlockCategory, isPutzing: false, sortOrder: 8 },
+  // Row 4: Chores (green tones)
+  { name: "Laundry", defaultDuration: 10, color: "#16a34a", category: "chores" as BlockCategory, isPutzing: false, sortOrder: 9 },
+  { name: "Dishes", defaultDuration: 30, color: "#16a34a", category: "chores" as BlockCategory, isPutzing: false, sortOrder: 10 },
+  { name: "Vacuum", defaultDuration: 30, color: "#16a34a", category: "chores" as BlockCategory, isPutzing: false, sortOrder: 11 },
+  // Row 5: Putzing (dark green, negative time)
+  { name: "Putzin", defaultDuration: 5, color: "#166534", category: "putzing" as BlockCategory, isPutzing: true, sortOrder: 12 },
+  { name: "Putzin", defaultDuration: 15, color: "#166534", category: "putzing" as BlockCategory, isPutzing: true, sortOrder: 13 },
+  { name: "Putzin", defaultDuration: 30, color: "#166534", category: "putzing" as BlockCategory, isPutzing: true, sortOrder: 14 },
 ];
 
 export const useQuickBlocksStore = create<QuickBlocksState>((set, get) => {
@@ -147,6 +166,88 @@ export const useQuickBlocksStore = create<QuickBlocksState>((set, get) => {
       set({ timeLoggedToday: {} });
     },
 
+    // NEW: Create task from block and schedule it immediately
+    addTaskFromBlock: async (blockId: string) => {
+      const block = get().blocks.find((b) => b.id === blockId);
+      if (!block) return null;
+
+      try {
+        const db = await getStorage();
+        
+        // Map duration to blockSize + blockCount
+        const { blockSize, blockCount } = durationToBlocks(block.defaultDuration);
+        
+        // Create task with "doing" status and schedule immediately
+        const task = TaskEngine.createTask({
+          name: block.name,
+          status: "doing",
+          blockSize,
+          blockCount,
+          scheduledAt: new Date(), // Schedule immediately (now)
+          isPutzing: block.isPutzing,
+          priority: "3", // Default priority
+          assigneeId: "me",
+          accessContexts: [],
+          tags: [],
+          subtasks: [],
+          reminders: [],
+          recurrence: "none",
+          isQuickAdd: true,
+          color: block.color,
+        });
+        
+        // Save to database
+        await db.createTask(task);
+        
+        // Update usage count and time logged
+        set((state) => ({
+          timeLoggedToday: {
+            ...state.timeLoggedToday,
+            [blockId]: (state.timeLoggedToday[blockId] ?? 0) + block.defaultDuration,
+          },
+        }));
+        
+        // Update block usage count
+        await db.updateQuickAddBlock({
+          ...block,
+          usageCount: block.usageCount + 1,
+        });
+        
+        return task;
+      } catch (error) {
+        set({ error: (error as Error).message });
+        console.error("Failed to create task from block:", error);
+        return null;
+      }
+    },
+
+    // NEW: Reorder blocks (for drag-and-drop)
+    reorderBlocks: async (orderedIds: string[]) => {
+      const blocks = get().blocks;
+      const reordered: QuickAddBlock[] = [];
+      
+      orderedIds.forEach((id, index) => {
+        const block = blocks.find((b) => b.id === id);
+        if (block) {
+          reordered.push({ ...block, sortOrder: index });
+        }
+      });
+      
+      // Update state immediately for responsive UI
+      set({ blocks: reordered });
+      
+      // Persist to storage
+      try {
+        const db = await getStorage();
+        for (const block of reordered) {
+          await db.updateQuickAddBlock(block);
+        }
+      } catch (error) {
+        set({ error: (error as Error).message });
+        console.error("Failed to reorder blocks:", error);
+      }
+    },
+
     initializeDefaultBlocks: async () => {
       const db = await getStorage();
       const existingBlocks = await db.getQuickAddBlocks();
@@ -170,4 +271,3 @@ export const useQuickBlocksStore = create<QuickBlocksState>((set, get) => {
     },
   };
 });
-
