@@ -19,7 +19,7 @@
       "env": {
         "NODE_ENV": "production"
       },
-      "prebuildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm build --filter @blocks/core --filter @blocks/ui"
+      "prebuildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm build --filter @blocks/core --filter @blocks/ui && cd apps/mobile"
     },
     "production": {
       "android": {

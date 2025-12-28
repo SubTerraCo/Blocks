@@ -1,10 +1,35 @@
 pluginManagement {
   def version = providers.exec {
-    commandLine("node", "-e", "console.log(require('react-native/package.json').version);")
+    commandLine("node", "-e", "process.env.NODE_PATH = process.env.NODE_PATH || ''; const paths = [__dirname + '/node_modules', __dirname + '/../../node_modules'].filter(Boolean); process.env.NODE_PATH = paths.join(':'); console.log(require('react-native/package.json').version);")
   }.standardOutput.asText.get().trim()
   def (_, reactNativeMinor, reactNativePatch) = version.split("-")[0].tokenize('.').collect { it.toInteger() }
 
-  includeBuild(new File(["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json')"].execute(null, rootDir).text.trim()).getParentFile().toString())
+  // Try to find @react-native/gradle-plugin
+  def gradlePluginPath = null
+  try {
+    def result = ["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json')"].execute(null, rootDir)
+    result.waitFor()
+    if (result.exitValue() == 0) {
+      gradlePluginPath = result.text.trim()
+    }
+  } catch (Exception e) {
+    println "Could not resolve @react-native/gradle-plugin: ${e.message}"
+  }
+  
+  // Fallback: check parent node_modules
+  if (!gradlePluginPath || gradlePluginPath.isEmpty() || gradlePluginPath.contains("Error") || gradlePluginPath.contains("null")) {
+    def parentNodeModules = new File(rootDir, "../../node_modules/@react-native/gradle-plugin")
+    if (parentNodeModules.exists()) {
+      gradlePluginPath = new File(parentNodeModules, "package.json").getAbsolutePath()
+    }
+  }
+  
+  if (gradlePluginPath && !gradlePluginPath.isEmpty() && !gradlePluginPath.contains("Error") && !gradlePluginPath.contains("null")) {
+    def pluginDir = new File(gradlePluginPath).getParentFile()
+    if (pluginDir.exists()) {
+      includeBuild(pluginDir.toString())
+    }
+  }
   if(reactNativeMinor == 74 && reactNativePatch <= 3){
     includeBuild("react-settings-plugin")
   }
@@ -63,4 +88,30 @@ if (getRNMinorVersion() < 75) {
 }
 
 include ':app'
-includeBuild(new File(["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile())
+
+// Try to find @react-native/gradle-plugin with fallback
+def gradlePluginPath2 = null
+try {
+  def result2 = ["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir)
+  result2.waitFor()
+  if (result2.exitValue() == 0) {
+    gradlePluginPath2 = result2.text.trim()
+  }
+} catch (Exception e) {
+  println "Could not resolve @react-native/gradle-plugin (line 91): ${e.message}"
+}
+
+// Fallback: check parent node_modules
+if (!gradlePluginPath2 || gradlePluginPath2.isEmpty() || gradlePluginPath2.contains("Error") || gradlePluginPath2.contains("null")) {
+  def parentNodeModules2 = new File(rootDir, "../../node_modules/@react-native/gradle-plugin")
+  if (parentNodeModules2.exists()) {
+    gradlePluginPath2 = new File(parentNodeModules2, "package.json").getAbsolutePath()
+  }
+}
+
+if (gradlePluginPath2 && !gradlePluginPath2.isEmpty() && !gradlePluginPath2.contains("Error") && !gradlePluginPath2.contains("null")) {
+  def pluginDir2 = new File(gradlePluginPath2).getParentFile()
+  if (pluginDir2.exists()) {
+    includeBuild(pluginDir2)
+  }
+}
