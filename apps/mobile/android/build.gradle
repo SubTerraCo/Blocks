@@ -1,40 +1,5 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
-// Helper function for pnpm monorepo module resolution
-String findNodeModulePath(String moduleName) {
-  def script = """
-    const path = require('path');
-    const fs = require('fs');
-    const cwd = process.cwd();
-    
-    const searchPaths = [
-      path.join(cwd, 'node_modules', '${moduleName}'),
-      path.join(cwd, '..', 'node_modules', '${moduleName}'),
-      path.join(cwd, '..', '..', 'node_modules', '${moduleName}'),
-      path.join(cwd, '..', '..', '..', 'node_modules', '${moduleName}'),
-    ];
-    
-    for (const searchPath of searchPaths) {
-      if (fs.existsSync(searchPath)) {
-        console.log(searchPath);
-        process.exit(0);
-      }
-    }
-    
-    try {
-      const resolved = require.resolve('${moduleName}/package.json');
-      console.log(path.dirname(resolved));
-    } catch (e) {
-      console.error('Module not found: ${moduleName}');
-      process.exit(1);
-    }
-  """.stripIndent()
-  
-  def proc = ["node", "-e", script].execute(null, rootDir)
-  proc.waitFor()
-  return proc.text.trim()
-}
-
 buildscript {
     ext {
         buildToolsVersion = findProperty('android.buildToolsVersion') ?: '34.0.0'
@@ -62,13 +27,11 @@ allprojects {
     repositories {
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-            def rnPath = findNodeModulePath('react-native')
-            url(new File(rnPath, 'android'))
+            url(new File(['node', '--print', "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), '../android'))
         }
         maven {
             // Android JSC is installed from npm
-            def jscPath = findNodeModulePath('jsc-android')
-            url(new File(jscPath, 'dist'))
+            url(new File(['node', '--print', "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist'))
         }
 
         google()

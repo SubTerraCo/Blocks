@@ -1,50 +1,10 @@
 pluginManagement {
-  // Helper function for pnpm monorepo module resolution - defined inside pluginManagement
-  def findModulePath = { String moduleName, File baseDir ->
-    def script = """
-      const path = require('path');
-      const fs = require('fs');
-      const cwd = process.cwd();
-      
-      const searchPaths = [
-        path.join(cwd, 'node_modules', '${moduleName}'),
-        path.join(cwd, '..', 'node_modules', '${moduleName}'),
-        path.join(cwd, '..', '..', 'node_modules', '${moduleName}'),
-        path.join(cwd, '..', '..', '..', 'node_modules', '${moduleName}'),
-      ];
-      
-      for (const searchPath of searchPaths) {
-        if (fs.existsSync(searchPath)) {
-          console.log(searchPath);
-          process.exit(0);
-        }
-      }
-      
-      try {
-        const resolved = require.resolve('${moduleName}/package.json');
-        console.log(path.dirname(resolved));
-      } catch (e) {
-        console.error('Module not found: ${moduleName}');
-        process.exit(1);
-      }
-    """.stripIndent()
-    
-    def proc = ["node", "-e", script].execute(null, baseDir)
-    proc.waitFor()
-    return proc.text.trim()
-  }
-  
-  def rnPath = findModulePath('react-native', rootDir)
-  def packageJson = new File(rnPath, 'package.json')
-  def json = new groovy.json.JsonSlurper().parse(packageJson)
-  def version = json.version
+  def version = providers.exec {
+    commandLine("node", "-e", "console.log(require('react-native/package.json').version);")
+  }.standardOutput.asText.get().trim()
   def (_, reactNativeMinor, reactNativePatch) = version.split("-")[0].tokenize('.').collect { it.toInteger() }
 
-  def gradlePluginPath = findModulePath('@react-native/gradle-plugin', rootDir)
-  if (gradlePluginPath && !gradlePluginPath.isEmpty() && new File(gradlePluginPath).exists()) {
-    includeBuild(gradlePluginPath)
-  }
-  
+  includeBuild(new File(["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json')"].execute(null, rootDir).text.trim()).getParentFile().toString())
   if(reactNativeMinor == 74 && reactNativePatch <= 3){
     includeBuild("react-settings-plugin")
   }
@@ -52,52 +12,14 @@ pluginManagement {
 
 plugins { id("com.facebook.react.settings") }
 
-// Helper function available outside pluginManagement
-def findNodeModule = { String moduleName ->
-  def script = """
-    const path = require('path');
-    const fs = require('fs');
-    const cwd = process.cwd();
-    
-    const searchPaths = [
-      path.join(cwd, 'node_modules', '${moduleName}'),
-      path.join(cwd, '..', 'node_modules', '${moduleName}'),
-      path.join(cwd, '..', '..', 'node_modules', '${moduleName}'),
-      path.join(cwd, '..', '..', '..', 'node_modules', '${moduleName}'),
-    ];
-    
-    for (const searchPath of searchPaths) {
-      if (fs.existsSync(searchPath)) {
-        console.log(searchPath);
-        process.exit(0);
-      }
-    }
-    
-    try {
-      const resolved = require.resolve('${moduleName}/package.json');
-      console.log(path.dirname(resolved));
-    } catch (e) {
-      console.error('Module not found: ${moduleName}');
-      process.exit(1);
-    }
-  """.stripIndent()
-  
-  def proc = ["node", "-e", script].execute(null, rootDir)
-  proc.waitFor()
-  return proc.text.trim()
-}
+def getRNMinorVersion() {
+  def version = providers.exec {
+    commandLine("node", "-e", "console.log(require('react-native/package.json').version);")
+  }.standardOutput.asText.get().trim()
 
-def getReactNativeVersion = {
-  def rnPath = findNodeModule('react-native')
-  def packageJson = new File(rnPath, 'package.json')
-  def json = new groovy.json.JsonSlurper().parse(packageJson)
-  return json.version
-}
-
-def getRNMinorVersion = {
-  def rnVersion = getReactNativeVersion()
-  def coreVersion = rnVersion.split("-")[0]
+  def coreVersion = version.split("-")[0]
   def (major, minor, patch) = coreVersion.tokenize('.').collect { it.toInteger() }
+
   return minor
 }
 
@@ -127,25 +49,18 @@ rootProject.name = 'Blocks'
 dependencyResolutionManagement {
   versionCatalogs {
     reactAndroidLibs {
-      def rnPath = findNodeModule('react-native')
-      from(files(new File(rnPath, "gradle/libs.versions.toml")))
+      from(files(new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), "../gradle/libs.versions.toml")))
     }
   }
 }
 
-def expoPath = findNodeModule('expo')
-apply from: new File(expoPath, "scripts/autolinking.gradle")
+apply from: new File(["node", "--print", "require.resolve('expo/package.json')"].execute(null, rootDir).text.trim(), "../scripts/autolinking.gradle");
 useExpoModules()
 
 if (getRNMinorVersion() < 75) {
-  def cliPlatformPath = findNodeModule('@react-native-community/cli-platform-android')
-  apply from: new File(cliPlatformPath, "native_modules.gradle")
+  apply from: new File(["node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), "../native_modules.gradle");
   applyNativeModulesSettingsGradle(settings)
 }
 
 include ':app'
-
-def gradlePluginPath = findNodeModule('@react-native/gradle-plugin')
-if (gradlePluginPath && !gradlePluginPath.isEmpty() && new File(gradlePluginPath).exists()) {
-  includeBuild(gradlePluginPath)
-}
+includeBuild(new File(["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile())

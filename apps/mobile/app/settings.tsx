@@ -20,7 +20,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
 import { useSettingsStore, ThemeMode } from "@/hooks/useSettingsStore";
 import { useTaskStore } from "@/hooks/useTaskStore";
 
@@ -105,12 +104,11 @@ export default function SettingsPage() {
       const fileUri = FileSystem.documentDirectory + "blocks-export.json";
       await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(data, null, 2));
       
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri, {
-          mimeType: "application/json",
-          dialogTitle: "Export Blocks Data",
-        });
-      }
+      Alert.alert(
+        "Export Complete",
+        `Data exported to:\n${fileUri}`,
+        [{ text: "OK" }]
+      );
       
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
@@ -135,12 +133,11 @@ export default function SettingsPage() {
       const fileUri = FileSystem.documentDirectory + "blocks-export.csv";
       await FileSystem.writeAsStringAsync(fileUri, csv);
       
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri, {
-          mimeType: "text/csv",
-          dialogTitle: "Export Blocks Data",
-        });
-      }
+      Alert.alert(
+        "Export Complete",
+        `Data exported to:\n${fileUri}`,
+        [{ text: "OK" }]
+      );
       
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
