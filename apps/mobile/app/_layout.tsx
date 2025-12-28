@@ -3,6 +3,9 @@
 // Main navigation structure using expo-router
 // ============================================================================
 
+// IMPORTANT: This MUST be the first import to polyfill crypto.getRandomValues() for uuid
+import "react-native-get-random-values";
+
 import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
