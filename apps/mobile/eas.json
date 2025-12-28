@@ -15,7 +15,11 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      }
+      },
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "prebuildCommand": "cd ../.. && pnpm install && pnpm build --filter @blocks/core --filter @blocks/ui"
     },
     "production": {
       "android": {
