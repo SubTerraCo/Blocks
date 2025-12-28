@@ -15,13 +15,17 @@ import {
   KeyboardAvoidingView,
   Platform,
   Switch,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { v4 as uuidv4 } from "uuid";
 import { useTaskStore } from "@/hooks/useTaskStore";
 import type { TaskStatus, TaskPriority, BlockSize, AccessContext, RecurrenceType, Subtask } from "@blocks/core";
+
+// Note: DateTimePicker removed temporarily to avoid potential package issues
+// Will re-add once package is properly installed
 
 // Colors
 const COLORS = {
@@ -154,7 +158,7 @@ export default function AddTaskModal() {
     const text = subtaskInput.trim();
     if (text) {
       const newSubtask: Subtask = {
-        id: Date.now().toString(),
+        id: uuidv4(),
         name: text,
         completed: false,
       };
@@ -182,7 +186,7 @@ export default function AddTaskModal() {
     setIsSubmitting(true);
     
     try {
-      await createTask({
+      const taskData = {
         name: name.trim(),
         description: description.trim() || undefined,
         priority,
@@ -193,7 +197,11 @@ export default function AddTaskModal() {
         assigneeId: "me",
         accessContexts,
         tags,
-        subtasks,
+        subtasks: subtasks.map((s) => ({
+          id: s.id,
+          name: s.name,
+          completed: s.completed,
+        })),
         reminders: [],
         recurrence,
         dueDate: dueDate || undefined,
@@ -201,12 +209,23 @@ export default function AddTaskModal() {
         notes: notes.trim() || undefined,
         isQuickAdd: false,
         isPutzing: false,
-      });
+      };
       
+      console.log("Creating task with data:", JSON.stringify(taskData, null, 2));
+      
+      await createTask(taskData);
+      
+      console.log("Task created successfully!");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     } catch (error) {
       console.error("Failed to create task:", error);
+      // Show alert with error
+      Alert.alert(
+        "Error Creating Task",
+        error instanceof Error ? error.message : "Unknown error occurred",
+        [{ text: "OK" }]
+      );
       setIsSubmitting(false);
     }
   };
@@ -474,27 +493,21 @@ export default function AddTaskModal() {
             <Text style={[styles.label, { color: colors.textMuted }]}>Due Date</Text>
             <Pressable
               style={[styles.dropdown, { backgroundColor: colors.bgSecondary }]}
-              onPress={() => setShowDatePicker(true)}
+              onPress={() => {
+                Alert.alert(
+                  "Due Date",
+                  "Date picker coming in next update. Task will be created without due date.",
+                  [{ text: "OK" }]
+                );
+              }}
             >
-              <Text style={[styles.dropdownText, { color: dueDate ? colors.textPrimary : colors.textMuted }]}>
-                {dueDate ? dueDate.toLocaleDateString() : "Select..."}
+              <Text style={[styles.dropdownText, { color: colors.textMuted }]}>
+                Coming soon...
               </Text>
               <Ionicons name="calendar" size={18} color={colors.textMuted} />
             </Pressable>
           </View>
         </View>
-        
-        {showDatePicker && (
-          <DateTimePicker
-            value={dueDate || new Date()}
-            mode="date"
-            display="default"
-            onChange={(event, date) => {
-              setShowDatePicker(false);
-              if (date) setDueDate(date);
-            }}
-          />
-        )}
         
         {/* Color Picker */}
         <View style={styles.field}>
