@@ -19,7 +19,7 @@
       "env": {
         "NODE_ENV": "production"
       },
-      "prebuildCommand": "cd ../.. && pnpm install && pnpm build --filter @blocks/core --filter @blocks/ui"
+      "prebuildCommand": "echo 'Using prebuilt Android project'"
     },
     "production": {
       "android": {
