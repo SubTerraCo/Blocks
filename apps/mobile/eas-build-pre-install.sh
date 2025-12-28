@@ -6,11 +6,17 @@ set -e
 
 echo "🔧 Installing workspace dependencies..."
 
-# Navigate to monorepo root
+# Navigate to monorepo root (EAS runs from apps/mobile)
 cd ../../
+pwd
 
 # Install all dependencies using pnpm
+echo "📦 Installing pnpm dependencies..."
 pnpm install --frozen-lockfile
 
-echo "✅ Dependencies installed successfully"
+# Build core packages
+echo "🏗️ Building core packages..."
+pnpm build --filter @blocks/core --filter @blocks/ui
+
+echo "✅ Dependencies installed and built successfully"
 

@@ -19,7 +19,7 @@
       "env": {
         "NODE_ENV": "production"
       },
-      "prebuildCommand": "echo 'Using prebuilt Android project'"
+      "prebuildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm build --filter @blocks/core --filter @blocks/ui"
     },
     "production": {
       "android": {
