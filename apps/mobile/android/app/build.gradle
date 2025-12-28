@@ -63,13 +63,45 @@ react {
     def rnPath = findNodeModulePath('react-native')
     def expoPath = findNodeModulePath('expo')
     def codegenPath = findNodeModulePath('@react-native/codegen')
-    def expoCliPath = findNodeModulePath('@expo/cli')
+    
+    // Resolve the actual CLI file (not directory)
+    def cliFileScript = """
+      const path = require('path');
+      const fs = require('fs');
+      const cwd = process.cwd();
+      
+      const searchPaths = [
+        path.join(cwd, 'node_modules'),
+        path.join(cwd, '..', 'node_modules'),
+        path.join(cwd, '..', '..', 'node_modules'),
+        path.join(cwd, '..', '..', '..', 'node_modules'),
+      ];
+      
+      for (const nodeModules of searchPaths) {
+        try {
+          const expoPath = path.join(nodeModules, 'expo', 'package.json');
+          if (fs.existsSync(expoPath)) {
+            const resolved = require.resolve('@expo/cli', { paths: [expoPath] });
+            console.log(resolved);
+            process.exit(0);
+          }
+        } catch (e) {}
+      }
+      
+      try {
+        console.log(require.resolve('@expo/cli'));
+      } catch (e) {
+        console.error('Could not resolve @expo/cli');
+        process.exit(1);
+      }
+    """.stripIndent()
+    def expoCliFile = ["node", "-e", cliFileScript].execute(null, rootDir).text.trim()
     
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, rootDir).text.trim())
     reactNativeDir = file(rnPath)
     hermesCommand = new File(rnPath, "sdks/hermesc/%OS-BIN%/hermesc").getAbsolutePath()
     codegenDir = file(codegenPath)
-    cliFile = file(expoCliPath)
+    cliFile = file(expoCliFile)
     bundleCommand = "export:embed"
 
     if (rnVersion >= versionToNumber(0, 75, 0)) {
