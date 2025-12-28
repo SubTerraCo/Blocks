@@ -222,21 +222,32 @@ export default function AddTaskModal() {
       
       console.log("Task created successfully!");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.back();
+      
+      // Use dismiss() for modals, or navigate to tabs if that fails
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/(tabs)/kanban");
+      }
     } catch (error) {
       console.error("Failed to create task:", error);
+      setIsSubmitting(false);
       // Show alert with error
       Alert.alert(
         "Error Creating Task",
         error instanceof Error ? error.message : "Unknown error occurred",
         [{ text: "OK" }]
       );
-      setIsSubmitting(false);
     }
   };
   
   const handleClose = () => {
-    router.back();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)/kanban");
+    }
   };
   
   return (

@@ -114,20 +114,35 @@ export default function KanbanPage() {
             key={column.id}
             style={[
               styles.column,
-              { backgroundColor: colors.bgSecondary, width: COLUMN_WIDTH },
+              { 
+                backgroundColor: colors.bgSecondary, 
+                width: COLUMN_WIDTH,
+                borderColor: colors.border,
+                borderWidth: 1,
+              },
             ]}
           >
-            {/* Column header */}
-            <View style={styles.columnHeader}>
+            {/* Column header - styled like desktop */}
+            <View 
+              style={[
+                styles.columnHeader, 
+                { backgroundColor: column.color + "20" }
+              ]}
+            >
               <View style={styles.columnTitleRow}>
                 <View
                   style={[styles.columnDot, { backgroundColor: column.color }]}
                 />
-                <Text style={[styles.columnTitle, { color: colors.textPrimary }]}>
-                  {column.title}
+                <Text 
+                  style={[
+                    styles.columnTitle, 
+                    { color: column.color }
+                  ]}
+                >
+                  {column.title.toUpperCase()}
                 </Text>
-                <View style={[styles.countBadge, { backgroundColor: colors.bgTertiary }]}>
-                  <Text style={[styles.countText, { color: colors.textMuted }]}>
+                <View style={[styles.countBadge, { backgroundColor: column.color }]}>
+                  <Text style={[styles.countText, { color: "#FFFFFF" }]}>
                     {groupedTasks[column.id]?.length || 0}
                   </Text>
                 </View>
@@ -177,11 +192,12 @@ const styles = StyleSheet.create({
   },
   column: {
     borderRadius: 12,
-    padding: 12,
+    overflow: "hidden",
     maxHeight: "100%",
   },
   columnHeader: {
-    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   columnTitleRow: {
     flexDirection: "row",
@@ -189,43 +205,47 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   columnDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 12,
+    height: 12,
+    borderRadius: 3,
   },
   columnTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "700",
     flex: 1,
+    letterSpacing: 0.5,
   },
   countBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: 12,
   },
   countText: {
-    fontSize: 12,
-    fontWeight: "500",
+    fontSize: 11,
+    fontWeight: "600",
   },
   tasksList: {
     flex: 1,
+    padding: 12,
   },
   taskCard: {
-    marginBottom: 8,
+    marginBottom: 12,
   },
   addTaskButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    padding: 12,
+    paddingVertical: 12,
     borderRadius: 8,
-    borderWidth: 1,
+    borderWidth: 2,
     borderStyle: "dashed",
-    gap: 4,
-    marginTop: 4,
+    gap: 6,
+    marginTop: 8,
+    marginBottom: 16,
   },
   addTaskText: {
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: "500",
   },
 });
 
