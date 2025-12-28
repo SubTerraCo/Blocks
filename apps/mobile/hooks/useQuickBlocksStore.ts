@@ -6,8 +6,16 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { v4 as uuidv4 } from "uuid";
 import type { QuickAddBlock, BlockCategory } from "@blocks/core";
+
+// Generate UUID without crypto (React Native compatible)
+function generateId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 // ============================================================================
 // Types
@@ -67,7 +75,7 @@ export const useQuickBlocksStore = create<QuickBlocksState>()(
         const blocks = get().blocks;
         const block: QuickAddBlock = {
           ...blockData,
-          id: uuidv4(),
+          id: generateId(),
           sortOrder: blocks.length,
           usageCount: 0,
           createdAt: now,
@@ -110,7 +118,7 @@ export const useQuickBlocksStore = create<QuickBlocksState>()(
         const now = new Date();
         const blocks: QuickAddBlock[] = DEFAULT_BLOCKS.map((block, index) => ({
           ...block,
-          id: uuidv4(),
+          id: generateId(),
           sortOrder: index,
           usageCount: 0,
           createdAt: now,

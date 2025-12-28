@@ -20,12 +20,17 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { v4 as uuidv4 } from "uuid";
 import { useTaskStore } from "@/hooks/useTaskStore";
 import type { TaskStatus, TaskPriority, BlockSize, AccessContext, RecurrenceType, Subtask } from "@blocks/core";
 
-// Note: DateTimePicker removed temporarily to avoid potential package issues
-// Will re-add once package is properly installed
+// Generate UUID without crypto (React Native compatible)
+function generateId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 // Colors
 const COLORS = {
@@ -158,7 +163,7 @@ export default function AddTaskModal() {
     const text = subtaskInput.trim();
     if (text) {
       const newSubtask: Subtask = {
-        id: uuidv4(),
+        id: generateId(),
         name: text,
         completed: false,
       };
