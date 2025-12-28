@@ -41,14 +41,12 @@ export function TopBar({ title, showBackButton = false, subtitle }: TopBarProps)
 
   const handleMenuPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // TODO: Navigate to settings when settings page is created
-    console.log("Menu pressed - will open settings");
+    router.push("/settings");
   };
 
   const handleProfilePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // TODO: Navigate to profile when profile page is created
-    console.log("Profile pressed - will open profile");
+    router.push("/profile");
   };
 
   const handleBackPress = () => {

@@ -24,7 +24,11 @@ interface QuickBlocksState {
   deleteBlock: (id: string) => Promise<void>;
   reorderBlocks: (orderedIds: string[]) => Promise<void>;
   initializeDefaultBlocks: () => Promise<void>;
+  incrementUsage: (id: string) => void;
 }
+
+// Re-export QuickAddBlock type for convenience
+export type { QuickAddBlock } from "@blocks/core";
 
 // ============================================================================
 // Default blocks
@@ -113,6 +117,16 @@ export const useQuickBlocksStore = create<QuickBlocksState>()(
         }));
         
         set({ blocks });
+      },
+      
+      incrementUsage: (id) => {
+        set((state) => ({
+          blocks: state.blocks.map((block) =>
+            block.id === id
+              ? { ...block, usageCount: block.usageCount + 1 }
+              : block
+          ),
+        }));
       },
     }),
     {
