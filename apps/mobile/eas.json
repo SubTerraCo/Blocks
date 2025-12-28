@@ -4,7 +4,12 @@
     "appVersionSource": "local"
   },
   "build": {
+    "base": {
+      "node": "20.18.0",
+      "pnpm": "9.14.2"
+    },
     "development": {
+      "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
       "android": {
@@ -12,16 +17,17 @@
       }
     },
     "preview": {
+      "extends": "base",
       "distribution": "internal",
       "android": {
         "buildType": "apk"
       },
       "env": {
         "NODE_ENV": "production"
-      },
-      "prebuildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm build --filter @blocks/core --filter @blocks/ui && cd apps/mobile"
+      }
     },
     "production": {
+      "extends": "base",
       "android": {
         "buildType": "apk"
       },
