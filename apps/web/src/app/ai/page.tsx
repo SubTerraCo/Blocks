@@ -51,7 +51,7 @@ export default function AIPage() {
         ...prev,
         { role: "assistant", content: response, timestamp: new Date() },
       ]);
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {

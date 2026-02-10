@@ -11,7 +11,7 @@ export default function AddTaskPage() {
   const searchParams = useSearchParams();
   const createTask = useTaskStore((state) => state.createTask);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const initialStatus = (searchParams.get("status") as TaskStatus) || "backlog";
+  const initialStatus = (searchParams?.get("status") as TaskStatus) || "backlog";
 
   const handleSubmit = async (payload: TaskEditorSubmitInput) => {
     setIsSubmitting(true);

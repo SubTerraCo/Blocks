@@ -8,7 +8,7 @@ import { TaskEditor, type TaskEditorSubmitInput } from "@/components/task-editor
 export default function EditTaskPage() {
   const router = useRouter();
   const params = useParams();
-  const taskId = params.id as string;
+  const taskId = params?.id as string;
   
   const tasks = useTaskStore((state) => state.tasks);
   const updateTask = useTaskStore((state) => state.updateTask);

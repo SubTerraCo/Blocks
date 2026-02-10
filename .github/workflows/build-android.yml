@@ -89,7 +89,6 @@ jobs:
         run: |
           # Start EAS build and wait for completion
           BUILD_OUTPUT=$(eas build --platform android --profile ${{ inputs.profile || 'preview' }} --non-interactive --json)
-          echo "build_output=$BUILD_OUTPUT" >> $GITHUB_OUTPUT
           
           # Extract build URL
           BUILD_URL=$(echo "$BUILD_OUTPUT" | jq -r '.[0].artifacts.buildUrl // empty')

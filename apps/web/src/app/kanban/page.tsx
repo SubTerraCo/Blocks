@@ -9,16 +9,14 @@ import { Plus } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
-  useDraggable,
-  useDroppable,
-  DragStartEvent,
-  DragEndEvent,
-  DragOverEvent,
   closestCenter,
   PointerSensor,
+  useDraggable,
+  useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
 
 // Draggable task card wrapper
 interface DraggableTaskCardProps {
@@ -199,7 +197,7 @@ export default function KanbanPage() {
     };
 
     tasks.forEach((task) => {
-      const status = task.status as TaskStatus;
+      const status = task.status;
       if (groups[status]) {
         groups[status].push(task);
       } else {
