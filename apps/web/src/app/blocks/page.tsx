@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { 
   useQuickBlocksStore, 
   useTaskStore,
@@ -13,7 +12,6 @@ import type { QuickAddBlock } from "@blocks/core";
 import { Grid3X3, Pencil, Check } from "lucide-react";
 
 export default function BlocksPage() {
-  const router = useRouter();
   const blocks = useQuickBlocksStore((state) => state.blocks);
   const timeLoggedToday = useQuickBlocksStore((state) => state.timeLoggedToday);
   const isLoading = useQuickBlocksStore((state) => state.isLoading);
@@ -30,7 +28,7 @@ export default function BlocksPage() {
   // Reload tasks when a block is pressed (so timeline updates)
   useEffect(() => {
     if (lastAddedTask) {
-      loadTasks();
+      void loadTasks();
       // Clear after a short delay
       const timer = setTimeout(() => setLastAddedTask(null), 2000);
       return () => clearTimeout(timer);
@@ -104,7 +102,7 @@ export default function BlocksPage() {
     : 0;
 
   return (
-    <div className="h-full overflow-y-auto px-4 py-6">
+    <div className="h-full overflow-y-auto px-4 py-6 pb-24">
       {/* Header with Edit button */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold text-text-primary">

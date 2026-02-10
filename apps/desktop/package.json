@@ -1,33 +1,46 @@
 {
   "name": "blocks-desktop",
-  "version": "0.1.0",
+  "version": "0.0.3",
   "description": "Blocks - Time Management Desktop App",
   "main": "dist/main/index.js",
   "author": "Blocks Team",
   "license": "MIT",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/poweredupbass/Blocks.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder --dir",
     "build:win": "tsc && vite build && electron-builder --win",
+    "build:mac": "tsc && vite build && electron-builder --mac",
+    "build:linux": "tsc && vite build && electron-builder --linux",
+    "build:all": "tsc && vite build && electron-builder -mwl",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release": "electron-builder --publish always"
   },
   "dependencies": {
     "@blocks/core": "workspace:*",
     "@blocks/ui": "workspace:*",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "zustand": "^4.4.0",
+    "@dnd-kit/core": "^6.1.0",
+    "dexie": "^3.2.4",
+    "electron-log": "^5.1.1",
+    "electron-updater": "^6.1.7",
     "lucide-react": "^0.294.0",
-    "dexie": "^3.2.4"
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "uuid": "^9.0.1",
+    "zustand": "^4.4.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@types/uuid": "^9.0.7",
     "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.16",
-    "electron": "^28.1.0",
+    "electron": "28.1.0",
     "electron-builder": "^24.9.1",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",
@@ -37,31 +50,6 @@
     "vite-plugin-electron-renderer": "^0.14.5"
   },
   "build": {
-    "appId": "com.blocks.app",
-    "productName": "Blocks",
-    "directories": {
-      "output": "release",
-      "buildResources": "resources"
-    },
-    "files": [
-      "dist/**/*",
-      "resources/**/*"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        }
-      ],
-      "icon": "resources/icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    }
+    "extends": "electron-builder.yml"
   }
 }
-

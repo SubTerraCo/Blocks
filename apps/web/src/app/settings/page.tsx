@@ -171,7 +171,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 pb-24">
       {/* Theme */}
       <SettingsSection title="Appearance">
         <div className="p-4">

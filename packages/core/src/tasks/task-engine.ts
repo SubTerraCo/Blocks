@@ -30,6 +30,7 @@ export class TaskEngine {
       ...input,
       id: uuidv4(),
       timeSpent: 0,
+      isRecurringInstance: false,
       createdAt: now,
       updatedAt: now,
     };

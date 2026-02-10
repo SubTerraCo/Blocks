@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "Blocks",
+    "slug": "blocks",
+    "version": "0.0.3",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "blocks",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D0D0D"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.blocks.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D0D0D"
+      },
+      "package": "com.blocks.app",
+      "versionCode": 3,
+      "minSdkVersion": 24,
+      "targetSdkVersion": 34,
+      "compileSdkVersion": 34
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "da003076-1f80-4ae5-9c99-945032cb4344"
+      }
+    },
+    "owner": "poweredupbass"
+  }
+}

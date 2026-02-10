@@ -45,8 +45,8 @@ export default defineConfig({
 
   // Shared settings for all projects
   use: {
-    // Base URL for navigation
-    baseURL: "http://localhost:3003",
+    // Base URL for navigation (uses env var or default to 3004)
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3004",
 
     // Collect trace on first retry
     trace: "on-first-retry",

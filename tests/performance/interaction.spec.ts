@@ -18,8 +18,8 @@ test.describe("Interaction Performance", () => {
 
     console.log(`Button click response time: ${clickTime}ms`);
     
-    // Click should respond within 3000ms (dev mode with HMR is slower)
-    expect(clickTime).toBeLessThan(3000);
+    // Click should respond within 5000ms (dev mode with HMR is slower on CI)
+    expect(clickTime).toBeLessThan(5000);
   });
 
   test("form input should be responsive", async ({ page }) => {

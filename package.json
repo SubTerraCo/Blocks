@@ -1,6 +1,6 @@
 {
   "name": "blocks",
-  "version": "0.1.0",
+  "version": "0.0.3",
   "private": true,
   "description": "Blocks - AI-powered time management app",
   "author": "Blocks Team",
@@ -31,8 +31,11 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
     "@playwright/test": "^1.57.0",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",
     "@types/node": "^20.10.0",
     "eslint": "^8.55.0",
+    "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.1.1",
     "turbo": "^2.3.0",
     "typescript": "^5.3.3"

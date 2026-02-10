@@ -2,6 +2,10 @@ appId: com.blocks.app
 productName: Blocks
 copyright: Copyright © 2024 Blocks Team
 
+# Version is read from package.json
+asar: true
+compression: maximum
+
 directories:
   output: release
   buildResources: resources
@@ -11,44 +15,80 @@ files:
   - resources/**/*
   - "!**/*.{ts,tsx,map}"
 
+# =============================================================================
+# Windows Configuration
+# =============================================================================
 win:
   target:
-    - target: portable
+    - target: nsis
       arch:
         - x64
-  icon: resources/icon.ico
-  artifactName: "${productName}-${version}-portable.${ext}"
+  artifactName: "${productName}-Setup-${version}.${ext}"
   signAndEditExecutable: false
 
+# NSIS Installer Configuration (Full Install/Uninstall/Modify)
 nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
+  allowElevation: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: Blocks
-  uninstallDisplayName: Blocks
+  uninstallDisplayName: "Blocks ${version}"
+  deleteAppDataOnUninstall: false
+  runAfterFinish: true
+  menuCategory: Productivity
 
+# =============================================================================
+# macOS Configuration
+# =============================================================================
 mac:
   target:
     - target: dmg
       arch:
         - x64
         - arm64
-  icon: resources/icon.icns
   category: public.app-category.productivity
   artifactName: "${productName}-${version}-${arch}.${ext}"
+  hardenedRuntime: true
+  gatekeeperAssess: false
 
+dmg:
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+# =============================================================================
+# Linux Configuration  
+# =============================================================================
 linux:
   target:
     - target: AppImage
       arch:
         - x64
-  icon: resources/icon.png
+    - target: deb
+      arch:
+        - x64
   category: Office
   artifactName: "${productName}-${version}.${ext}"
+  desktop:
+    Name: Blocks
+    Comment: Time Management Application
+    Categories: Office;Utility;
 
+# =============================================================================
+# Auto-Update Configuration (GitHub Releases)
+# =============================================================================
 publish:
   provider: github
-  releaseType: draft
+  owner: poweredupbass
+  repo: Blocks
+  releaseType: release
 
+# Generate latest.yml for auto-updates
+generateUpdatesFilesForAllChannels: true

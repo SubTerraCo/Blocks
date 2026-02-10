@@ -8,6 +8,15 @@ export * from "./types";
 // Task Engine
 export { TaskEngine } from "./tasks";
 
+// Recurring Engine
+export {
+  getNextOccurrence,
+  generateRecurringInstances,
+  createRecurringInstance,
+  getNextOccurrences,
+  buildRecurrencePattern,
+} from "./tasks/recurring-engine";
+
 // AI Service
 export { AIService, GeminiService, AIOfflineError } from "./ai";
 export type {

@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@blocks/core", "@blocks/ui"],
   experimental: {
-    optimizePackageImports: ["@blocks/ui", "lucide-react"],
+    optimizePackageImports: ["lucide-react"],
   },
 };
 

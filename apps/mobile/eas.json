@@ -1,0 +1,42 @@
+{
+  "cli": {
+    "version": ">= 5.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "base": {
+      "node": "20.18.0",
+      "pnpm": "9.14.2"
+    },
+    "development": {
+      "extends": "base",
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview": {
+      "extends": "base",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "prebuildCommand": "cd ../.. && pnpm install && pnpm build --filter @blocks/core"
+    },
+    "production": {
+      "extends": "base",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {}
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
+

@@ -53,12 +53,17 @@ export function AppShell({ children }: AppShellProps) {
       await loadBlocks();
       await initializeDefaultBlocks();
     };
-    initializeApp();
+    void initializeApp();
   }, [loadTasks, loadSettings, loadBlocks, initializeDefaultBlocks]);
 
-  const activeNav = routeToNav[pathname] ?? "timeline";
-  const title = routeTitles[pathname] ?? "Blocks";
-  const showBackButton = pathname === "/add-task" || pathname === "/settings" || pathname === "/profile" || pathname.startsWith("/edit-task");
+  const currentPath = pathname ?? "/";
+  const activeNav = routeToNav[currentPath] ?? "timeline";
+  const title = routeTitles[currentPath] ?? "Blocks";
+  const showBackButton =
+    currentPath === "/add-task" ||
+    currentPath === "/settings" ||
+    currentPath === "/profile" ||
+    currentPath.startsWith("/edit-task");
 
   const handleNavPress = (item: NavItem) => {
     router.push(navToRoute[item]);

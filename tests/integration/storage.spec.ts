@@ -59,12 +59,12 @@ test.describe("Storage Persistence", () => {
     // Create a task in first session
     await page.goto("/add-task");
     
-    const nameInput = page.getByPlaceholder(/name|what|task/i).or(
-      page.locator('input[type="text"]').first()
-    );
+    // Use specific role to find task name input
+    const nameInput = page.getByRole("textbox", { name: /task name/i });
     await nameInput.fill("Session Test Task");
     
-    const submitButton = page.getByRole("button", { name: /add|create|save/i });
+    // Use specific button text to avoid ambiguity with nav Add button
+    const submitButton = page.getByRole("button", { name: "Create Task" });
     await submitButton.click();
     
     // Wait for save
