@@ -13,6 +13,7 @@ import type {
   SearchResult,
   TaskTemplate,
   Tag,
+  Routine,
 } from "../types";
 import type {
   IStorageWithEvents,
@@ -21,6 +22,7 @@ import type {
   StorageEventHandler,
 } from "./storage-interface";
 import { SettingsSchema } from "../types";
+import { createDefaultMorningRoutine } from "../tasks/routine-engine";
 
 /**
  * Dexie database schema for Blocks
@@ -33,6 +35,7 @@ class BlocksDatabase extends Dexie {
   timeEntries!: Table<TimeEntry, string>;
   taskTemplates!: Table<TaskTemplate, string>;
   tags!: Table<Tag, string>;
+  routines!: Table<Routine, string>;
 
   constructor() {
     super("BlocksDB");
@@ -55,6 +58,17 @@ class BlocksDatabase extends Dexie {
       timeEntries: "id, taskId, startTime, createdAt",
       taskTemplates: "id, name, category, usageCount, createdAt",
       tags: "id, name, usageCount, createdAt",
+    });
+
+    this.version(3).stores({
+      tasks: "id, name, status, priority, category, scheduledAt, dueDate, createdAt, updatedAt, parentTaskId, recurrence, *tags",
+      quickAddBlocks: "id, name, sortOrder, createdAt",
+      users: "id, email",
+      settings: "id",
+      timeEntries: "id, taskId, startTime, createdAt",
+      taskTemplates: "id, name, category, usageCount, createdAt",
+      tags: "id, name, usageCount, createdAt",
+      routines: "id, name, usageCount, createdAt",
     });
   }
 }
@@ -93,6 +107,12 @@ export class DexieStorage implements IStorageWithEvents {
     if (!existingSettings) {
       const defaultSettings = SettingsSchema.parse({});
       await this.db.settings.put({ ...defaultSettings, id: "default" });
+    }
+
+    // Seed default routines if none exist
+    const routineCount = await this.db.routines.count();
+    if (routineCount === 0) {
+      await this.db.routines.add(createDefaultMorningRoutine());
     }
   }
 
@@ -460,6 +480,41 @@ export class DexieStorage implements IStorageWithEvents {
 
   async getRecurringInstances(parentTaskId: string): Promise<Task[]> {
     return this.db.tasks.where("parentTaskId").equals(parentTaskId).toArray();
+  }
+
+  // -------------------------------------------------------------------------
+  // Routines (Grouped Tasks)
+  // -------------------------------------------------------------------------
+
+  async getRoutines(): Promise<Routine[]> {
+    return this.db.routines.orderBy("usageCount").reverse().toArray();
+  }
+
+  async getRoutine(id: string): Promise<Routine | undefined> {
+    return this.db.routines.get(id);
+  }
+
+  async createRoutine(routine: Routine): Promise<Routine> {
+    await this.db.routines.add(routine);
+    return routine;
+  }
+
+  async updateRoutine(id: string, updates: Partial<Routine>): Promise<Routine> {
+    await this.db.routines.update(id, { ...updates, updatedAt: new Date() });
+    const updated = await this.db.routines.get(id);
+    if (!updated) throw new Error(`Routine ${id} not found`);
+    return updated;
+  }
+
+  async deleteRoutine(id: string): Promise<void> {
+    await this.db.routines.delete(id);
+  }
+
+  async incrementRoutineUsage(id: string): Promise<void> {
+    const routine = await this.db.routines.get(id);
+    if (routine) {
+      await this.db.routines.update(id, { usageCount: (routine.usageCount || 0) + 1 });
+    }
   }
 
   // -------------------------------------------------------------------------

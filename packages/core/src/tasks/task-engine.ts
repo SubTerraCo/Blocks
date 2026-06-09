@@ -161,6 +161,30 @@ export class TaskEngine {
   }
 
   /**
+   * Remove task from timeline without deleting from Kanban.
+   * Sets status to todo and clears schedule.
+   */
+  static removeFromTimeline(task: Task): Task {
+    return this.updateTask(task, {
+      status: "todo",
+      scheduledAt: undefined,
+      startedAt: undefined,
+    });
+  }
+
+  /**
+   * Place task on timeline (requires status=doing).
+   */
+  static addToTimeline(task: Task, scheduledAt: Date, duration?: number): Task {
+    return this.updateTask(task, {
+      status: "doing",
+      scheduledAt,
+      duration: duration ?? getTaskDuration(task),
+      startedAt: task.startedAt ?? new Date(),
+    });
+  }
+
+  /**
    * Toggle subtask completion
    */
   static toggleSubtask(task: Task, subtaskId: string): Task {

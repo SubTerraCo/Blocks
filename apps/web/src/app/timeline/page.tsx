@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useTaskStore, TimelineBlock, formatTime, cn } from "@blocks/ui";
-import type { TimeBlock as TimeBlockType, Task } from "@blocks/core";
-import { calculateDuration } from "@blocks/core";
+import { useTaskStore, TimelineBlock, formatTime, cn, useDailyTimelineReset } from "@blocks/ui";
+import type { TimeBlock as TimeBlockType } from "@blocks/core";
+import { tasksToTimeBlocks } from "@blocks/core";
 import { Clock, CalendarPlus } from "lucide-react";
 
 // Generate time slots for the day (hourly)
@@ -23,34 +23,19 @@ function generateTimeSlots(): Date[] {
   return slots;
 }
 
-// Convert tasks to timeline blocks
-function tasksToTimeBlocks(tasks: Task[]): TimeBlockType[] {
-  return tasks
-    .filter((t) => t.scheduledAt && (t.status === "todo" || t.status === "doing"))
-    .map((task) => {
-      // Calculate duration from blockSize * blockCount, fallback to task.duration or 30 min
-      const duration = task.duration ?? calculateDuration(task.blockSize, task.blockCount);
-      return {
-        id: task.id,
-        type: "task" as const,
-        startTime: task.scheduledAt!,
-        endTime: new Date(task.scheduledAt!.getTime() + duration * 60000),
-        task,
-      };
-    });
-}
-
 export default function TimelinePage() {
   const router = useRouter();
   const tasks = useTaskStore((state) => state.tasks);
   const isLoading = useTaskStore((state) => state.isLoading);
   const scheduleDoingTasks = useTaskStore((state) => state.scheduleDoingTasks);
+  const removeFromTimeline = useTaskStore((state) => state.removeFromTimeline);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isScheduling, setIsScheduling] = useState(false);
   const timeSlots = useMemo(() => generateTimeSlots(), []);
   const timeBlocks = useMemo(() => tasksToTimeBlocks(tasks), [tasks]);
-  
-  // Count tasks in "doing" status that can be scheduled
+
+  useDailyTimelineReset(true);
+
   const doingTasksCount = useMemo(
     () => tasks.filter((t) => t.status === "doing").length,
     [tasks]
@@ -68,13 +53,17 @@ export default function TimelinePage() {
   };
 
   const handleBlockPress = (block: TimeBlockType) => {
-    // Only navigate if it's a task block
     if (block.type === "task" && block.task) {
       router.push(`/edit-task/${block.task.id}`);
     }
   };
 
-  // Update current time every minute
+  const handleRemoveFromTimeline = async (block: TimeBlockType) => {
+    if (block.task) {
+      await removeFromTimeline(block.task.id);
+    }
+  };
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
@@ -82,7 +71,6 @@ export default function TimelinePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Scroll to current time on mount
   useEffect(() => {
     const currentHour = new Date().getHours();
     const element = document.getElementById(`hour-${currentHour}`);
@@ -104,21 +92,13 @@ export default function TimelinePage() {
 
   return (
     <div className="relative px-4 py-6 pb-24">
-      {/* Time slots */}
       <div className="space-y-0">
         {timeSlots.map((slot) => {
           const hour = slot.getHours();
           const isCurrentHour = hour === currentHour;
-          
-          // Find blocks that fall within this hour
-          const blocksInHour = timeBlocks.filter((block) => {
-            const blockHour = block.startTime.getHours();
-            return blockHour === hour;
-          });
-
-          // HOUR_HEIGHT in pixels - each hour slot is 120px tall
+          const blocksInHour = timeBlocks.filter((block) => block.startTime.getHours() === hour);
           const HOUR_HEIGHT = 120;
-          
+
           return (
             <div
               key={hour}
@@ -126,7 +106,6 @@ export default function TimelinePage() {
               className="relative flex border-t border-border-default"
               style={{ height: `${HOUR_HEIGHT}px` }}
             >
-              {/* Time label */}
               <div className="w-16 shrink-0 pr-3 pt-2 text-right">
                 <span
                   className={cn(
@@ -137,13 +116,11 @@ export default function TimelinePage() {
                   {formatTime(slot)}
                 </span>
               </div>
-
-              {/* Time slot content area */}
               <div className="relative flex-1">
-                {/* Current time indicator */}
                 {isCurrentHour && (
                   <div
                     className="absolute left-0 right-0 z-10 flex items-center pointer-events-none"
+                    data-testid="current-time"
                     style={{ top: `${currentMinutePercent}%` }}
                   >
                     <div className="h-3 w-3 rounded-full bg-accent-magenta shadow-glow" />
@@ -151,35 +128,36 @@ export default function TimelinePage() {
                   </div>
                 )}
 
-                {/* Task blocks - height based on FULL duration */}
                 {blocksInHour.map((block) => {
                   const startMinute = block.startTime.getMinutes();
-                  // Calculate FULL duration in minutes (don't clip to hour)
-                  const fullDurationMinutes = (block.endTime.getTime() - block.startTime.getTime()) / 60000;
-                  // Height in pixels = (duration / 60 minutes) * HOUR_HEIGHT
+                  const fullDurationMinutes =
+                    (block.endTime.getTime() - block.startTime.getTime()) / 60000;
                   const heightPx = (fullDurationMinutes / 60) * HOUR_HEIGHT;
-                  // Top position as percentage of hour
                   const topPercent = (startMinute / 60) * 100;
 
                   return (
                     <div
                       key={block.id}
-                      className="absolute left-0 right-4 overflow-hidden"
+                      className="group absolute left-0 right-4 overflow-hidden"
                       style={{
                         top: `${topPercent}%`,
                         height: `${Math.max(heightPx, 40)}px`,
                         zIndex: 5,
                       }}
                     >
-                      <TimelineBlock block={block} onPress={handleBlockPress} className="h-full w-full" />
+                      <TimelineBlock
+                        block={block}
+                        onPress={handleBlockPress}
+                        onRemoveFromTimeline={handleRemoveFromTimeline}
+                        className="h-full w-full"
+                      />
                     </div>
                   );
                 })}
 
-                {/* Empty slot indicator */}
                 {blocksInHour.length === 0 && !isCurrentHour && (
                   <div className="flex h-full items-center justify-center text-text-muted">
-                    {/* Empty */}
+                    <span className="text-xs opacity-50">—</span>
                   </div>
                 )}
               </div>
@@ -188,13 +166,13 @@ export default function TimelinePage() {
         })}
       </div>
 
-      {/* Empty state */}
       {timeBlocks.length === 0 && (
         <div className="absolute inset-0 flex flex-col items-center justify-center px-8">
           <Clock className="mb-4 h-16 w-16 text-text-muted" />
           <h3 className="mb-2 text-lg font-semibold text-text-primary">No tasks scheduled</h3>
           <p className="text-center text-sm text-text-secondary">
-            Add tasks and schedule them to see them on your timeline
+            Move tasks to <strong>Doing</strong> on the Kanban board, then schedule them here.
+            Only <strong>Doing</strong> tasks appear on the timeline.
           </p>
           {doingTasksCount > 0 && (
             <button
@@ -203,18 +181,19 @@ export default function TimelinePage() {
               className="mt-6 flex items-center gap-2 rounded-xl bg-accent-cyan px-6 py-3 font-medium text-bg-primary transition-colors hover:bg-accent-cyan/80 disabled:opacity-50"
             >
               <CalendarPlus className="h-5 w-5" />
-              {isScheduling ? "Scheduling..." : `Schedule ${doingTasksCount} Doing Task${doingTasksCount > 1 ? "s" : ""}`}
+              {isScheduling
+                ? "Scheduling..."
+                : `Schedule ${doingTasksCount} Doing Task${doingTasksCount > 1 ? "s" : ""}`}
             </button>
           )}
         </div>
       )}
 
-      {/* Floating Schedule Button - shown when there are doing tasks */}
       {doingTasksCount > 0 && timeBlocks.length > 0 && (
         <button
           onClick={handleScheduleDoingTasks}
           disabled={isScheduling}
-          className="fixed bottom-24 right-4 z-20 flex items-center gap-2 rounded-xl bg-accent-cyan px-4 py-3 font-medium text-bg-primary shadow-lg transition-all hover:bg-accent-cyan/80 hover:shadow-xl disabled:opacity-50"
+          className="fixed bottom-24 right-4 z-20 flex items-center gap-2 rounded-xl bg-accent-cyan px-4 py-3 font-medium text-bg-primary shadow-lg transition-all hover:bg-accent-cyan/80 disabled:opacity-50"
         >
           <CalendarPlus className="h-5 w-5" />
           {isScheduling ? "..." : `Schedule ${doingTasksCount}`}
@@ -223,4 +202,3 @@ export default function TimelinePage() {
     </div>
   );
 }
-

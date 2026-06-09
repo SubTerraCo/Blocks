@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, dialog } from "electron";
+import { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, dialog, globalShortcut } from "electron";
 import path from "path";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
@@ -25,6 +25,23 @@ let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isAppQuitting = false;
 let updateDownloaded = false;
+
+function msUntilMidnight(from: Date = new Date()): number {
+  const next = new Date(from);
+  next.setHours(24, 0, 0, 0);
+  return next.getTime() - from.getTime();
+}
+
+let midnightClearTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleMidnightTimelineClear() {
+  if (midnightClearTimer) clearTimeout(midnightClearTimer);
+  midnightClearTimer = setTimeout(() => {
+    log.info("Midnight timeline clear triggered");
+    mainWindow?.webContents.send("timeline:clear");
+    scheduleMidnightTimelineClear();
+  }, msUntilMidnight());
+}
 
 const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 
@@ -87,7 +104,7 @@ function setupAutoUpdater() {
   // Set update feed URL to GitHub releases
   autoUpdater.setFeedURL({
     provider: "github",
-    owner: "poweredupbass",
+    owner: "PoweredUpLabs",
     repo: "Blocks",
   });
 
@@ -217,18 +234,20 @@ function createWindow() {
 // System Tray
 // =============================================================================
 function createTray() {
-  // Create a simple tray icon (you can replace with actual icon)
   const iconPath = path.join(__dirname, "../../resources/icon.png");
-  let trayIcon;
-  
-  try {
-    trayIcon = nativeImage.createFromPath(iconPath);
-    if (trayIcon.isEmpty()) {
-      // Create a simple colored icon if file doesn't exist
-      trayIcon = nativeImage.createEmpty();
+  let trayIcon = nativeImage.createFromPath(iconPath);
+
+  if (trayIcon.isEmpty()) {
+    // 16x16 magenta hex fallback when icon asset missing
+    const size = 16;
+    const buffer = Buffer.alloc(size * size * 4);
+    for (let i = 0; i < size * size; i++) {
+      buffer[i * 4] = 236;     // R
+      buffer[i * 4 + 1] = 72;  // G
+      buffer[i * 4 + 2] = 153; // B
+      buffer[i * 4 + 3] = 255; // A
     }
-  } catch {
-    trayIcon = nativeImage.createEmpty();
+    trayIcon = nativeImage.createFromBuffer(buffer, { width: size, height: size });
   }
 
   tray = new Tray(trayIcon);
@@ -238,6 +257,14 @@ function createTray() {
       label: "Open Blocks",
       click: () => {
         mainWindow?.show();
+        mainWindow?.focus();
+      },
+    },
+    {
+      label: "Timeline",
+      click: () => {
+        mainWindow?.show();
+        mainWindow?.webContents.send("navigate", "/timeline");
       },
     },
     {
@@ -396,6 +423,15 @@ function setupIpcHandlers() {
     await checkForUpdatesIfOnline(true);
     return { success: true };
   });
+
+  ipcMain.handle("app:showWindow", () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+    }
+    return { success: true };
+  });
 }
 
 // =============================================================================
@@ -408,6 +444,16 @@ app.whenReady().then(() => {
   createWindow();
   createTray();
   setupAutoUpdater();
+  scheduleMidnightTimelineClear();
+
+  // Global shortcut: Ctrl+Shift+B to focus Blocks
+  globalShortcut.register("CommandOrControl+Shift+B", () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -424,6 +470,8 @@ app.on("window-all-closed", () => {
 
 app.on("before-quit", () => {
   isAppQuitting = true;
+  globalShortcut.unregisterAll();
+  if (midnightClearTimer) clearTimeout(midnightClearTimer);
 });
 
 // Handle second instance - focus existing window

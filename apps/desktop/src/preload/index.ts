@@ -38,6 +38,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
     };
   },
 
+  onTimelineClear: (callback: () => void) => {
+    const handler = () => callback();
+    ipcRenderer.on("timeline:clear", handler);
+    return () => {
+      ipcRenderer.removeListener("timeline:clear", handler);
+    };
+  },
+
+  showWindow: () => ipcRenderer.invoke("app:showWindow"),
+
   // Platform check
   isElectron: true,
 });
@@ -95,6 +105,8 @@ export interface ElectronAPI {
   
   // Navigation
   onNavigate: (callback: (path: string) => void) => () => void;
+  onTimelineClear: (callback: () => void) => () => void;
+  showWindow: () => Promise<{ success: boolean }>;
   
   // Platform check
   isElectron: boolean;

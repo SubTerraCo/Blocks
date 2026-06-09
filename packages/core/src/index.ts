@@ -6,7 +6,22 @@
 export * from "./types";
 
 // Task Engine
-export { TaskEngine } from "./tasks";
+export { TaskEngine, routineToTaskInputs, spawnRoutineTasks, createDefaultMorningRoutine } from "./tasks";
+export type { SpawnRoutineOptions, SpawnRoutineResult } from "./tasks";
+
+// Timeline
+export {
+  isSameCalendarDay,
+  isTimelineTask,
+  getTimelineTasksForDay,
+  tasksToTimeBlocks,
+  removeFromTimelineUpdates,
+  addToTimelineUpdates,
+  clearTimelineForNewDay,
+  clearDailyTimeline,
+  msUntilMidnight,
+} from "./timeline";
+export type { ClearTimelineResult } from "./timeline";
 
 // Recurring Engine
 export {
@@ -68,5 +83,5 @@ export type {
 } from "./sync";
 
 // Version
-export const VERSION = "0.1.0";
+export const VERSION = "0.0.3";
 

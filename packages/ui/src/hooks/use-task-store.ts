@@ -4,8 +4,8 @@
 
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import type { Task, CreateTaskInput, UpdateTaskInput, TaskStatus } from "@blocks/core";
-import { TaskEngine, DexieStorage, calculateDuration } from "@blocks/core";
+import type { Task, CreateTaskInput, UpdateTaskInput, TaskStatus, Routine } from "@blocks/core";
+import { TaskEngine, DexieStorage, calculateDuration, clearTimelineForNewDay, spawnRoutineTasks } from "@blocks/core";
 
 interface TaskState {
   tasks: Task[];
@@ -22,6 +22,10 @@ interface TaskState {
   startTask: (id: string) => Promise<Task>;
   setCurrentTask: (task: Task | null) => void;
   scheduleDoingTasks: () => Promise<void>;
+  clearDailyTimeline: () => Promise<number>;
+  removeFromTimeline: (id: string) => Promise<Task>;
+  addToTimeline: (id: string, scheduledAt: Date) => Promise<Task>;
+  spawnRoutine: (routine: Routine, startAt?: Date) => Promise<Task[]>;
   
   // Filtered getters
   getTasksByStatus: (status: TaskStatus) => Task[];
@@ -184,6 +188,87 @@ export const useTaskStore = create<TaskState>()(
           set({ error: (error as Error).message });
           throw error;
         }
+      },
+
+      clearDailyTimeline: async () => {
+        try {
+          const db = await getStorage();
+          const { clearedCount, updatedTasks } = clearTimelineForNewDay(get().tasks);
+
+          for (const task of updatedTasks) {
+            await db.updateTask(task);
+          }
+
+          if (updatedTasks.length > 0) {
+            const updatedIds = new Set(updatedTasks.map((t) => t.id));
+            set((state) => ({
+              tasks: state.tasks.map((t) => {
+                const updated = updatedTasks.find((u) => u.id === t.id);
+                return updated ?? t;
+              }),
+              currentTask:
+                state.currentTask && updatedIds.has(state.currentTask.id)
+                  ? null
+                  : state.currentTask,
+            }));
+          }
+
+          return clearedCount;
+        } catch (error) {
+          set({ error: (error as Error).message });
+          throw error;
+        }
+      },
+
+      spawnRoutine: async (routine: Routine, startAt?: Date) => {
+        try {
+          const db = await getStorage();
+          const spawned = spawnRoutineTasks(routine, {
+            startAt: startAt ?? new Date(),
+            status: "doing",
+          });
+
+          for (const task of spawned) {
+            await db.createTask(task);
+          }
+
+          await db.incrementRoutineUsage(routine.id);
+
+          set((state) => ({
+            tasks: [...state.tasks, ...spawned],
+          }));
+
+          return spawned;
+        } catch (error) {
+          set({ error: (error as Error).message });
+          throw error;
+        }
+      },
+
+      removeFromTimeline: async (id: string) => {
+        const existingTask = get().tasks.find((t) => t.id === id);
+        if (!existingTask) throw new Error("Task not found");
+
+        const updated = TaskEngine.removeFromTimeline(existingTask);
+        return get().updateTask(id, {
+          status: updated.status,
+          scheduledAt: updated.scheduledAt,
+          startedAt: updated.startedAt,
+        });
+      },
+
+      addToTimeline: async (id: string, scheduledAt: Date) => {
+        const existingTask = get().tasks.find((t) => t.id === id);
+        if (!existingTask) throw new Error("Task not found");
+
+        const duration = calculateDuration(existingTask.blockSize, existingTask.blockCount);
+        const updated = TaskEngine.addToTimeline(existingTask, scheduledAt, duration);
+        return get().updateTask(id, {
+          status: updated.status,
+          scheduledAt: updated.scheduledAt,
+          duration: updated.duration,
+          startedAt: updated.startedAt,
+        });
       },
 
       getTasksByStatus: (status: TaskStatus) => {

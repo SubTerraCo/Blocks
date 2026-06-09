@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "anytype": {
+      "command": "npx",
+      "args": ["-y", "@anyproto/anytype-mcp"],
+      "env": {
+        "OPENAPI_MCP_HEADERS": "{\"Authorization\":\"Bearer <YOUR_ANYTYPE_API_KEY>\", \"Anytype-Version\":\"2025-11-08\"}"
+      }
+    },
+    "blocks": {
+      "command": "node",
+      "args": ["packages/mcp-server/dist/index.js"],
+      "env": {
+        "BLOCKS_MCP_DATA_PATH": "<PATH_TO_HOME>/.blocks/mcp-data.json"
+      }
+    }
+  }
+}

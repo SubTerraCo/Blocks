@@ -4,7 +4,7 @@
 
 Blocks is a cross-platform time/task management application that uses AI to help schedule tasks and optimize your time. Built with a local-first architecture, your data stays on your device with optional sync capabilities.
 
-**Current Version: 0.0.2** (Pre-release development)
+**Current Version: 0.0.3** (Pre-release development)
 
 ## Features
 
@@ -92,7 +92,7 @@ blocks/
 
 ```bash
 # Clone the repository
-git clone https://github.com/poweredupbass/Blocks.git
+git clone https://github.com/PoweredUpLabs/Blocks.git
 cd Blocks
 
 # Install dependencies
@@ -139,7 +139,7 @@ pnpm test:e2e tests/e2e/kanban.spec.ts
 
 ### Windows
 
-1. Download the latest `Blocks-Setup-x.x.x.exe` from [GitHub Releases](https://github.com/poweredupbass/Blocks/releases)
+1. Download the latest `Blocks-Setup-x.x.x.exe` from [GitHub Releases](https://github.com/PoweredUpLabs/Blocks/releases)
 2. Run the installer
 3. Choose installation directory (optional)
 4. Launch from Start Menu or Desktop shortcut
@@ -193,7 +193,17 @@ We use semantic versioning:
 
 ## Roadmap
 
-### Phase 1 (Current) - MVP Web + Desktop
+### Sprint v0.0.3 (Current)
+- [x] Dependency health check and GitHub repo migration (PoweredUpLabs)
+- [x] Hermes AI ecosystem planning (Poe, Blocks, BillBot, Mailbot)
+- [x] Anytype MCP + Hermes/Cursor integration setup
+- [x] Daily Clear Timeline at 00:00
+- [x] Timeline shows **Doing** tasks only; remove-from-timeline via status (todo)
+- [x] Grouped tasks / scheduled routines (Morning Routine, etc.)
+- [x] `@blocks/mcp-server` for Hermes/Cursor integration
+- [x] Windows desktop polish (tray, shortcuts, auto-update)
+
+### Phase 1 - MVP Web + Desktop
 - [x] Core task management
 - [x] Kanban board with drag-drop
 - [x] Timeline view

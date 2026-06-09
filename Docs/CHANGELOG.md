@@ -5,6 +5,22 @@ All notable changes to the Blocks project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.3] - 2026-06-09
+
+### Added
+
+#### Sprint v0.0.3 — Windows Desktop Focus
+- **PoweredUpLabs migration**: GitHub owner, CI branding check, resolved conflicted package files
+- **Timeline visibility rule**: Only `status=doing` tasks with a schedule appear on the timeline
+- **Remove from timeline**: X button moves task to **To Do** (keeps on Kanban)
+- **Daily Clear Timeline**: Automatic midnight (00:00) timeline reset via hook + Electron main process timer
+- **Grouped Routines**: Routine schema, Morning Routine seed, `RoutineGroups` UI on desktop timeline
+- **Hermes ecosystem planning**: Architecture doc for Poe/Blocks/BillBot/Mailbot MCP integration
+- **Anytype MCP setup**: `.cursor/mcp.json.example` and integration guides
+- **Hermes + Cursor guide**: Provider auth and cross-tool workflow documentation
+- **@blocks/mcp-server**: MCP tools for list/add/remove timeline, clear_timeline, spawn_routine
+- **Windows desktop polish**: Tray icon fallback, Timeline tray shortcut, Ctrl+Shift+B global shortcut
+
 ## [0.0.3] - 2024-12-27
 
 ### Added

@@ -1,0 +1,30 @@
+{
+  "name": "@blocks/mcp-server",
+  "version": "0.0.3",
+  "description": "MCP server exposing Blocks task and timeline tools for Hermes/Cursor",
+  "type": "module",
+  "bin": {
+    "blocks-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --watch",
+    "start": "node dist/index.js",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@blocks/core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/uuid": "^9.0.7",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  }
+}

@@ -210,6 +210,41 @@ export type TaskTemplate = z.infer<typeof TaskTemplateSchema>;
 export type CreateTemplateInput = Omit<TaskTemplate, "id" | "createdAt" | "updatedAt" | "usageCount">;
 
 // ----------------------------------------------------------------------------
+// Routine / Grouped Task Types
+// ----------------------------------------------------------------------------
+
+export const RoutineItemSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(200),
+  blockSize: BlockSize.default("30min"),
+  blockCount: z.number().min(1).max(5).default(1),
+  priority: TaskPriority.default("3"),
+  accessContexts: z.array(AccessContext).default([]),
+  tags: z.array(z.string().max(30)).max(10).default([]),
+  notes: z.string().max(500).optional(),
+  sortOrder: z.number().default(0),
+});
+
+export type RoutineItem = z.infer<typeof RoutineItemSchema>;
+
+export const RoutineSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
+  icon: z.string().max(50).optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  items: z.array(RoutineItemSchema).min(1),
+  /** Optional daily trigger time HH:mm (e.g. "07:00") */
+  scheduledTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  usageCount: z.number().default(0),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type Routine = z.infer<typeof RoutineSchema>;
+export type CreateRoutineInput = Omit<Routine, "id" | "createdAt" | "updatedAt" | "usageCount">;
+
+// ----------------------------------------------------------------------------
 // Tag Types
 // ----------------------------------------------------------------------------
 

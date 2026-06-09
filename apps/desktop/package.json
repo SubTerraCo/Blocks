@@ -3,12 +3,12 @@
   "version": "0.0.3",
   "description": "Blocks - Time Management Desktop App",
   "main": "dist/main/index.js",
-  "author": "Blocks Team",
+  "author": "PoweredUpLabs",
   "license": "MIT",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/poweredupbass/Blocks.git"
+    "url": "https://github.com/PoweredUpLabs/Blocks.git"
   },
   "scripts": {
     "dev": "vite",

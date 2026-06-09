@@ -124,28 +124,23 @@ test.describe("Blocks Task Creation", () => {
   });
 
   test("should show task on timeline after tapping block", async ({ page }) => {
-    // Check if blocks exist first
     const blockTile = page.locator(".quick-block").first();
     const hasBlocks = await blockTile.isVisible().catch(() => false);
-    
+
     if (!hasBlocks) {
-      // Skip if no blocks - this is expected in a fresh install
       test.skip();
       return;
     }
-    
+
     await blockTile.click();
-    
-    // Wait for task creation
     await page.waitForTimeout(1000);
-    
-    // Navigate to timeline
+
     await page.goto("/timeline");
     await page.waitForLoadState("networkidle");
-    
-    // Timeline should have content (either tasks or schedule button)
-    const timelineContent = page.locator(".overflow-y-auto").first();
-    await expect(timelineContent).toBeVisible();
+
+    // Doing tasks from quick blocks should appear on timeline
+    const timelineBlock = page.locator('[data-testid="timeline-block"]').first();
+    await expect(timelineBlock).toBeVisible({ timeout: 10000 });
   });
 });
 

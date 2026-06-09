@@ -60,6 +60,7 @@ export function useKeyboardShortcuts(
       { key: "z", ctrl: true, shift: true, description: "Redo", action: options?.onRedo || (() => {}) },
       { key: "d", ctrl: true, description: "Toggle Theme", action: options?.onToggleTheme || (() => {}) },
       { key: "?", shift: true, description: "Show Help", action: () => setIsHelpOpen(true) },
+      { key: "b", ctrl: true, shift: true, description: "Focus Blocks Window", action: () => window.electronAPI?.showWindow?.() },
       { key: "Escape", description: "Close Modal/Help", action: () => setIsHelpOpen(false) },
     ],
   };

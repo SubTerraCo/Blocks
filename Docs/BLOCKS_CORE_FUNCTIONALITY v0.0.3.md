@@ -1,8 +1,8 @@
 # Blocks Core Functionality Specification v0.0.3
 
 > **Version:** 0.0.3  
-> **Last Updated:** 2024-12-27  
-> **Status:** Phase 2 Development - Bug Fixes  
+> **Last Updated:** 2026-06-09  
+> **Status:** Sprint v0.0.3 — Windows Desktop Focus  
 > **Source of Truth** for all feature development, testing, and releases
 
 ---
@@ -217,10 +217,49 @@ All features are developed and tested in this order:
 | Action | Behavior |
 |--------|----------|
 | Tap task block | Opens Task Edit page |
-| Drag task block | Reschedule to new time (Phase 2) |
-| "Schedule Doing Tasks" button | Auto-schedule all "doing" status tasks by priority |
+| Drag task block | Reschedule to new time (Desktop: snap 15-min increments) |
+| **Remove from timeline (X button)** | Sets status → **todo**, clears schedule; task stays on Kanban |
+| "Schedule Doing Tasks" button | Auto-schedule all **doing** status tasks by priority |
 | Vertical scroll | Navigate through day |
 | Current time auto-scroll | Page scrolls to current hour on load |
+
+#### Timeline Visibility Rule (v0.0.3)
+
+> **Only tasks with `status=doing` AND a `scheduledAt` appear on the Timeline.**
+
+| Status | On Timeline? | On Kanban? |
+|--------|--------------|------------|
+| doing + scheduledAt | ✅ Yes | ✅ Yes (Doing column) |
+| todo (even if scheduledAt set) | ❌ No | ✅ Yes (To Do column) |
+| backlog, design, review, done | ❌ No | ✅ Yes |
+
+**Remove from timeline** does NOT delete the task — it moves status from `doing` → `todo`.
+
+**Add to timeline** (drag-drop or schedule) sets status to `doing` and assigns `scheduledAt`.
+
+#### Daily Clear Timeline (00:00)
+
+- At local midnight, all **doing** tasks from prior days are removed from timeline
+- Status moves to **todo** for fresh daily planning
+- Implemented via `useDailyTimelineReset` hook + Electron main-process timer
+
+#### Grouped Routines (v0.0.3)
+
+- Routines (e.g. **Morning Routine**) spawn multiple tasks at once
+- Spawned tasks use `status=doing` and sequential `scheduledAt` times
+- **RoutineGroups** UI on desktop Timeline page
+
+#### @blocks/mcp-server (v0.0.3)
+
+MCP tools for Hermes/Cursor integration. See `Docs/INTEGRATIONS_BLOCKS_MCP.md`.
+
+| Tool | Purpose |
+|------|---------|
+| `list_timeline_tasks` | List doing tasks on today's timeline |
+| `remove_from_timeline` | Move task to todo without deleting |
+| `add_to_timeline` | Set doing + schedule |
+| `clear_timeline` | Midnight reset |
+| `spawn_routine` | Run Morning Routine etc. |
 
 #### Task Block Display
 
@@ -1030,6 +1069,7 @@ All future GUI decisions should reference this Figma export for:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 0.0.3 | 2026-06-09 | Sprint v0.0.3: PoweredUpLabs migration, timeline=doing-only, remove-from-timeline, midnight clear, routines, @blocks/mcp-server, Hermes/Anytype docs, Windows polish |
 | 0.0.3 | 2024-12-27 | Bug fixes: Top bar, Nav overlap, Timeline blocks |
 | 0.0.2 | 2024-12-27 | All 19 Phase 2 features implemented |
 | 0.0.1 | 2024-12-26 | Project initialization |

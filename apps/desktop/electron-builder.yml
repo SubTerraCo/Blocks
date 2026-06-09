@@ -86,7 +86,7 @@ linux:
 # =============================================================================
 publish:
   provider: github
-  owner: poweredupbass
+  owner: PoweredUpLabs
   repo: Blocks
   releaseType: release
 

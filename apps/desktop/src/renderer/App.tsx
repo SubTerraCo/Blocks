@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { UpdateNotification } from "./components/UpdateNotification";
+import { RoutineGroups } from "./components/RoutineGroups";
 import { TaskEditPage } from "./components/TaskEditPage";
 import { PlacementPickerModal } from "./components/PlacementPickerModal";
 import { SettingsPage } from "./components/SettingsPage";
@@ -11,6 +12,7 @@ import {
   useTaskStore, 
   useQuickBlocksStore,
   useOnlineStatus,
+  useDailyTimelineReset,
   BottomNav, 
   TaskCard,
   TimelineBlock,
@@ -28,6 +30,7 @@ import type {
 import { 
   KANBAN_COLUMNS, 
   calculateDuration,
+  tasksToTimeBlocks,
   GeminiService,
   type ChatMessage
 } from "@blocks/core";
@@ -406,29 +409,20 @@ function durationToBlocks(minutes: number): { blockSize: "15min" | "30min" | "1h
   return { blockSize: "1hour", blockCount: Math.ceil(minutes / 60) };
 }
 
-function tasksToTimeBlocks(tasks: Task[]): TimeBlockType[] {
-  return tasks
-    .filter((t) => t.scheduledAt && (t.status === "todo" || t.status === "doing"))
-    .map((task) => {
-      const duration = task.duration ?? calculateDuration(task.blockSize, task.blockCount);
-      return {
-        id: task.id,
-        type: "task" as const,
-        startTime: task.scheduledAt!,
-        endTime: new Date(task.scheduledAt!.getTime() + duration * 60000),
-        task,
-      };
-    });
+function tasksToTimeBlocksLocal(tasks: Task[]): TimeBlockType[] {
+  return tasksToTimeBlocks(tasks);
 }
 
 // Draggable Timeline Block component
 function DraggableTimelineBlock({ 
   block, 
   onPress,
+  onRemoveFromTimeline,
   style,
 }: { 
   block: TimeBlockType;
   onPress: (block: TimeBlockType) => void;
+  onRemoveFromTimeline?: (block: TimeBlockType) => void;
   style: React.CSSProperties;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -465,6 +459,7 @@ function DraggableTimelineBlock({
       <TimelineBlock 
         block={block} 
         onPress={() => {}} 
+        onRemoveFromTimeline={onRemoveFromTimeline}
         className={cn(
           "h-full w-full transition-shadow overflow-hidden",
           isDragging && "shadow-2xl ring-2 ring-accent-magenta"
@@ -514,7 +509,8 @@ function DroppableTimeSlot({
 
 function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
   const tasks = useTaskStore((state) => state.tasks);
-  const updateTask = useTaskStore((state) => state.updateTask);
+  const addToTimeline = useTaskStore((state) => state.addToTimeline);
+  const removeFromTimeline = useTaskStore((state) => state.removeFromTimeline);
   const scheduleDoingTasks = useTaskStore((state) => state.scheduleDoingTasks);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isScheduling, setIsScheduling] = useState(false);
@@ -523,7 +519,7 @@ function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
   const [previewTime, setPreviewTime] = useState<Date | null>(null);
   
   const timeSlots = useMemo(() => generateTimeSlots(), []);
-  const timeBlocks = useMemo(() => tasksToTimeBlocks(tasks), [tasks]);
+  const timeBlocks = useMemo(() => tasksToTimeBlocksLocal(tasks), [tasks]);
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -584,7 +580,12 @@ function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
     newScheduledAt.setHours(data.hour, roundedMinute, 0, 0);
 
     // Update the task with new scheduled time
-    await updateTask(block.task.id, { scheduledAt: newScheduledAt });
+    await addToTimeline(block.task.id, newScheduledAt);
+  };
+
+  const handleRemoveFromTimeline = async (block: TimeBlockType) => {
+    if (!block.task) return;
+    await removeFromTimeline(block.task.id);
   };
 
   const handleScheduleDoingTasks = async () => {
@@ -691,6 +692,7 @@ function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
                         key={block.id}
                         block={block}
                         onPress={handleBlockPress}
+                        onRemoveFromTimeline={handleRemoveFromTimeline}
                         style={{ 
                           top: `${topPercent}%`, 
                           height: `${Math.max(heightPx, 40)}px`,
@@ -709,7 +711,10 @@ function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
           <div className="absolute inset-0 flex flex-col items-center justify-center px-8">
             <Clock className="mb-4 h-16 w-16 text-text-muted" />
             <h3 className="mb-2 text-lg font-semibold text-text-primary">No tasks scheduled</h3>
-            <p className="text-center text-sm text-text-secondary">Add tasks and schedule them to see them on your timeline</p>
+            <p className="text-center text-sm text-text-secondary">
+              Move tasks to <strong>Doing</strong> on Kanban, then schedule them here.
+              Only <strong>Doing</strong> tasks appear on the timeline.
+            </p>
             {doingTasksCount > 0 && (
               <button onClick={handleScheduleDoingTasks} disabled={isScheduling} className="mt-6 flex items-center gap-2 rounded-xl bg-accent-cyan px-6 py-3 font-medium text-bg-primary transition-colors hover:bg-accent-cyan/80 disabled:opacity-50">
                 <CalendarPlus className="h-5 w-5" />
@@ -725,6 +730,10 @@ function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
             {isScheduling ? "..." : `Schedule ${doingTasksCount}`}
           </button>
         )}
+
+        <div className="mx-auto mt-8 max-w-md pb-8">
+          <RoutineGroups />
+        </div>
       </div>
 
       {/* Drag Overlay */}
@@ -776,7 +785,7 @@ function BlocksPage() {
   }, [tasks]);
 
   // Get scheduled tasks as TimeBlocks for the placement picker
-  const scheduledTimeBlocks = useMemo(() => tasksToTimeBlocks(tasks), [tasks]);
+  const scheduledTimeBlocks = useMemo(() => tasksToTimeBlocksLocal(tasks), [tasks]);
 
   // Clear toast after delay
   useEffect(() => {
@@ -1106,6 +1115,9 @@ export default function App() {
   // Initialize theme on app load
   useTheme();
 
+  // Daily timeline clear at 00:00
+  useDailyTimelineReset(true);
+
   useEffect(() => {
     loadTasks();
     loadBlocks().then(() => initializeDefaultBlocks());
@@ -1135,10 +1147,17 @@ export default function App() {
 
   useEffect(() => {
     if (window.electronAPI) {
-      const unsubscribe = window.electronAPI.onNavigate((path) => {
+      const unsubscribeNav = window.electronAPI.onNavigate((path) => {
         if (path === "/add-task") setCurrentPage("add-task");
+        if (path === "/timeline") setCurrentPage("timeline");
       });
-      return unsubscribe;
+      const unsubscribeClear = window.electronAPI.onTimelineClear?.(() => {
+        void useTaskStore.getState().clearDailyTimeline();
+      });
+      return () => {
+        unsubscribeNav();
+        unsubscribeClear?.();
+      };
     }
   }, []);
 

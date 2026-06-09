@@ -15,11 +15,12 @@ function getTaskDuration(task: Task): number {
   }
   return task.duration ?? 30; // Default 30 minutes
 }
-import { Calendar, Clock, MapPin, Sparkles } from "lucide-react";
+import { Calendar, Clock, MapPin, Sparkles, X } from "lucide-react";
 
 export interface TimelineBlockProps {
   block: TimeBlock;
   onPress?: (block: TimeBlock) => void;
+  onRemoveFromTimeline?: (block: TimeBlock) => void;
   style?: React.CSSProperties;
   className?: string;
 }
@@ -27,6 +28,7 @@ export interface TimelineBlockProps {
 export function TimelineBlockComponent({
   block,
   onPress,
+  onRemoveFromTimeline,
   style,
   className,
 }: TimelineBlockProps) {
@@ -65,7 +67,7 @@ export function TimelineBlockComponent({
   return (
     <div
       className={cn(
-        "timeline-block rounded-lg px-3 py-2 transition-all",
+        "timeline-block relative rounded-lg px-3 py-2 transition-all",
         isClickable && "cursor-pointer hover:brightness-110 active:scale-[0.99]",
         block.type === "ai_suggestion" && "border-2 border-dashed border-accent-magenta",
         block.type === "free_time" && "border border-dashed border-border-default bg-transparent",
@@ -78,7 +80,22 @@ export function TimelineBlockComponent({
       onClick={() => isClickable && onPress?.(block)}
       role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : undefined}
+      data-testid={block.type === "task" ? "timeline-block" : undefined}
     >
+      {block.type === "task" && onRemoveFromTimeline && (
+        <button
+          type="button"
+          aria-label="Remove from timeline"
+          title="Remove from timeline (moves to To Do)"
+          className="absolute right-1 top-1 z-10 rounded-md bg-black/30 p-1 text-white opacity-0 transition-opacity hover:bg-black/50 group-hover:opacity-100 focus:opacity-100"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemoveFromTimeline(block);
+          }}
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
       {getBlockContent()}
     </div>
   );

@@ -1,6 +1,6 @@
 {
   "name": "@blocks/ui",
-  "version": "0.1.0",
+  "version": "0.0.3",
   "private": true,
   "description": "Shared UI components for Blocks",
   "main": "./dist/index.js",
@@ -48,4 +48,3 @@
     "typescript": "^5.3.3"
   }
 }
-

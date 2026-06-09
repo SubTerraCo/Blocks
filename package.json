@@ -3,7 +3,7 @@
   "version": "0.0.3",
   "private": true,
   "description": "Blocks - AI-powered time management app",
-  "author": "Blocks Team",
+  "author": "PoweredUpLabs",
   "license": "MIT",
   "packageManager": "pnpm@9.14.2",
   "engines": {
@@ -26,7 +26,8 @@
     "test:update-snapshots": "playwright test tests/visual --update-snapshots --config=tests/playwright.config.ts",
     "clean": "turbo clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "check:branding": "node scripts/check-deprecated-branding.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
