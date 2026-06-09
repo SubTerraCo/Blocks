@@ -1,6 +1,6 @@
 {
   "name": "@blocks/mcp-server",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "MCP server exposing Blocks task and timeline tools for Hermes/Cursor",
   "type": "module",
   "bin": {

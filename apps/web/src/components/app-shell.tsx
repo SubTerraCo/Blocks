@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { BottomNav, TopBar, type NavItem, useTaskStore, useSettingsStore, useQuickBlocksStore } from "@blocks/ui";
+import { BottomNav, TopBar, type NavItem, useTaskStore, useSettingsStore, useQuickBlocksStore, ThemeSync } from "@blocks/ui";
 
 const routeToNav: Record<string, NavItem> = {
   "/ai": "search",
@@ -83,6 +83,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <ThemeSync />
       <TopBar
         title={title}
         showBackButton={showBackButton}

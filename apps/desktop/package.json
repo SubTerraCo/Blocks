@@ -1,6 +1,6 @@
 {
   "name": "blocks-desktop",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Blocks - Time Management Desktop App",
   "main": "dist/main/index.js",
   "author": "PoweredUpLabs",
@@ -12,8 +12,11 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && electron-builder --dir",
-    "build:win": "tsc && vite build && electron-builder --win",
+    "prebuild": "node scripts/prepare-win-build.mjs",
+    "build": "tsc && vite build && electron-builder --dir -c.directories.output=release/.build",
+    "prebuild:win": "node scripts/prepare-win-build.mjs",
+    "build:win": "tsc && vite build && electron-builder --win -c.directories.output=release/.build",
+    "postbuild:win": "node scripts/post-win-build.mjs",
     "build:mac": "tsc && vite build && electron-builder --mac",
     "build:linux": "tsc && vite build && electron-builder --linux",
     "build:all": "tsc && vite build && electron-builder -mwl",

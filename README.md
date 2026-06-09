@@ -120,7 +120,25 @@ pnpm build --filter web
 # Build Windows desktop installer
 cd apps/desktop
 pnpm build:win
+# Output: apps/desktop/release/Blocks-Setup-x.x.x.exe
+# Tip: close Blocks (or let prebuild:win stop it) if build fails on locked app.asar
 ```
+
+### Tracking & CI ops
+
+| Doc | Purpose |
+|-----|---------|
+| [FEATURE_REGISTRY.md](docs/Working%20Docs-Features-Incidents/FEATURE_REGISTRY.md) | `PP.PR.AA.SSS.FFF` codes · health · matrices |
+| [INCIDENTS.md](docs/Working%20Docs-Features-Incidents/INCIDENTS.md) | **B-####** bug groups |
+| [ROADMAP.md](docs/Working%20Docs-Features-Incidents/ROADMAP.md) | **N-####** new features |
+| [CI_OPS_FRAMEWORK.md](docs/Working%20Docs-Features-Incidents/CI_OPS_FRAMEWORK.md) | Portable template for other projects |
+| [Core spec](docs/Working%20Docs-Features-Incidents/BLOCKS_CORE_FUNCTIONALITY%20v0.0.3.md) | Full feature specifications |
+
+**Platforms:** DT Desktop · WB Web · AD Android · AP macOS · IO iOS · SH Shared UI · SB backend · MC MCP · CX CI
+
+**Chat workflows:** `/NB` or **report bug** · `/NF` or **new feature** (see `.cursor/skills/`)
+
+**Headed QA:** `pnpm exec playwright test --headed --grep @B-0003`
 
 ### Testing
 

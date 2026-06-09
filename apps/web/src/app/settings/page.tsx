@@ -120,11 +120,6 @@ export default function SettingsPage() {
 
   const handleThemeChange = async (theme: Theme) => {
     await updateSettings({ theme });
-    // Apply theme to document
-    document.documentElement.classList.remove("dark", "light");
-    if (theme !== "system") {
-      document.documentElement.classList.add(theme);
-    }
   };
 
   const handleSaveApiKey = async () => {
@@ -183,6 +178,8 @@ export default function SettingsPage() {
               return (
                 <button
                   key={option.value}
+                  type="button"
+                  data-testid={`theme-${option.value}`}
                   onClick={() => handleThemeChange(option.value)}
                   className={cn(
                     "flex flex-1 flex-col items-center gap-2 rounded-lg p-3 transition-colors",

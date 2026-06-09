@@ -39,6 +39,8 @@ nsis:
   deleteAppDataOnUninstall: false
   runAfterFinish: true
   menuCategory: Productivity
+  # Terminate tray/minimized instances before upgrade or uninstall (see resources/installer.nsh)
+  include: installer.nsh
 
 # =============================================================================
 # macOS Configuration

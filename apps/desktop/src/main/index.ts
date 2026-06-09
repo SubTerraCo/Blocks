@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, dialog, globalShortcut } from "electron";
+import { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, dialog, globalShortcut, powerMonitor } from "electron";
 import path from "path";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
@@ -44,6 +44,21 @@ function scheduleMidnightTimelineClear() {
 }
 
 const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
+
+/** NSIS / updater passes these when replacing or removing an installed build */
+const INSTALLER_SHUTDOWN_FLAGS = [
+  "--updated",
+  "--install",
+  "--uninstall",
+  "--squirrel-uninstall",
+  "--squirrel-updated",
+  "--squirrel-obsolete",
+];
+
+if (INSTALLER_SHUTDOWN_FLAGS.some((flag) => process.argv.includes(flag))) {
+  log.info("Installer shutdown flag detected — exiting for upgrade/uninstall");
+  app.quit();
+}
 
 // =============================================================================
 // Auto-Updater Configuration
@@ -473,6 +488,16 @@ app.on("before-quit", () => {
   globalShortcut.unregisterAll();
   if (midnightClearTimer) clearTimeout(midnightClearTimer);
 });
+
+// OS shutdown must fully exit (not hide to tray). Installer upgrades use taskkill via installer.nsh.
+if (process.platform === "win32") {
+  powerMonitor.on("shutdown", () => {
+    log.info("System shutdown — quitting Blocks");
+    isAppQuitting = true;
+    tray?.destroy();
+    mainWindow?.destroy();
+  });
+}
 
 // Handle second instance - focus existing window
 const gotTheLock = app.requestSingleInstanceLock();

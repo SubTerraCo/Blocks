@@ -1,6 +1,6 @@
 // ============================================================================
 // BLOCKS - Settings Page
-// Full settings implementation per BLOCKS_CORE_FUNCTIONALITY.md v0.0.2
+// Settings per FEATURE_REGISTRY DT.UI.06.* · spec BLOCKS_CORE_FUNCTIONALITY v0.0.3
 // ============================================================================
 
 import { useState, useEffect } from "react";
@@ -315,6 +315,8 @@ export function SettingsPage() {
               {(["dark", "light", "system"] as Theme[]).map((themeOption) => (
                 <button
                   key={themeOption}
+                  type="button"
+                  data-testid={`theme-${themeOption}`}
                   onClick={() => handleThemeChange(themeOption)}
                   className={cn(
                     "flex items-center gap-2 rounded-lg px-3 py-2 text-sm capitalize transition-colors",

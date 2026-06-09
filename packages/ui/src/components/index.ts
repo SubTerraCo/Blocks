@@ -26,4 +26,5 @@ export { CreateBlockModal, type CreateBlockModalProps } from "./create-block-mod
 export { Button, type ButtonProps } from "./button";
 export { Input, Textarea, type InputProps, type TextareaProps } from "./input";
 export { Select, type SelectProps, type SelectOption } from "./select";
+export { ThemeSync } from "./theme-sync";
 
