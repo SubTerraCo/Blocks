@@ -17,26 +17,33 @@
 | [B-0001](#b-0001-installer-cannot-close-tray-instance) | Installer cannot close tray instance   |    P1    | Fixed  | 0.0.3  | 0.0.4 |
 | [B-0002](#b-0002-win-build-fails-when-blocks-is-running) | Win build fails when Blocks is running |    P2    | Fixed  | 0.0.3  | 0.0.4 |
 | [B-0003](#b-0003-themes-lightsystem-not-applying) | Themes: Light/System not applying      |    P3    | Fixed  | 0.0.3  | 0.0.4 |
-| [B-0004](#b-0004-week-strip-animation-after-calendar-toggle) | Week strip animation after calendar toggle |    P2    | Fixed  | 0.0.5  | 0.0.5 |
-| [B-0005](#b-0005-timeline-remove-button-covered-by-timer) | Remove button covered by timer button  |    P2    | Fixed  | 0.0.5  | 0.0.5 |
-| [B-0006](#b-0006-timeline-scroll-blocked-by-live-follow) | Timeline scroll blocked by live follow |    P1    | In Progress | 0.0.5 | — |
-| [B-0007](#b-0007-floating-timer-blocks-timeline-view) | Floating timer blocks timeline view    |    P2    | In Progress | 0.0.5 | — |
-| [B-0008](#b-0008-schedule-button-off-viewport-empty-timeline) | Schedule button off-viewport on empty timeline |    P2    | In Progress | 0.0.5 | — |
-| [B-0009](#b-0009-timeline-task-names-not-visible) | Timeline task names not visible on cards |    P2    | In Progress | 0.0.5 | — |
-| [B-0010](#b-0010-tracking-control-strip-ui) | Tracking control strip UI mismatch |    P2    | In Progress | 0.0.5 | — |
-| [B-0011](#b-0011-timeline-card-typography) | Timeline card typography too small |    P3    | In Progress | 0.0.5 | — |
-| [B-0012](#b-0012-remove-button-covers-task-name) | Remove button covers task name |    P2    | In Progress | 0.0.5 | — |
-| [B-0013](#b-0013-add-time-stretch-button-invisible) | Add-time stretch button invisible |    P2    | In Progress | 0.0.5 | — |
+| [B-0004](#b-0004-week-strip-animation-after-calendar-toggle) | Week strip animation after calendar toggle |    P2    | Fixed  | 0.0.5  | 0.0.4 |
+| [B-0005](#b-0005-timeline-remove-button-covered-by-timer) | Remove button covered by timer button  |    P2    | Fixed  | 0.0.5  | 0.0.4 |
+| [B-0006](#b-0006-timeline-scroll-blocked-by-live-follow) | Timeline scroll blocked by live follow |    P1    | Fixed  | 0.0.5  | 0.0.4 |
+| [B-0007](#b-0007-floating-timer-blocks-timeline-view) | Floating timer blocks timeline view    |    P2    | Fixed  | 0.0.5  | 0.0.4 |
+| [B-0008](#b-0008-schedule-button-off-viewport-empty-timeline) | Schedule button off-viewport on empty timeline |    P2    | Fixed  | 0.0.5  | 0.0.4 |
+| [B-0009](#b-0009-timeline-task-names-not-visible) | Timeline task names not visible on cards |    P2    | Fixed  | 0.0.5  | 0.0.4 |
+| [B-0010](#b-0010-tracking-control-strip-ui) | Tracking control strip UI mismatch |    P2    | Fixed  | 0.0.5  | 0.0.4 |
+| [B-0011](#b-0011-timeline-card-typography) | Timeline card typography too small |    P3    | Fixed  | 0.0.5  | 0.0.4 |
+| [B-0012](#b-0012-remove-button-covers-task-name) | Remove button covers task name |    P2    | Fixed  | 0.0.5  | 0.0.4 |
+| [B-0013](#b-0013-add-time-stretch-button-invisible) | Add-time stretch button invisible |    P2    | Fixed  | 0.0.5  | 0.0.4 |
 
 ---
 
 ## Open incidents
 
+_None._
+
+---
+
+## Fixed incidents
+
 ### B-0006 · Timeline scroll blocked by live follow {#b-0006-timeline-scroll-blocked-by-live-follow}
 
 | Field    | Value |
 | -------- | ----- |
-| **Status** | In Progress |
+| **Status** | Fixed |
+| **Fixed** | 0.0.4 |
 | **Severity** | P1 |
 | **Opened** | 0.0.5 |
 | **Related** | [N-0006](./ROADMAP.md#n-0006-timeline-entry-snap-to-now) · [N-0007](./ROADMAP.md#n-0007-live-scroll-lock--snap-delay) |
@@ -59,8 +66,8 @@
 ```text
 |            Feature             |    DT    |    WB    |    SH    |
 |--------------------------------|----------|----------|----------|
-|   Rolling timeline scroll      | 🐛 B-0006 | 🐛 B-0006 | 🐛 B-0006 |
-|  Live scroll lock (N-0007)     | 🐛 B-0006 | 🐛 B-0006 | 🐛 B-0006 |
+|   Rolling timeline scroll      | ✅ B-0006 | ✅ B-0006 | ✅ B-0006 |
+|  Live scroll lock (N-0007)     | ✅ B-0006 | ✅ B-0006 | ✅ B-0006 |
 ```
 
 | Code                 | Feature                         | Break # |
@@ -79,7 +86,8 @@
 
 | Field    | Value |
 | -------- | ----- |
-| **Status** | In Progress |
+| **Status** | Fixed |
+| **Fixed** | 0.0.4 |
 | **Severity** | P2 |
 | **Opened** | 0.0.5 |
 | **Related** | [N-0008](./ROADMAP.md#n-0008-timeline-auto-tracking--pause-sync) · [B-0005](#b-0005-timeline-remove-button-covered-by-timer) |
@@ -101,8 +109,8 @@
 ```text
 |            Feature             |    DT    |    SH    |
 |--------------------------------|----------|----------|
-|   Active task / timer display  | 🐛 B-0007 | 🐛 B-0007 |
-|   Timeline card action row     | 🐛 B-0007 | 🐛 B-0007 |
+|   Active task / timer display  | ✅ B-0007 | ✅ B-0007 |
+|   Timeline card action row     | ✅ B-0007 | ✅ B-0007 |
 ```
 
 | Code                 | Feature                    | Break # |
@@ -119,7 +127,8 @@
 
 | Field    | Value |
 | -------- | ----- |
-| **Status** | In Progress |
+| **Status** | Fixed |
+| **Fixed** | 0.0.4 |
 | **Severity** | P2 |
 | **Opened** | 0.0.5 |
 | **Related** | Schedule doing tasks · rolling timeline entry snap |
@@ -142,8 +151,8 @@
 ```text
 |            Feature             |    DT    |    WB    |    SH    |
 |--------------------------------|----------|----------|----------|
-|   Schedule doing tasks (FAB)   | 🐛 B-0008 | 🐛 B-0008 | 🐛 B-0008 |
-|   Rolling timeline empty state | 🐛 B-0008 | 🐛 B-0008 |    —     |
+|   Schedule doing tasks (FAB)   | ✅ B-0008 | ✅ B-0008 | ✅ B-0008 |
+|   Rolling timeline empty state | ✅ B-0008 | ✅ B-0008 |    —     |
 ```
 
 | Code                 | Feature                    | Break # |
@@ -160,7 +169,8 @@
 
 | Field    | Value |
 | -------- | ----- |
-| **Status** | In Progress |
+| **Status** | Fixed |
+| **Fixed** | 0.0.4 |
 | **Severity** | P2 |
 | **Opened** | 0.0.5 |
 | **Related** | [N-0010](./ROADMAP.md#n-0010-app-tracking-chrome) (regression) |
@@ -182,7 +192,7 @@
 ```text
 |            Feature             |    DT    |    WB    |    SH    |
 |--------------------------------|----------|----------|----------|
-|   Timeline card task title     | 🐛 B-0009 | 🐛 B-0009 | 🐛 B-0009 |
+|   Timeline card task title     | ✅ B-0009 | ✅ B-0009 | ✅ B-0009 |
 ```
 
 | Code                 | Feature                    | Break # |
@@ -199,7 +209,8 @@
 
 | Field    | Value |
 | -------- | ----- |
-| **Status** | In Progress |
+| **Status** | Fixed |
+| **Fixed** | 0.0.4 |
 | **Severity** | P2 |
 | **Opened** | 0.0.5 |
 | **Related** | [N-0010](./ROADMAP.md#n-0010-app-tracking-chrome) |
@@ -221,8 +232,8 @@
 ```text
 |            Feature             |    DT    |    SH    |
 |--------------------------------|----------|----------|
-|  Tracking pause/resume control | 🐛 B-0010 | 🐛 B-0010 |
-|  Timeline bottom action row    | 🐛 B-0010 | 🐛 B-0010 |
+|  Tracking pause/resume control | ✅ B-0010 | ✅ B-0010 |
+|  Timeline bottom action row    | ✅ B-0010 | ✅ B-0010 |
 ```
 
 | Code                 | Feature                         | Break # |
@@ -238,7 +249,8 @@
 
 | Field    | Value |
 | -------- | ----- |
-| **Status** | In Progress |
+| **Status** | Fixed |
+| **Fixed** | 0.0.4 |
 | **Severity** | P3 |
 | **Opened** | 0.0.5 |
 | **Related** | [N-0010](./ROADMAP.md#n-0010-app-tracking-chrome) |
@@ -260,8 +272,8 @@
 ```text
 |            Feature             |    DT    |    WB    |    SH    |
 |--------------------------------|----------|----------|----------|
-|   Timeline card task title     | 🐛 B-0011 | 🐛 B-0011 | 🐛 B-0011 |
-|   App header tracking clock    | 🐛 B-0011 |    —     |    —     |
+|   Timeline card task title     | ✅ B-0011 | ✅ B-0011 | ✅ B-0011 |
+|   App header tracking clock    | ✅ B-0011 |    —     |    —     |
 ```
 
 | Code                 | Feature                    | Break # |
@@ -277,7 +289,8 @@
 
 | Field    | Value |
 | -------- | ----- |
-| **Status** | In Progress |
+| **Status** | Fixed |
+| **Fixed** | 0.0.4 |
 | **Severity** | P2 |
 | **Opened** | 0.0.5 |
 | **Playwright** | `tests/e2e/timeline-card-actions.spec.ts` · `@B-0012` |
@@ -298,7 +311,7 @@
 ```text
 |            Feature             |    DT    |    WB    |    SH    |
 |--------------------------------|----------|----------|----------|
-|   Remove from timeline (X)     | 🐛 B-0012 | 🐛 B-0012 | 🐛 B-0012 |
+|   Remove from timeline (X)     | ✅ B-0012 | ✅ B-0012 | ✅ B-0012 |
 ```
 
 | Code                 | Feature                    | Break # |
@@ -313,7 +326,8 @@
 
 | Field    | Value |
 | -------- | ----- |
-| **Status** | In Progress |
+| **Status** | Fixed |
+| **Fixed** | 0.0.4 |
 | **Severity** | P2 |
 | **Opened** | 0.0.5 |
 | **Related** | [N-0016](./ROADMAP.md#n-0016-add-time-menu-stretch) |
@@ -335,8 +349,8 @@
 ```text
 |            Feature             |    DT    |    SH    |
 |--------------------------------|----------|----------|
-|  Add-time stretch menu         | 🐛 B-0013 |    —     |
-|  Tracking player prev control  | 🐛 B-0013 |    —     |
+|  Add-time stretch menu         | ✅ B-0013 |    —     |
+|  Tracking player prev control  | ✅ B-0013 |    —     |
 ```
 
 | Code                 | Feature                    | Break # |
@@ -351,14 +365,12 @@
 
 ---
 
-## Fixed incidents
-
 ### B-0004 · Week strip animation after calendar toggle {#b-0004-week-strip-animation-after-calendar-toggle}
 
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.5 |
+| **Fixed** | 0.0.4 |
 | **Severity** | P2 |
 | **Opened** | 0.0.5 |
 | **Related** | [N-0004](./ROADMAP.md#n-0004-scroll-sync-week-strip) · [N-0005](./ROADMAP.md#n-0005-due-date-calendar-view) |
@@ -382,8 +394,8 @@
 ```text
 |            Feature             |    DT    |    WB    |    SH    |
 |--------------------------------|----------|----------|----------|
-|  Scroll-sync week strip (N-4)  | 🐛 B-0004 | 🐛 B-0004 | 🐛 B-0004 |
-|   Timeline / calendar toggle   | 🐛 B-0004 | 🐛 B-0004 |    —     |
+|  Scroll-sync week strip (N-4)  | ✅ B-0004 | ✅ B-0004 | ✅ B-0004 |
+|   Timeline / calendar toggle   | ✅ B-0004 | ✅ B-0004 |    —     |
 ```
 
 | Code                 | Feature                           | Break # |
@@ -403,7 +415,7 @@
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.5 |
+| **Fixed** | 0.0.4 |
 | **Severity** | P2 |
 | **Opened** | 0.0.5 |
 | **Related** | [N-0008](./ROADMAP.md#n-0008-timeline-auto-tracking--pause-sync) (full tracking redesign queued separately) |
@@ -426,8 +438,8 @@
 ```text
 |            Feature             |    DT    |    WB    |
 |--------------------------------|----------|----------|
-|    Remove from timeline (X)    | 🐛 B-0005 | 🐛 B-0005 |
-|   Active task / timer display  | 🐛 B-0005 |    —     |
+|    Remove from timeline (X)    | ✅ B-0005 | ✅ B-0005 |
+|   Active task / timer display  | ✅ B-0005 |    —     |
 ```
 
 | Code                 | Feature                    | Break # |

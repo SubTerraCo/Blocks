@@ -222,13 +222,13 @@ Migrated from spec § Phase 2 Required Features.
 | DT.UI.02.010.010 | 24-hour time display             |   ✅    | `timeline.spec.ts`           |
 | DT.UI.02.020.010 | Drag-to-reschedule               |   ✅    | `timeline-drag.spec.ts`      |
 | DT.UI.02.030.010 | Doing-only visibility rule       |   ✅    | `timeline-status.spec.ts`    |
-| DT.UI.02.031.010 | Remove from timeline (X)         |   🐛    | B-0012 · -003 · `timeline-card-actions.spec.ts` |
-| DT.UI.02.031.020 | Timeline card task title         |   🐛    | B-0011 · -002 · `timeline-card-typography.spec.ts` |
+| DT.UI.02.031.010 | Remove from timeline (X)         |   ✅    | B-0012 · -003 · `timeline-card-actions.spec.ts` |
+| DT.UI.02.031.020 | Timeline card task title         |   ✅    | B-0011 · -002 · `timeline-card-typography.spec.ts` |
 | DT.UI.02.032.010 | Midnight timeline clear          |   ✅    | `timeline-reset.spec.ts`     |
 | DT.UI.02.033.010 | Grouped routines (RoutineGroups) |   ✅    | `blocks-functionality.spec.ts` |
-| DT.UI.02.034.010 | Active task / timer display      |   🐛    | B-0007 · -002 · `timeline-card-actions.spec.ts` |
-| DT.UI.02.035.010 | Schedule doing tasks button      |   🐛    | B-0008 · -001 · `timeline-schedule-fab.spec.ts` |
-| SH.UI.02.040.030 | Timeline bottom action buttons   |   🐛    | B-0010 · -001 · `timeline-bottom-actions.spec.ts` |
+| DT.UI.02.034.010 | Active task / timer display      |   ✅    | B-0007 · -002 · `timeline-card-actions.spec.ts` |
+| DT.UI.02.035.010 | Schedule doing tasks button      |   ✅    | B-0008 · -001 · `timeline-schedule-fab.spec.ts` |
+| SH.UI.02.040.030 | Timeline bottom action buttons   |   ✅    | B-0010 · -001 · `timeline-bottom-actions.spec.ts` |
 | SB.EN.02.030.010 | Timeline service (core)          |   ✅    | `timeline-status.spec.ts`    |
 | SB.EN.02.032.010 | clearTimelineForNewDay           |   ✅    | `timeline-reset.spec.ts`     |
 | SB.EN.02.033.010 | Routine engine                   |   ✅    | integration                  |
