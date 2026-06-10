@@ -14,9 +14,8 @@ PM defines; agent places in registry roadmap, implements, tests.
 
 ## Read first
 
-- [docs/Working Docs-Features-Incidents/ROADMAP.md](../../docs/Working%20Docs-Features-Incidents/ROADMAP.md)
+- [docs/Working Docs-Features-Incidents/ROADMAP.md](../../docs/Working%20Docs-Features-Incidents/ROADMAP.md) — core specs + N-#### roadmap
 - [docs/Working Docs-Features-Incidents/FEATURE_REGISTRY.md](../../docs/Working%20Docs-Features-Incidents/FEATURE_REGISTRY.md)
-- [docs/Working Docs-Features-Incidents/BLOCKS_CORE_FUNCTIONALITY v0.0.3.md](../../docs/Working%20Docs-Features-Incidents/BLOCKS_CORE_FUNCTIONALITY%20v0.0.3.md)
 - [docs/Working Docs-Features-Incidents/CI_OPS_FRAMEWORK.md](../../docs/Working%20Docs-Features-Incidents/CI_OPS_FRAMEWORK.md)
 
 ## ID format
@@ -57,8 +56,19 @@ DT first → WB if in scope · Playwright `@N-####` · link in ROADMAP
 
 ## Phase 4 — QA (user)
 
+**CI** runs `pnpm test:features` on pushes/PRs that touch feature paths (`.github/workflows/playwright-features.yml`). GitHub cannot show a live headed browser — download `playwright-feature-artifacts` for video/trace review.
+
+**Local follow-along (headed):**
+
 ```bash
-pnpm exec playwright test --headed --grep @N-####
+# Single feature
+pnpm exec playwright test tests/e2e --headed --workers=1 --grep @N-#### --config=tests/playwright.config.ts --project=chromium
+
+# Active ROADMAP batch (🧪 QA / 🔄 / 📋)
+pnpm test:features:roadmap:headed
+
+# Playwright UI — best step-through experience
+pnpm test:features:ui
 ```
 
 ## Phase 5 — Ship

@@ -22,7 +22,7 @@ import type {
   AccessContext, 
   RecurrenceType 
 } from "@blocks/core";
-import { KANBAN_COLUMNS, calculateDuration, formatBlockSize } from "@blocks/core";
+import { KANBAN_COLUMNS, calculateDuration, formatBlockSize, parseLocalDateInput } from "@blocks/core";
 import {
   Timer,
   MapPin,
@@ -225,7 +225,7 @@ export function TaskEditPage({
         tags,
         color,
         recurrence,
-        dueDate: dueDate ? new Date(dueDate) : undefined,
+        dueDate: dueDate ? parseLocalDateInput(dueDate) : undefined,
         scheduledAt,
         notes: notes.trim() || undefined,
         subtasks,

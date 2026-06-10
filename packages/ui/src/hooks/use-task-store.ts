@@ -26,6 +26,10 @@ interface TaskState {
   removeFromTimeline: (id: string) => Promise<Task>;
   addToTimeline: (id: string, scheduledAt: Date) => Promise<Task>;
   spawnRoutine: (routine: Routine, startAt?: Date) => Promise<Task[]>;
+  /** Batch-update scheduledAt (timeline pause-sync) */
+  shiftTimelineSchedules: (
+    updates: { id: string; scheduledAt: Date }[],
+  ) => Promise<void>;
   
   // Filtered getters
   getTasksByStatus: (status: TaskStatus) => Task[];
@@ -269,6 +273,23 @@ export const useTaskStore = create<TaskState>()(
           duration: updated.duration,
           startedAt: updated.startedAt,
         });
+      },
+
+      shiftTimelineSchedules: async (updates: { id: string; scheduledAt: Date }[]) => {
+        if (updates.length === 0) return;
+        const db = await getStorage();
+        for (const { id, scheduledAt } of updates) {
+          const existingTask = get().tasks.find((t) => t.id === id);
+          if (!existingTask) continue;
+          const patched = { ...existingTask, scheduledAt };
+          await db.updateTask(patched);
+        }
+        set((state) => ({
+          tasks: state.tasks.map((t) => {
+            const hit = updates.find((u) => u.id === t.id);
+            return hit ? { ...t, scheduledAt: hit.scheduledAt } : t;
+          }),
+        }));
       },
 
       getTasksByStatus: (status: TaskStatus) => {

@@ -1,10 +1,19 @@
 // ============================================================================
 // BLOCKS - Settings Page
-// Settings per FEATURE_REGISTRY DT.UI.06.* · spec BLOCKS_CORE_FUNCTIONALITY v0.0.3
+// Settings per FEATURE_REGISTRY DT.UI.06.* · spec ROADMAP.md
 // ============================================================================
 
 import { useState, useEffect } from "react";
-import { Button, cn } from "@blocks/ui";
+import {
+  Button,
+  cn,
+  WorkScheduleFields,
+  TimelineSnapDelayField,
+  TimelineNowBarOffsetField,
+  TimelineTimerDisplayField,
+} from "@blocks/ui";
+import type { WeekStartsOn } from "@blocks/core";
+import { WEEK_DAY_TO_NUMBER } from "@blocks/core";
 import { 
   Moon, 
   Sun, 
@@ -34,7 +43,11 @@ export interface SettingsData {
   // Work Schedule
   workStartTime: string;
   workEndTime: string;
-  workDays: DayOfWeek[];
+  workDays: number[];
+  weekStartsOn: WeekStartsOn;
+  timelineSnapDelaySec: number;
+  timelineNowBarViewportRatio: number;
+  timelineTimerDisplayMode: "elapsed" | "remaining";
   
   // Notifications
   notificationsEnabled: boolean;
@@ -56,7 +69,11 @@ const DEFAULT_SETTINGS: SettingsData = {
   theme: "dark",
   workStartTime: "09:00",
   workEndTime: "17:00",
-  workDays: ["mon", "tue", "wed", "thu", "fri"],
+  workDays: [1, 2, 3, 4, 5],
+  weekStartsOn: "monday",
+  timelineSnapDelaySec: 15,
+  timelineNowBarViewportRatio: 0.5,
+  timelineTimerDisplayMode: "elapsed",
   notificationsEnabled: true,
   taskReminders: true,
   timerAlerts: true,
@@ -65,16 +82,6 @@ const DEFAULT_SETTINGS: SettingsData = {
   aiEnabled: true,
   aiProvider: "gemini",
   aiApiKey: "",
-};
-
-const DAY_LABELS: Record<DayOfWeek, string> = {
-  mon: "M",
-  tue: "T",
-  wed: "W",
-  thu: "T",
-  fri: "F",
-  sat: "S",
-  sun: "S",
 };
 
 const AI_PROVIDERS = [
@@ -89,11 +96,41 @@ const AI_PROVIDERS = [
 
 const SETTINGS_KEY = "blocks-settings";
 
+function normalizeSettings(raw: Partial<SettingsData> & { workDays?: unknown }): SettingsData {
+  const merged = { ...DEFAULT_SETTINGS, ...raw };
+  if (Array.isArray(raw.workDays) && raw.workDays.length > 0) {
+    if (typeof raw.workDays[0] === "string") {
+      merged.workDays = (raw.workDays as unknown as DayOfWeek[]).map((d) => WEEK_DAY_TO_NUMBER[d]);
+    }
+  }
+  if (merged.weekStartsOn !== "monday" && merged.weekStartsOn !== "sunday") {
+    merged.weekStartsOn = "monday";
+  }
+  if (
+    typeof merged.timelineSnapDelaySec !== "number" ||
+    merged.timelineSnapDelaySec < 0 ||
+    merged.timelineSnapDelaySec > 120
+  ) {
+    merged.timelineSnapDelaySec = 15;
+  }
+  if (merged.timelineTimerDisplayMode !== "elapsed" && merged.timelineTimerDisplayMode !== "remaining") {
+    merged.timelineTimerDisplayMode = "elapsed";
+  }
+  if (
+    typeof merged.timelineNowBarViewportRatio !== "number" ||
+    merged.timelineNowBarViewportRatio < 0.25 ||
+    merged.timelineNowBarViewportRatio > 0.75
+  ) {
+    merged.timelineNowBarViewportRatio = 0.5;
+  }
+  return merged;
+}
+
 function loadSettings(): SettingsData {
   try {
     const stored = localStorage.getItem(SETTINGS_KEY);
     if (stored) {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+      return normalizeSettings(JSON.parse(stored));
     }
   } catch (e) {
     console.error("Failed to load settings:", e);
@@ -104,6 +141,7 @@ function loadSettings(): SettingsData {
 function saveSettings(settings: SettingsData): void {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    window.dispatchEvent(new Event("blocks-settings-changed"));
   } catch (e) {
     console.error("Failed to save settings:", e);
   }
@@ -235,13 +273,6 @@ export function SettingsPage() {
     updateSetting("theme", newTheme);
   };
   
-  const toggleWorkDay = (day: DayOfWeek) => {
-    const updated = settings.workDays.includes(day)
-      ? settings.workDays.filter((d) => d !== day)
-      : [...settings.workDays, day];
-    updateSetting("workDays", updated);
-  };
-  
   const handleExportJSON = async () => {
     setIsExporting(true);
     try {
@@ -354,25 +385,42 @@ export function SettingsPage() {
               className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary focus:border-accent-magenta focus:outline-none"
             />
           </SettingRow>
-          
-          <SettingRow label="Work Days" description="Select your regular work days">
-            <div className="flex gap-1">
-              {(Object.keys(DAY_LABELS) as DayOfWeek[]).map((day) => (
-                <button
-                  key={day}
-                  onClick={() => toggleWorkDay(day)}
-                  className={cn(
-                    "h-8 w-8 rounded-lg text-sm font-medium transition-colors",
-                    settings.workDays.includes(day)
-                      ? "bg-accent-magenta text-white"
-                      : "bg-bg-tertiary text-text-secondary hover:bg-bg-primary"
-                  )}
-                >
-                  {DAY_LABELS[day]}
-                </button>
-              ))}
+
+          <div className="py-3">
+            <WorkScheduleFields
+              workDays={settings.workDays}
+              weekStartsOn={settings.weekStartsOn}
+              onWorkDaysChange={(workDays) => updateSetting("workDays", workDays)}
+              onWeekStartsOnChange={(weekStartsOn) => updateSetting("weekStartsOn", weekStartsOn)}
+            />
+          </div>
+        </SettingsSection>
+
+        <SettingsSection title="Timeline" icon={<Clock className="h-4 w-4" />}>
+          <div className="px-4 py-3">
+            <TimelineSnapDelayField
+              value={settings.timelineSnapDelaySec}
+              onChange={(timelineSnapDelaySec) =>
+                updateSetting("timelineSnapDelaySec", timelineSnapDelaySec)
+              }
+            />
+            <div className="mt-4">
+              <TimelineNowBarOffsetField
+                value={settings.timelineNowBarViewportRatio}
+                onChange={(timelineNowBarViewportRatio) =>
+                  updateSetting("timelineNowBarViewportRatio", timelineNowBarViewportRatio)
+                }
+              />
             </div>
-          </SettingRow>
+            <div className="mt-4">
+              <TimelineTimerDisplayField
+                value={settings.timelineTimerDisplayMode}
+                onChange={(timelineTimerDisplayMode) =>
+                  updateSetting("timelineTimerDisplayMode", timelineTimerDisplayMode)
+                }
+              />
+            </div>
+          </div>
         </SettingsSection>
         
         {/* Notifications */}

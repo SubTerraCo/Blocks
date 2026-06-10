@@ -24,13 +24,15 @@ import {
 
 interface ActiveTimerProps {
   onTaskClick?: (taskId: string) => void;
+  /** Hide floating panel on Timeline — tracking lives on card footers (B-0007) */
+  hidden?: boolean;
 }
 
 // ============================================================================
 // Component
 // ============================================================================
 
-export function ActiveTimer({ onTaskClick }: ActiveTimerProps) {
+export function ActiveTimer({ onTaskClick, hidden }: ActiveTimerProps) {
   const {
     activeTaskId,
     isRunning,
@@ -109,8 +111,8 @@ export function ActiveTimer({ onTaskClick }: ActiveTimerProps) {
     }
   }, [activeTaskId, onTaskClick]);
   
-  // Don't render if no active timer
-  if (!activeTaskId || !activeTask) return null;
+  // Don't render if no active timer or hidden on timeline view
+  if (hidden || !activeTaskId || !activeTask) return null;
   
   const remaining = getRemainingTime();
   const progress = getProgress();
@@ -295,6 +297,101 @@ export function ActiveTimer({ onTaskClick }: ActiveTimerProps) {
 }
 
 // ============================================================================
+// N-0009 · Centered tracking clock in timeline card header (desktop)
+// ============================================================================
+
+interface TimelineCardTrackingHeaderProps {
+  taskId: string;
+}
+
+const SETTINGS_KEY = "blocks-settings";
+
+function loadTimelineTimerDisplayMode(): "elapsed" | "remaining" {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as { timelineTimerDisplayMode?: string };
+      if (parsed.timelineTimerDisplayMode === "remaining") return "remaining";
+    }
+  } catch {
+    // ignore
+  }
+  return "elapsed";
+}
+
+export function TimelineCardTrackingHeader({ taskId }: TimelineCardTrackingHeaderProps) {
+  const [displayMode, setDisplayMode] = useState(loadTimelineTimerDisplayMode);
+  const {
+    activeTaskId,
+    isRunning,
+    isPaused,
+    getElapsedTime,
+    getRemainingTime,
+  } = useTimerStore();
+
+  const [elapsed, setElapsed] = useState(0);
+
+  const isActive = activeTaskId === taskId;
+
+  useEffect(() => {
+    const onSettingsChange = () => setDisplayMode(loadTimelineTimerDisplayMode());
+    window.addEventListener("storage", onSettingsChange);
+    window.addEventListener("blocks-settings-changed", onSettingsChange);
+    return () => {
+      window.removeEventListener("storage", onSettingsChange);
+      window.removeEventListener("blocks-settings-changed", onSettingsChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isActive || (!isRunning && !isPaused)) return;
+
+    const tick = () => setElapsed(getElapsedTime());
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [isActive, isRunning, isPaused, getElapsedTime]);
+
+  if (!isActive) return null;
+
+  const remaining = getRemainingTime();
+  const isOvertime = remaining < 0;
+  const showRemaining = displayMode === "remaining";
+  const displayMs = showRemaining ? Math.max(0, remaining) : elapsed;
+
+  return (
+    <div
+      className="flex w-full items-center justify-center gap-1.5 text-white"
+      data-testid="timeline-card-tracking"
+    >
+      <Clock
+        className={cn(
+          "h-3.5 w-3.5 shrink-0 opacity-90",
+          isRunning && "animate-pulse text-accent-green",
+        )}
+      />
+      <span
+        className={cn(
+          "font-mono text-sm font-semibold tabular-nums",
+          showRemaining && isOvertime && "text-status-warning",
+        )}
+        data-testid="timeline-card-tracking-clock"
+      >
+        {showRemaining && isOvertime
+          ? `+${formatTimerDisplay(Math.abs(remaining))}`
+          : formatTimerDisplay(displayMs)}
+      </span>
+      <span className="text-[10px] uppercase tracking-wide opacity-70">
+        {showRemaining ? "left" : isRunning ? "elapsed" : "paused"}
+      </span>
+    </div>
+  );
+}
+
+/** @deprecated Use TimelineCardTrackingHeader */
+export const TimelineCardTrackingFooter = TimelineCardTrackingHeader;
+
+// ============================================================================
 // Timer Button for Timeline/Kanban cards
 // ============================================================================
 
@@ -310,8 +407,9 @@ interface TimerButtonProps {
 }
 
 export function TimerButton({ task, size = "sm", className }: TimerButtonProps) {
-  const { activeTaskId, isRunning, isPaused, startTimer, pauseTimer, resumeTimer, stopTimer } = useTimerStore();
+  const { activeTaskId, isRunning, isPaused, startTimer, pauseTimer, resumeTimer, stopTimer, beginTimelinePauseSync } = useTimerStore();
   const updateTask = useTaskStore((state) => state.updateTask);
+  const tasks = useTaskStore((state) => state.tasks);
   
   const isActive = activeTaskId === task.id;
   const isThisRunning = isActive && isRunning;
@@ -322,6 +420,7 @@ export function TimerButton({ task, size = "sm", className }: TimerButtonProps) 
     
     if (isThisRunning) {
       pauseTimer();
+      beginTimelinePauseSync(task.id, tasks);
     } else if (isThisPaused) {
       resumeTimer();
     } else if (isActive) {
@@ -341,20 +440,22 @@ export function TimerButton({ task, size = "sm", className }: TimerButtonProps) 
     }
   };
   
-  const iconSize = size === "sm" ? "h-3 w-3" : "h-4 w-4";
+  const iconSize = size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";
   const buttonSize = size === "sm" ? "h-6 w-6" : "h-8 w-8";
-  
+
   return (
     <button
+      type="button"
+      data-testid="timeline-timer-button"
       onClick={handleClick}
       className={cn(
-        "flex items-center justify-center rounded-full transition-all",
+        "flex shrink-0 items-center justify-center rounded-md transition-all",
         buttonSize,
-        isThisRunning 
-          ? "bg-accent-green text-white hover:bg-accent-green/80 animate-pulse" 
+        isThisRunning
+          ? "bg-accent-green text-white hover:bg-accent-green/80 animate-pulse"
           : isThisPaused
             ? "bg-accent-cyan text-white hover:bg-accent-cyan/80"
-            : "bg-bg-tertiary text-text-muted hover:bg-accent-magenta hover:text-white",
+            : "bg-black/30 text-white hover:bg-black/50",
         className
       )}
       title={isThisRunning ? "Pause timer" : isThisPaused ? "Resume timer" : "Start timer"}

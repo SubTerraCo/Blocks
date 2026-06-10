@@ -16,7 +16,7 @@ PM + QA workflow. User reports; agent qualifies, maps codes, builds fix + tests.
 
 - [docs/Working Docs-Features-Incidents/FEATURE_REGISTRY.md](../../docs/Working%20Docs-Features-Incidents/FEATURE_REGISTRY.md)
 - [docs/Working Docs-Features-Incidents/INCIDENTS.md](../../docs/Working%20Docs-Features-Incidents/INCIDENTS.md)
-- [docs/Working Docs-Features-Incidents/BLOCKS_CORE_FUNCTIONALITY v0.0.3.md](../../docs/Working%20Docs-Features-Incidents/BLOCKS_CORE_FUNCTIONALITY%20v0.0.3.md)
+- [docs/Working Docs-Features-Incidents/ROADMAP.md](../../docs/Working%20Docs-Features-Incidents/ROADMAP.md) — core specs + acceptance criteria
 - [docs/Working Docs-Features-Incidents/CI_OPS_FRAMEWORK.md](../../docs/Working%20Docs-Features-Incidents/CI_OPS_FRAMEWORK.md)
 
 ## ID format

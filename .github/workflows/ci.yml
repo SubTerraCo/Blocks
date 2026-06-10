@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [master, main, dev]
+    branches: [master, main, dev, "v0.0.*"]
   pull_request:
-    branches: [master, main, dev]
+    branches: [master, main, dev, "v0.0.*"]
 
 jobs:
   lint-and-typecheck:
@@ -83,7 +83,10 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
       
-      - name: Run E2E tests
+      - name: Run feature-tagged E2E tests
+        run: pnpm test:features
+      
+      - name: Run full E2E tests (informational)
         run: pnpm test:e2e
         continue-on-error: true
       

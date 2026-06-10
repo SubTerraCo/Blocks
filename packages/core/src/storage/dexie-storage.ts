@@ -286,9 +286,8 @@ export class DexieStorage implements IStorageWithEvents {
     if (!settings) {
       return SettingsSchema.parse({});
     }
-    // Remove the id field when returning
     const { id: _, ...settingsWithoutId } = settings;
-    return settingsWithoutId as Settings;
+    return SettingsSchema.parse(settingsWithoutId);
   }
 
   async updateSettings(updates: Partial<Settings>): Promise<Settings> {

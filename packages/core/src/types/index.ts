@@ -423,9 +423,16 @@ export const SettingsSchema = z.object({
   workStartTime: z.string().default("09:00"),
   workEndTime: z.string().default("17:00"),
   workDays: z.array(z.number().min(0).max(6)).default([1, 2, 3, 4, 5]), // 0=Sun, 6=Sat
+  weekStartsOn: z.enum(["monday", "sunday"]).default("monday"),
   
   // Time tracking
   autoStartTimer: z.boolean().default(false),
+  /** Seconds after manual scroll before timeline recenters on now (0 = never until re-entry) */
+  timelineSnapDelaySec: z.number().int().min(0).max(120).default(15),
+  /** N-0014: viewport ratio for now-bar (0.25 = ¼ from top … 0.75 = ¼ from bottom) */
+  timelineNowBarViewportRatio: z.number().min(0.25).max(0.75).default(0.5),
+  /** N-0009: elapsed vs remaining on timeline card tracking header */
+  timelineTimerDisplayMode: z.enum(["elapsed", "remaining"]).default("elapsed"),
   overtimeWarningMinutes: z.number().default(30), // Warn after this many extra minutes
   
   // Data
@@ -434,6 +441,7 @@ export const SettingsSchema = z.object({
 });
 
 export type Settings = z.infer<typeof SettingsSchema>;
+export type TimelineTimerDisplayMode = Settings["timelineTimerDisplayMode"];
 
 // ----------------------------------------------------------------------------
 // AI Suggestion Types

@@ -25,6 +25,9 @@ html.dark {
   --scrollbar-track: #1a1a1a;
   --scrollbar-thumb: #333333;
   --scrollbar-thumb-hover: #444444;
+  --top-bar-height: 56px;
+  --bottom-nav-height: 64px;
+  --title-bar-height: 40px;
 }
 
 html.light {

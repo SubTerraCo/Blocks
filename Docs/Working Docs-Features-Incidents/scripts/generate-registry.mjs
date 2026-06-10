@@ -68,7 +68,7 @@ const doc = `# Blocks Feature Registry
 > **Format:** \`PP.PR.AA.SSS.FFF\` (stable) · \`PP.PR.AA.SSS.FFF-III\` (incident)  
 > **Lookup:** Ctrl+F \`DT.UI.06.001.020\` · \`B-0003\` · \`🐛\` · \`#matrix\`  
 > **Incidents:** [INCIDENTS.md](./INCIDENTS.md) · **New work:** [ROADMAP.md](./ROADMAP.md)  
-> **Spec detail:** [BLOCKS_CORE_FUNCTIONALITY v0.0.3.md](./BLOCKS_CORE_FUNCTIONALITY%20v0.0.3.md)
+> **Spec detail:** [ROADMAP.md](./ROADMAP.md) (core specs + N-#### roadmap)
 
 ---
 

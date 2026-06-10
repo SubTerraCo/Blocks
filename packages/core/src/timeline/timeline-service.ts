@@ -4,7 +4,34 @@
 // ============================================================================
 
 import type { Task, TimeBlock } from "../types";
-import { calculateDuration } from "../types";
+import {
+  DEFAULT_TIMELINE_WINDOW_DAYS,
+  getTimelineWindow,
+  isDateInTimelineWindow,
+  tasksToTimeBlocksInWindow,
+} from "./timeline-window";
+export {
+  DEFAULT_TIMELINE_WINDOW_DAYS,
+  formatDayKey,
+  getTimelineWindow,
+  isDateInTimelineWindow,
+  isTimelineTaskInWindow,
+  getTimelineTasksInWindow,
+  tasksToTimeBlocksInWindow,
+  generateRollingTimelineSlots,
+  isSameHour,
+  startOfDay,
+  addDays,
+  getWeekStripDays,
+} from "./timeline-window";
+export type { TimelineWindow, TimelineHourSlot } from "./timeline-window";
+export {
+  computeMidnightBoundaryProgress,
+  dayKeyToDate,
+  previousDayKey,
+  weekStripSelectionOffset,
+} from "./scroll-day-sync";
+export type { MidnightBoundary, MidnightBoundaryProgress } from "./scroll-day-sync";
 
 /**
  * Returns true if a date falls on the given calendar day (local time).
@@ -18,35 +45,38 @@ export function isSameCalendarDay(a: Date, b: Date): boolean {
 }
 
 /**
- * Timeline visibility rule: only tasks with status=doing and a schedule.
+ * Timeline visibility: doing tasks scheduled within the rolling window.
  */
-export function isTimelineTask(task: Task, day: Date = new Date()): boolean {
+export function isTimelineTask(
+  task: Task,
+  day: Date = new Date(),
+  windowDays: number = DEFAULT_TIMELINE_WINDOW_DAYS,
+): boolean {
   if (task.status !== "doing" || !task.scheduledAt) return false;
-  return isSameCalendarDay(new Date(task.scheduledAt), day);
+  const window = getTimelineWindow(day, windowDays);
+  return isDateInTimelineWindow(new Date(task.scheduledAt), window);
 }
 
 /**
- * Tasks visible on today's timeline (status=doing only).
+ * @deprecated Use getTimelineTasksInWindow for rolling timeline.
  */
 export function getTimelineTasksForDay(tasks: Task[], day: Date = new Date()): Task[] {
-  return tasks.filter((t) => isTimelineTask(t, day));
+  return tasks.filter((t) => {
+    if (t.status !== "doing" || !t.scheduledAt) return false;
+    return isSameCalendarDay(new Date(t.scheduledAt), day);
+  });
 }
 
 /**
- * Convert doing tasks with schedules into timeline blocks.
+ * Convert doing tasks with schedules into timeline blocks (rolling ±windowDays).
  */
-export function tasksToTimeBlocks(tasks: Task[], day: Date = new Date()): TimeBlock[] {
-  return getTimelineTasksForDay(tasks, day).map((task) => {
-    const duration = task.duration ?? calculateDuration(task.blockSize, task.blockCount);
-    const startTime = new Date(task.scheduledAt!);
-    return {
-      id: task.id,
-      type: "task" as const,
-      startTime,
-      endTime: new Date(startTime.getTime() + duration * 60000),
-      task,
-    };
-  });
+export function tasksToTimeBlocks(
+  tasks: Task[],
+  now: Date = new Date(),
+  windowDays: number = DEFAULT_TIMELINE_WINDOW_DAYS,
+): TimeBlock[] {
+  const window = getTimelineWindow(now, windowDays);
+  return tasksToTimeBlocksInWindow(tasks, window);
 }
 
 /**

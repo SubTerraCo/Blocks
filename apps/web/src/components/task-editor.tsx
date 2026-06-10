@@ -12,6 +12,7 @@ import {
   type Task,
   type TaskPriority,
   type TaskStatus,
+  parseLocalDateInput,
 } from "@blocks/core";
 import {
   Calendar,
@@ -254,7 +255,7 @@ export function TaskEditor({
       tags,
       color,
       recurrence,
-      dueDate: dueDate ? new Date(dueDate) : undefined,
+      dueDate: dueDate ? parseLocalDateInput(dueDate) : undefined,
       notes: notes.trim() || undefined,
       subtasks,
     });

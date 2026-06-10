@@ -20,8 +20,57 @@ export {
   clearTimelineForNewDay,
   clearDailyTimeline,
   msUntilMidnight,
+  DEFAULT_TIMELINE_WINDOW_DAYS,
+  formatDayKey,
+  getTimelineWindow,
+  isDateInTimelineWindow,
+  isTimelineTaskInWindow,
+  getTimelineTasksInWindow,
+  tasksToTimeBlocksInWindow,
+  generateRollingTimelineSlots,
+  isSameHour,
+  startOfDay,
+  addDays,
+  getWeekStripDays,
+  computeMidnightBoundaryProgress,
+  dayKeyToDate,
+  previousDayKey,
+  weekStripSelectionOffset,
 } from "./timeline";
-export type { ClearTimelineResult } from "./timeline";
+export type {
+  ClearTimelineResult,
+  TimelineWindow,
+  TimelineHourSlot,
+  MidnightBoundary,
+  MidnightBoundaryProgress,
+} from "./timeline";
+export {
+  TIMELINE_DAY_HEADER_HEIGHT_PX,
+  getTimelineYOffsetForTime,
+  getScrollTopToCenterTime,
+  getScrollTopToAlignTime,
+  getScrollTopForDayStart,
+  getDownstreamTimelineTasks,
+  TIMELINE_NOW_BAR_MIN_RATIO,
+  TIMELINE_NOW_BAR_MAX_RATIO,
+  TIMELINE_NOW_BAR_SNAP_POINTS,
+  clampTimelineNowBarRatio,
+  softSnapTimelineNowBarRatio,
+  getTaskDurationMinutes,
+  getRemainingTimelineSlotMs,
+  buildDownstreamScheduleShiftUpdates,
+} from "./timeline";
+
+export {
+  WeekStartsOnSchema,
+  WEEK_DAY_LABELS,
+  WEEK_DAY_TO_NUMBER,
+  NUMBER_TO_WEEK_DAY,
+  getOrderedWeekDays,
+  isWorkDaySelected,
+  toggleWorkDayNumber,
+} from "./settings/week-start";
+export type { WeekStartsOn, WeekDayKey } from "./settings/week-start";
 
 // Recurring Engine
 export {
@@ -57,7 +106,15 @@ export type {
 export { DexieStorage } from "./storage";
 
 // Calendar Service
-export { CalendarService } from "./calendar";
+export {
+  CalendarService,
+  getTasksWithDueDate,
+  getTasksDueOnDay,
+  getCalendarMonthGrid,
+  isSameMonth,
+  formatMonthTitle,
+  parseLocalDateInput,
+} from "./calendar";
 export type {
   CalendarCredentials,
   CalendarInfo,
@@ -83,5 +140,4 @@ export type {
 } from "./sync";
 
 // Version
-export const VERSION = "0.0.3";
-
+export const VERSION = "0.0.4";

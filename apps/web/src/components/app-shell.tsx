@@ -92,7 +92,7 @@ export function AppShell({ children }: AppShellProps) {
         onProfilePress={handleProfilePress}
       />
       
-      <main className="flex-1 pt-bar pb-nav overflow-auto">
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden pt-bar pb-nav">
         {children}
       </main>
 

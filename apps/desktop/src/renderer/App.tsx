@@ -1,25 +1,23 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { UpdateNotification } from "./components/UpdateNotification";
-import { RoutineGroups } from "./components/RoutineGroups";
 import { TaskEditPage } from "./components/TaskEditPage";
 import { PlacementPickerModal } from "./components/PlacementPickerModal";
 import { SettingsPage } from "./components/SettingsPage";
 import { ProfilePage } from "./components/ProfilePage";
+import { TimelinePage } from "./components/TimelinePage";
+import { AppTrackingClock, TrackingControlBar } from "./components/TrackingBar";
+import { useTimerStore } from "./hooks/useTimerStore";
 import { useTheme } from "./hooks/useTheme";
-import { ActiveTimer, TimerButton } from "./components/ActiveTimer";
 import { notificationService } from "./hooks/useNotifications";
 import { 
   useTaskStore, 
   useQuickBlocksStore,
   useOnlineStatus,
-  useDailyTimelineReset,
   BottomNav, 
   TaskCard,
-  TimelineBlock,
   EditableQuickAddGrid,
   CreateBlockModal,
   cn,
-  formatTime
 } from "@blocks/ui";
 import type { 
   Task, 
@@ -35,8 +33,6 @@ import {
   type ChatMessage
 } from "@blocks/core";
 import { 
-  Clock, 
-  CalendarPlus, 
   Grid3X3, 
   Sparkles, 
   Search, 
@@ -244,7 +240,7 @@ function DroppableColumn({
           )}
         </div>
       </div>
-      <div className="border-t border-border-default p-3 pb-4">
+      <div className="border-t border-border-default p-3 pb-10">
         <button
           onClick={() => onAddTask(id)}
           className="flex w-full items-center justify-center gap-2 rounded-lg py-2 border-2 border-dashed border-border-default text-text-tertiary transition-colors hover:border-accent-magenta hover:text-accent-magenta"
@@ -385,22 +381,6 @@ function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => voi
   );
 }
 
-// ============================================================================
-// Timeline Page
-// ============================================================================
-function generateTimeSlots(): Date[] {
-  const slots: Date[] = [];
-  const now = new Date();
-  const startOfDay = new Date(now);
-  startOfDay.setHours(0, 0, 0, 0);
-  for (let hour = 0; hour < 24; hour++) {
-    const slot = new Date(startOfDay);
-    slot.setHours(hour);
-    slots.push(slot);
-  }
-  return slots;
-}
-
 // Helper to convert duration in minutes to blockSize + blockCount
 function durationToBlocks(minutes: number): { blockSize: "15min" | "30min" | "1hour" | "1week"; blockCount: number } {
   if (minutes <= 15) return { blockSize: "15min", blockCount: 1 };
@@ -411,345 +391,6 @@ function durationToBlocks(minutes: number): { blockSize: "15min" | "30min" | "1h
 
 function tasksToTimeBlocksLocal(tasks: Task[]): TimeBlockType[] {
   return tasksToTimeBlocks(tasks);
-}
-
-// Draggable Timeline Block component
-function DraggableTimelineBlock({ 
-  block, 
-  onPress,
-  onRemoveFromTimeline,
-  style,
-}: { 
-  block: TimeBlockType;
-  onPress: (block: TimeBlockType) => void;
-  onRemoveFromTimeline?: (block: TimeBlockType) => void;
-  style: React.CSSProperties;
-}) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: block.id,
-    data: { type: "timeline-block", block },
-  });
-
-  const dragStyle = transform
-    ? {
-        ...style,
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        zIndex: isDragging ? 50 : 1,
-        opacity: isDragging ? 0.8 : 1,
-        cursor: isDragging ? "grabbing" : "grab",
-      }
-    : { ...style, cursor: "grab" };
-
-  return (
-    <div
-      ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      style={dragStyle}
-      className="absolute left-0 right-4 group overflow-hidden"
-      onClick={(e) => {
-        // Only trigger onPress if not dragging
-        if (!isDragging) {
-          e.stopPropagation();
-          onPress(block);
-        }
-      }}
-    >
-      {/* TimelineBlock fills full height of container with task color */}
-      <TimelineBlock 
-        block={block} 
-        onPress={() => {}} 
-        onRemoveFromTimeline={onRemoveFromTimeline}
-        className={cn(
-          "h-full w-full transition-shadow overflow-hidden",
-          isDragging && "shadow-2xl ring-2 ring-accent-magenta"
-        )} 
-      />
-      {/* Timer button overlay */}
-      {block.task && (
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <TimerButton task={block.task} size="sm" />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Droppable time slot component
-function DroppableTimeSlot({ 
-  hour, 
-  minute, 
-  children,
-  isOver,
-}: { 
-  hour: number;
-  minute: number;
-  children?: React.ReactNode;
-  isOver?: boolean;
-}) {
-  const slotId = `slot-${hour}-${minute}`;
-  const { setNodeRef } = useDroppable({
-    id: slotId,
-    data: { type: "time-slot", hour, minute },
-  });
-
-  return (
-    <div
-      ref={setNodeRef}
-      className={cn(
-        "absolute left-0 right-0 h-[20px]",
-        isOver && "bg-accent-magenta/20 rounded"
-      )}
-      style={{ top: `${(minute / 60) * 100}%` }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void }) {
-  const tasks = useTaskStore((state) => state.tasks);
-  const addToTimeline = useTaskStore((state) => state.addToTimeline);
-  const removeFromTimeline = useTaskStore((state) => state.removeFromTimeline);
-  const scheduleDoingTasks = useTaskStore((state) => state.scheduleDoingTasks);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [isScheduling, setIsScheduling] = useState(false);
-  const [activeBlock, setActiveBlock] = useState<TimeBlockType | null>(null);
-  const [overId, setOverId] = useState<string | null>(null);
-  const [previewTime, setPreviewTime] = useState<Date | null>(null);
-  
-  const timeSlots = useMemo(() => generateTimeSlots(), []);
-  const timeBlocks = useMemo(() => tasksToTimeBlocksLocal(tasks), [tasks]);
-  
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
-
-  const doingTasksCount = useMemo(
-    () => tasks.filter((t) => t.status === "doing").length,
-    [tasks]
-  );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    const block = timeBlocks.find((b) => b.id === active.id);
-    if (block) {
-      setActiveBlock(block);
-    }
-  };
-
-  const handleDragOver = (event: DragOverEvent) => {
-    const { over } = event;
-    if (over) {
-      setOverId(String(over.id));
-      // Calculate preview time from the drop target
-      const data = over.data.current as { hour?: number; minute?: number } | undefined;
-      if (data?.hour !== undefined && data?.minute !== undefined) {
-        const newTime = new Date();
-        newTime.setHours(data.hour, data.minute, 0, 0);
-        setPreviewTime(newTime);
-      }
-    } else {
-      setOverId(null);
-      setPreviewTime(null);
-    }
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveBlock(null);
-    setOverId(null);
-    setPreviewTime(null);
-
-    if (!over) return;
-
-    const block = timeBlocks.find((b) => b.id === active.id);
-    if (!block || !block.task) return;
-
-    // Get the target time from the drop zone
-    const data = over.data.current as { hour?: number; minute?: number } | undefined;
-    if (data?.hour === undefined || data?.minute === undefined) return;
-
-    // Round to nearest 15-minute increment
-    const roundedMinute = Math.round(data.minute / 15) * 15;
-    const newScheduledAt = new Date();
-    newScheduledAt.setHours(data.hour, roundedMinute, 0, 0);
-
-    // Update the task with new scheduled time
-    await addToTimeline(block.task.id, newScheduledAt);
-  };
-
-  const handleRemoveFromTimeline = async (block: TimeBlockType) => {
-    if (!block.task) return;
-    await removeFromTimeline(block.task.id);
-  };
-
-  const handleScheduleDoingTasks = async () => {
-    setIsScheduling(true);
-    try {
-      await scheduleDoingTasks();
-    } catch (error) {
-      console.error("Failed to schedule tasks:", error);
-    } finally {
-      setIsScheduling(false);
-    }
-  };
-
-  const handleBlockPress = (block: TimeBlockType) => {
-    if (block.type === "task" && block.task) {
-      onEditTask(block.task);
-    }
-  };
-
-  useEffect(() => {
-    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const currentHour = new Date().getHours();
-    const element = document.getElementById(`hour-${currentHour}`);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, []);
-
-  const currentHour = currentTime.getHours();
-  const currentMinutePercent = (currentTime.getMinutes() / 60) * 100;
-
-  // Generate 15-minute drop zones for each hour
-  const generateDropZones = (hour: number) => {
-    return [0, 15, 30, 45].map((minute) => (
-      <DroppableTimeSlot
-        key={`${hour}-${minute}`}
-        hour={hour}
-        minute={minute}
-        isOver={overId === `slot-${hour}-${minute}`}
-      />
-    ));
-  };
-
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="relative h-full overflow-y-auto px-4 py-6">
-        {/* Preview time indicator */}
-        {previewTime && activeBlock && (
-          <div className="fixed top-20 right-4 z-50 rounded-lg bg-accent-magenta px-3 py-2 text-white text-sm font-medium shadow-lg">
-            Move to {previewTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-          </div>
-        )}
-
-        <div className="space-y-0">
-          {timeSlots.map((slot) => {
-            const hour = slot.getHours();
-            const isCurrentHour = hour === currentHour;
-            const blocksInHour = timeBlocks.filter((block) => block.startTime.getHours() === hour);
-
-            // HOUR_HEIGHT in pixels - each hour slot is 120px tall
-            const HOUR_HEIGHT = 120;
-            
-            return (
-              <div key={hour} id={`hour-${hour}`} className="relative flex border-t border-border-default" style={{ height: `${HOUR_HEIGHT}px` }}>
-                <div className="w-16 shrink-0 pr-3 pt-2 text-right">
-                  <span className={cn("text-sm", isCurrentHour ? "font-semibold text-accent-magenta" : "text-text-tertiary")}>
-                    {formatTime(slot)}
-                  </span>
-                </div>
-                <div className="relative flex-1">
-                  {/* Drop zones for 15-minute increments */}
-                  {generateDropZones(hour)}
-                  
-                  {/* Current time indicator */}
-                  {isCurrentHour && (
-                    <div className="absolute left-0 right-0 z-10 flex items-center pointer-events-none" style={{ top: `${currentMinutePercent}%` }}>
-                      <div className="h-3 w-3 rounded-full bg-accent-magenta shadow-glow" />
-                      <div className="h-0.5 flex-1 bg-accent-magenta shadow-glow" />
-                    </div>
-                  )}
-                  
-                  {/* Time blocks - height based on FULL duration, can overflow into next hours */}
-                  {blocksInHour.map((block) => {
-                    const startMinute = block.startTime.getMinutes();
-                    // Calculate FULL duration in minutes (don't clip to hour)
-                    const fullDurationMinutes = (block.endTime.getTime() - block.startTime.getTime()) / 60000;
-                    // Height in pixels = (duration / 60 minutes) * HOUR_HEIGHT
-                    const heightPx = (fullDurationMinutes / 60) * HOUR_HEIGHT;
-                    // Top position as percentage of hour
-                    const topPercent = (startMinute / 60) * 100;
-                    
-                    return (
-                      <DraggableTimelineBlock
-                        key={block.id}
-                        block={block}
-                        onPress={handleBlockPress}
-                        onRemoveFromTimeline={handleRemoveFromTimeline}
-                        style={{ 
-                          top: `${topPercent}%`, 
-                          height: `${Math.max(heightPx, 40)}px`,
-                          zIndex: 5, // Ensure blocks appear above hour lines
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {timeBlocks.length === 0 && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-8">
-            <Clock className="mb-4 h-16 w-16 text-text-muted" />
-            <h3 className="mb-2 text-lg font-semibold text-text-primary">No tasks scheduled</h3>
-            <p className="text-center text-sm text-text-secondary">
-              Move tasks to <strong>Doing</strong> on Kanban, then schedule them here.
-              Only <strong>Doing</strong> tasks appear on the timeline.
-            </p>
-            {doingTasksCount > 0 && (
-              <button onClick={handleScheduleDoingTasks} disabled={isScheduling} className="mt-6 flex items-center gap-2 rounded-xl bg-accent-cyan px-6 py-3 font-medium text-bg-primary transition-colors hover:bg-accent-cyan/80 disabled:opacity-50">
-                <CalendarPlus className="h-5 w-5" />
-                {isScheduling ? "Scheduling..." : `Schedule ${doingTasksCount} Doing Task${doingTasksCount > 1 ? "s" : ""}`}
-              </button>
-            )}
-          </div>
-        )}
-
-        {doingTasksCount > 0 && timeBlocks.length > 0 && (
-          <button onClick={handleScheduleDoingTasks} disabled={isScheduling} className="fixed bottom-24 right-4 z-20 flex items-center gap-2 rounded-xl bg-accent-cyan px-4 py-3 font-medium text-bg-primary shadow-lg transition-all hover:bg-accent-cyan/80 disabled:opacity-50">
-            <CalendarPlus className="h-5 w-5" />
-            {isScheduling ? "..." : `Schedule ${doingTasksCount}`}
-          </button>
-        )}
-
-        <div className="mx-auto mt-8 max-w-md pb-8">
-          <RoutineGroups />
-        </div>
-      </div>
-
-      {/* Drag Overlay */}
-      <DragOverlay>
-        {activeBlock && (
-          <div className="w-64 opacity-80 rotate-2">
-            <TimelineBlock 
-              block={activeBlock} 
-              onPress={() => {}} 
-              className="shadow-2xl ring-2 ring-accent-magenta" 
-            />
-          </div>
-        )}
-      </DragOverlay>
-    </DndContext>
-  );
 }
 
 // ============================================================================
@@ -1115,9 +756,6 @@ export default function App() {
   // Initialize theme on app load
   useTheme();
 
-  // Daily timeline clear at 00:00
-  useDailyTimelineReset(true);
-
   useEffect(() => {
     loadTasks();
     loadBlocks().then(() => initializeDefaultBlocks());
@@ -1151,12 +789,8 @@ export default function App() {
         if (path === "/add-task") setCurrentPage("add-task");
         if (path === "/timeline") setCurrentPage("timeline");
       });
-      const unsubscribeClear = window.electronAPI.onTimelineClear?.(() => {
-        void useTaskStore.getState().clearDailyTimeline();
-      });
       return () => {
         unsubscribeNav();
-        unsubscribeClear?.();
       };
     }
   }, []);
@@ -1219,6 +853,11 @@ export default function App() {
 
   // Show back button on sub-pages (edit-task, add-task)
   const showBackButton = ["add-task", "edit-task"].includes(currentPage);
+
+  const activeTaskId = useTimerStore((s) => s.activeTaskId);
+  const isRunning = useTimerStore((s) => s.isRunning);
+  const isPaused = useTimerStore((s) => s.isPaused);
+  const showTrackingChrome = !!activeTaskId && (isRunning || isPaused);
   
   return (
     <div className="flex flex-col h-screen bg-bg-primary">
@@ -1253,10 +892,16 @@ export default function App() {
           )}
         </div>
         
-        {/* CENTER: Page Title (always centered) */}
-        <h1 className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold text-text-primary">
-          {getPageTitle()}
-        </h1>
+        {/* CENTER: tracking clock or page title */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[50%]">
+          {showTrackingChrome ? (
+            <AppTrackingClock />
+          ) : (
+            <h1 className="text-lg font-semibold text-text-primary truncate">
+              {getPageTitle()}
+            </h1>
+          )}
+        </div>
         
         {/* RIGHT: Profile button */}
         <div className="flex items-center w-12 justify-end">
@@ -1277,11 +922,10 @@ export default function App() {
       {/* ============================================================
           MAIN CONTENT - pb-24 ensures nav bar doesn't cover content
           ============================================================ */}
-      <main className="flex-1 overflow-hidden pb-20">{renderPage()}</main>
-      <ActiveTimer onTaskClick={(taskId) => {
-        const task = useTaskStore.getState().tasks.find(t => t.id === taskId);
-        if (task) handleEditTask(task);
-      }} />
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden pb-20">
+        {renderPage()}
+      </main>
+      <TrackingControlBar />
       <UpdateNotification />
       <BottomNav 
         activeItem={

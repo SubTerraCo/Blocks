@@ -6,9 +6,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom CSS Variables — dark default (html.dark or :root) */
-:root,
-html.dark {
+/* Custom CSS Variables from Design Tokens */
+:root {
   /* Background */
   --bg-primary: #0a0a14;
   --bg-secondary: #12121f;
@@ -23,6 +22,14 @@ html.dark {
   --accent-teal-light: #26c6da;
   --accent-teal-dark: #00acc1;
   
+  /* Task Blocks */
+  --block-green: #22c55e;
+  --block-green-light: #4ade80;
+  --block-green-dark: #16a34a;
+  --block-dark-green: #166534;
+  --block-red: #ef4444;
+  --block-red-dark: #7f1d1d;
+  
   /* Text */
   --text-primary: #ffffff;
   --text-secondary: #a0a0b0;
@@ -34,29 +41,16 @@ html.dark {
   --border-hover: #3a3a4e;
   --border-focus: #9b4dca;
   
+  /* Priority */
+  --priority-1: #ef4444;
+  --priority-2: #f59e0b;
+  --priority-3: #eab308;
+  --priority-4: #22c55e;
+  --priority-5: #6b7280;
+  
   /* Layout */
   --bottom-nav-height: 64px;
   --top-bar-height: 56px;
-}
-
-html.light {
-  --bg-primary: #f8f9fc;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #eef0f5;
-  --bg-elevated: #ffffff;
-  --accent-magenta: #9b4dca;
-  --accent-magenta-light: #b366d9;
-  --accent-magenta-dark: #7a3da1;
-  --accent-teal: #00acc1;
-  --accent-teal-light: #26c6da;
-  --accent-teal-dark: #00838f;
-  --text-primary: #12121f;
-  --text-secondary: #4a4a5a;
-  --text-tertiary: #6b6b7b;
-  --text-muted: #9ca3af;
-  --border-default: #d8dce6;
-  --border-hover: #c4c9d4;
-  --border-focus: #9b4dca;
 }
 
 /* Base Styles */
@@ -203,6 +197,39 @@ html.light {
     }
     50% {
       box-shadow: 0 0 20px rgba(155, 77, 202, 0.4);
+    }
+  }
+
+  /* N-0016: tracking add-time menu stretch */
+  .animate-time-menu-open {
+    animation: timeMenuOpen 0.38s cubic-bezier(0.34, 1.45, 0.64, 1);
+  }
+
+  .animate-time-menu-close {
+    animation: timeMenuClose 0.22s ease-in forwards;
+  }
+
+  @keyframes timeMenuOpen {
+    0% {
+      transform: scaleY(0.35);
+      opacity: 0.6;
+    }
+    65% {
+      transform: scaleY(1.05);
+      opacity: 1;
+    }
+    100% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes timeMenuClose {
+    from {
+      max-height: 8.5rem;
+    }
+    to {
+      max-height: 0;
     }
   }
 }

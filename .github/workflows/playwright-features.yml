@@ -1,0 +1,100 @@
+name: Playwright Feature Tests
+
+# Runs tagged feature suites when feature work lands, or on manual dispatch.
+# Headed follow-along is local only — see pnpm test:features:headed / test:features:ui
+
+on:
+  push:
+    branches: [master, main, dev, "v0.0.*"]
+    paths:
+      - "tests/e2e/**"
+      - "tests/playwright.config.ts"
+      - "packages/**"
+      - "apps/web/**"
+      - "apps/desktop/**"
+      - "docs/Working Docs-Features-Incidents/ROADMAP.md"
+      - "docs/Working Docs-Features-Incidents/FEATURE_REGISTRY.md"
+      - "scripts/playwright-feature-tags.mjs"
+  pull_request:
+    branches: [master, main, dev, "v0.0.*"]
+    paths:
+      - "tests/e2e/**"
+      - "tests/playwright.config.ts"
+      - "packages/**"
+      - "apps/web/**"
+      - "apps/desktop/**"
+      - "docs/Working Docs-Features-Incidents/ROADMAP.md"
+      - "docs/Working Docs-Features-Incidents/FEATURE_REGISTRY.md"
+      - "scripts/playwright-feature-tags.mjs"
+  workflow_dispatch:
+    inputs:
+      grep:
+        description: "Playwright grep regex (default: active ROADMAP batch or @N-|@core|@B-)"
+        required: false
+        default: ""
+
+jobs:
+  feature-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Resolve feature grep pattern
+        id: grep
+        run: |
+          if [ -n "${{ github.event.inputs.grep }}" ]; then
+            echo "pattern=${{ github.event.inputs.grep }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "pattern=$(node scripts/playwright-feature-tags.mjs)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run feature Playwright suite
+        run: pnpm test:features
+        env:
+          PLAYWRIGHT_FEATURES: "1"
+          PLAYWRIGHT_GREP: ${{ steps.grep.outputs.pattern }}
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-feature-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload videos and traces
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-feature-artifacts
+          path: test-results/
+          retention-days: 30
+
+      - name: Local headed follow-along
+        if: always()
+        run: |
+          echo "GitHub runners cannot show a live headed browser."
+          echo "Follow along locally after each feature or batch:"
+          echo "  pnpm test:features:headed          # visible browser, slowMo"
+          echo "  pnpm test:features:ui              # Playwright UI (best follow-along)"
+          echo "  pnpm test:features:roadmap:headed  # only ROADMAP QA / in-progress N-####"
+          echo "Review CI recordings: download playwright-feature-artifacts, then:"
+          echo "  pnpm exec playwright show-report playwright-report"

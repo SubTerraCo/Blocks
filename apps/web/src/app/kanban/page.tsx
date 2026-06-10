@@ -148,7 +148,7 @@ function DroppableColumn({
       </div>
 
       {/* Add task button at bottom */}
-      <div className="border-t border-border-default p-3">
+      <div className="border-t border-border-default p-3 pb-10">
         <button
           onClick={() => onAddTask(id)}
           className={cn(

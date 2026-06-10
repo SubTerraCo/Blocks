@@ -13,9 +13,9 @@
   "scripts": {
     "dev": "vite",
     "prebuild": "node scripts/prepare-win-build.mjs",
-    "build": "tsc && vite build && electron-builder --dir -c.directories.output=release/.build",
+    "build": "tsc && vite build && node scripts/run-electron-builder-dir.mjs",
     "prebuild:win": "node scripts/prepare-win-build.mjs",
-    "build:win": "tsc && vite build && electron-builder --win -c.directories.output=release/.build",
+    "build:win": "tsc && vite build && node scripts/run-electron-builder-win.mjs",
     "postbuild:win": "node scripts/post-win-build.mjs",
     "build:mac": "tsc && vite build && electron-builder --mac",
     "build:linux": "tsc && vite build && electron-builder --linux",

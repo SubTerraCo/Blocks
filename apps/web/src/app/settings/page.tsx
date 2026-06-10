@@ -1,8 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useSettingsStore, Button, Input, Select, cn } from "@blocks/ui";
-import type { Theme, AIProvider } from "@blocks/core";
+import {
+  useSettingsStore,
+  Button,
+  Input,
+  Select,
+  cn,
+  WorkScheduleFields,
+  TimelineSnapDelayField,
+  TimelineNowBarOffsetField,
+  TimelineTimerDisplayField,
+} from "@blocks/ui";
+import type { Theme, AIProvider, WeekStartsOn } from "@blocks/core";
 import {
   Moon,
   Sun,
@@ -193,6 +203,46 @@ export default function SettingsPage() {
                 </button>
               );
             })}
+          </div>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection title="Work Schedule">
+        <div className="p-4">
+          <WorkScheduleFields
+            workDays={settings.workDays}
+            weekStartsOn={settings.weekStartsOn}
+            onWorkDaysChange={(workDays) => void updateSettings({ workDays })}
+            onWeekStartsOnChange={(weekStartsOn: WeekStartsOn) =>
+              void updateSettings({ weekStartsOn })
+            }
+          />
+        </div>
+      </SettingsSection>
+
+      <SettingsSection title="Timeline">
+        <div className="p-4">
+          <TimelineSnapDelayField
+            value={settings.timelineSnapDelaySec}
+            onChange={(timelineSnapDelaySec) =>
+              updateSettings({ timelineSnapDelaySec })
+            }
+          />
+          <div className="mt-4">
+            <TimelineNowBarOffsetField
+              value={settings.timelineNowBarViewportRatio ?? 0.5}
+              onChange={(timelineNowBarViewportRatio) =>
+                updateSettings({ timelineNowBarViewportRatio })
+              }
+            />
+          </div>
+          <div className="mt-4">
+            <TimelineTimerDisplayField
+              value={settings.timelineTimerDisplayMode ?? "elapsed"}
+              onChange={(timelineTimerDisplayMode) =>
+                updateSettings({ timelineTimerDisplayMode })
+              }
+            />
           </div>
         </div>
       </SettingsSection>

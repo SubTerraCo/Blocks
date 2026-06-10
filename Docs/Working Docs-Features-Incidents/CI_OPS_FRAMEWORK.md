@@ -43,9 +43,9 @@ N-####                   New feature (until shipped → registry code)
 docs/Working Docs-Features-Incidents/
   FEATURE_REGISTRY.md
   INCIDENTS.md
-  ROADMAP.md
+  ROADMAP.md              # core specs + N-#### roadmap (merged)
   CHANGELOG.md
-  BLOCKS_CORE_FUNCTIONALITY v0.0.3.md
+  BLOCKS_CORE_FUNCTIONALITY v0.0.3.md   # deprecated stub → ROADMAP.md
   scripts/format-matrix.mjs
   scripts/generate-registry.mjs
   scripts/polish-docs.mjs
@@ -104,12 +104,23 @@ test.describe('DT.UI.06.001 · Appearance @core', () => {
 ```
 
 ```bash
-# PM headed QA
-pnpm exec playwright test --headed --grep @B-0003
+# CI (on feature-path changes) — headless + video/trace artifacts
+pnpm test:features
+
+# PM headed follow-along — local only (GitHub runners have no display)
+pnpm test:features:headed              # all @N-|@core|@B-
+pnpm test:features:roadmap:headed      # ROADMAP 🧪/🔄/📋 batch only
+pnpm test:features:ui                  # Playwright UI step-through
+
+# Single feature or incident
+pnpm exec playwright test tests/e2e --headed --workers=1 --grep @N-#### --config=tests/playwright.config.ts --project=chromium
+pnpm exec playwright test --headed --grep @B-0003 --config=tests/playwright.config.ts --project=chromium
 
 # Pre-push core gate
-pnpm exec playwright test --grep @core
+pnpm exec playwright test --grep @core --config=tests/playwright.config.ts --project=chromium
 ```
+
+Workflow: `.github/workflows/playwright-features.yml` — triggers on `tests/e2e`, packages, apps, ROADMAP; also `workflow_dispatch`.
 
 ---
 

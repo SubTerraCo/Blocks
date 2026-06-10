@@ -26,21 +26,9 @@ let tray: Tray | null = null;
 let isAppQuitting = false;
 let updateDownloaded = false;
 
-function msUntilMidnight(from: Date = new Date()): number {
-  const next = new Date(from);
-  next.setHours(24, 0, 0, 0);
-  return next.getTime() - from.getTime();
-}
-
-let midnightClearTimer: ReturnType<typeof setTimeout> | null = null;
-
+/** @deprecated N-0003 rolling timeline — midnight auto-clear disabled */
 function scheduleMidnightTimelineClear() {
-  if (midnightClearTimer) clearTimeout(midnightClearTimer);
-  midnightClearTimer = setTimeout(() => {
-    log.info("Midnight timeline clear triggered");
-    mainWindow?.webContents.send("timeline:clear");
-    scheduleMidnightTimelineClear();
-  }, msUntilMidnight());
+  // no-op
 }
 
 const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
@@ -486,7 +474,6 @@ app.on("window-all-closed", () => {
 app.on("before-quit", () => {
   isAppQuitting = true;
   globalShortcut.unregisterAll();
-  if (midnightClearTimer) clearTimeout(midnightClearTimer);
 });
 
 // OS shutdown must fully exit (not hide to tray). Installer upgrades use taskkill via installer.nsh.

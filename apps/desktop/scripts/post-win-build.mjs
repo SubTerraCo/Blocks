@@ -4,10 +4,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getElectronBuilderOutputDir } from "./eb-output-path.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const releaseRoot = path.join(__dirname, "..", "release");
-const buildDir = path.join(releaseRoot, ".build");
+const buildDir = getElectronBuilderOutputDir();
 
 if (!fs.existsSync(buildDir)) {
   process.exit(0);

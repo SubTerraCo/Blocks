@@ -14,7 +14,16 @@ import { Clock, Calendar, ArrowRight, X } from "lucide-react";
 // Types
 // ============================================================================
 
-type PlacementOption = "after-active" | "next-slot" | "end-of-day" | "custom";
+type PlacementOption = "schedule-immediately" | "after-active" | "next-slot" | "end-of-day" | "custom";
+
+function roundToNextMinute(date: Date = new Date()): Date {
+  const d = new Date(date);
+  d.setSeconds(0, 0);
+  if (d.getTime() < date.getTime()) {
+    d.setMinutes(d.getMinutes() + 1);
+  }
+  return d;
+}
 
 interface PlacementPickerModalProps {
   isOpen: boolean;
@@ -108,7 +117,7 @@ export function PlacementPickerModal({
   onClose,
   onSchedule,
 }: PlacementPickerModalProps) {
-  const [selectedOption, setSelectedOption] = useState<PlacementOption>("after-active");
+  const [selectedOption, setSelectedOption] = useState<PlacementOption>("schedule-immediately");
   const [customTime, setCustomTime] = useState(() => {
     const now = new Date();
     const minutes = Math.ceil(now.getMinutes() / 15) * 15;
@@ -121,20 +130,22 @@ export function PlacementPickerModal({
   // Calculate times for each option
   const optionTimes = useMemo(() => {
     const now = new Date();
-    
+    const immediately = roundToNextMinute(now);
+
     // After active task
     const activeEndTime = getActiveTaskEndTime(activeTask);
     const afterActiveTime = activeEndTime || now;
-    
+
     // Next free slot
     const nextSlotTime = findNextFreeSlot(scheduledTasks, blockDuration, now);
-    
+
     // End of workday (minus duration so it ends at EOD)
     const endOfDay = getEndOfWorkday(workEndTime);
     const endOfDayStart = new Date(endOfDay);
     endOfDayStart.setMinutes(endOfDayStart.getMinutes() - blockDuration);
-    
+
     return {
+      "schedule-immediately": immediately,
       "after-active": afterActiveTime,
       "next-slot": nextSlotTime,
       "end-of-day": endOfDayStart,
@@ -162,11 +173,17 @@ export function PlacementPickerModal({
   
   const options: { id: PlacementOption; label: string; description: string; time?: Date }[] = [
     {
+      id: "schedule-immediately",
+      label: "Schedule immediately",
+      description: "Start at the current time (now bar)",
+      time: optionTimes["schedule-immediately"],
+    },
+    {
       id: "after-active",
       label: "After current task",
-      description: activeTask 
+      description: activeTask
         ? `After "${activeTask.name}" ends`
-        : "Start immediately",
+        : "After the active task ends",
       time: optionTimes["after-active"],
     },
     {
