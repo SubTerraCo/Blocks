@@ -13,10 +13,12 @@ import {
   useTaskStore, 
   useQuickBlocksStore,
   useOnlineStatus,
-  BottomNav, 
+  BottomNav,
+  exitToTimelineView,
   TaskCard,
   EditableQuickAddGrid,
   CreateBlockModal,
+  AccentSync,
   cn,
 } from "@blocks/ui";
 import type { 
@@ -406,6 +408,9 @@ function BlocksPage() {
   const loadTasks = useTaskStore((state) => state.loadTasks);
   const tasks = useTaskStore((state) => state.tasks);
   const createTask = useTaskStore((state) => state.createTask);
+  const applyTimelinePushBackForInsert = useTaskStore(
+    (state) => state.applyTimelinePushBackForInsert,
+  );
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -445,15 +450,19 @@ function BlocksPage() {
   };
 
   const handleScheduleFromPicker = async (block: QuickAddBlock, scheduledAt: Date) => {
-    // Create task with the selected scheduled time
     const { blockSize, blockCount } = durationToBlocks(block.defaultDuration);
-    
+    const duration = calculateDuration(blockSize, blockCount);
+
+    // B-0021 · Flush push-back for schedule immediately (exact now, no grid snap)
+    await applyTimelinePushBackForInsert("__new__", scheduledAt, duration);
+
     const newTask = await createTask({
       name: block.name,
       status: "doing",
       blockSize,
       blockCount,
       scheduledAt,
+      duration,
       isPutzing: block.isPutzing,
       isQuickAdd: true,
       priority: "3",
@@ -747,6 +756,7 @@ type Page = "kanban" | "timeline" | "blocks" | "ai" | "add-task" | "edit-task" |
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("kanban");
+  const [returnPage, setReturnPage] = useState<Page>("kanban");
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [addTaskInitialStatus, setAddTaskInitialStatus] = useState<TaskStatus>("backlog");
   const loadTasks = useTaskStore((state) => state.loadTasks);
@@ -796,24 +806,39 @@ export default function App() {
   }, []);
 
   const handleNavigation = useCallback((item: "search" | "kanban" | "timeline" | "blocks" | "add") => {
-    const pageMap: Record<string, Page> = { search: "ai", kanban: "kanban", timeline: "timeline", blocks: "blocks", add: "add-task" };
+    if (item === "timeline") {
+      exitToTimelineView();
+    }
+    if (item === "add") {
+      if (!["add-task", "edit-task"].includes(currentPage)) {
+        setReturnPage(currentPage);
+      }
+      setEditingTask(null);
+      setAddTaskInitialStatus(currentPage === "timeline" ? "doing" : "backlog");
+      setCurrentPage("add-task");
+      return;
+    }
+    const pageMap: Record<string, Page> = { search: "ai", kanban: "kanban", timeline: "timeline", blocks: "blocks" };
     setCurrentPage(pageMap[item] || "kanban");
-  }, []);
+  }, [currentPage]);
 
   const handleEditTask = useCallback((task: Task) => {
+    setReturnPage(currentPage);
     setEditingTask(task);
     setCurrentPage("edit-task");
-  }, []);
+  }, [currentPage]);
 
   const handleAddTask = useCallback((status: TaskStatus) => {
+    setReturnPage(currentPage);
+    setEditingTask(null);
     setAddTaskInitialStatus(status);
     setCurrentPage("add-task");
-  }, []);
+  }, [currentPage]);
 
   const handleBack = useCallback(() => {
     setEditingTask(null);
-    setCurrentPage("kanban");
-  }, []);
+    setCurrentPage(returnPage);
+  }, [returnPage]);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -858,9 +883,11 @@ export default function App() {
   const isRunning = useTimerStore((s) => s.isRunning);
   const isPaused = useTimerStore((s) => s.isPaused);
   const showTrackingChrome = !!activeTaskId && (isRunning || isPaused);
+  const isTaskEditPage = currentPage === "add-task" || currentPage === "edit-task";
   
   return (
     <div className="flex flex-col h-screen bg-bg-primary">
+      <AccentSync />
       <TitleBar />
       {/* ============================================================
           TOP BAR - Figma Design: [☰ Menu] [Page Title] [Profile 👤]
@@ -892,10 +919,15 @@ export default function App() {
           )}
         </div>
         
-        {/* CENTER: tracking clock or page title */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[50%]">
+        {/* CENTER: tracking clock or page title — colon anchored at horizontal center (N-0041) */}
+        <div className="absolute left-12 right-12 flex items-center justify-center">
           {showTrackingChrome ? (
-            <AppTrackingClock />
+            <AppTrackingClock
+              onEditTask={(taskId) => {
+                const task = useTaskStore.getState().tasks.find((t) => t.id === taskId);
+                if (task) handleEditTask(task);
+              }}
+            />
           ) : (
             <h1 className="text-lg font-semibold text-text-primary truncate">
               {getPageTitle()}
@@ -925,7 +957,7 @@ export default function App() {
       <main className="flex min-h-0 flex-1 flex-col overflow-hidden pb-20">
         {renderPage()}
       </main>
-      <TrackingControlBar />
+      <TrackingControlBar hidden={isTaskEditPage} />
       <UpdateNotification />
       <BottomNav 
         activeItem={

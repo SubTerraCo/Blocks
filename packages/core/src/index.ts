@@ -59,6 +59,35 @@ export {
   getTaskDurationMinutes,
   getRemainingTimelineSlotMs,
   buildDownstreamScheduleShiftUpdates,
+  getNextScheduledTimelineTask,
+  SINGLE_FOCUS_TASK_SCHEDULING,
+  taskTimeRange,
+  rangesOverlap,
+  findOverlappingScheduledTasks,
+  findOverlappingCalendarEvents,
+  analyzeSchedulePlacement,
+  buildTimelineInsertPushBackUpdates,
+  hasTaskTimelineOverlaps,
+  computeTimelineOverlapLayout,
+  overlapLayoutToStyle,
+} from "./timeline";
+export type {
+  TaskTimeRange,
+  ScheduleConflict,
+  CalendarScheduleConflict,
+  SchedulePlacementAnalysis,
+  OverlapLayout,
+} from "./timeline";
+export { planScheduleDoingTasks } from "./timeline";
+export type { ScheduleDoingTasksInput, ScheduleDoingPlan } from "./timeline";
+export {
+  isUserEventTask,
+  isAllDayUserEvent,
+  getAllDayUserEventsForDay,
+  userEventsToTimedBlocks,
+  getTasksForCalendarDay,
+  rescheduleUserEventTask,
+  userEventOccursOnDay,
 } from "./timeline";
 
 export {
@@ -114,12 +143,39 @@ export {
   isSameMonth,
   formatMonthTitle,
   parseLocalDateInput,
+  generateContinuousCalendarWeeks,
+  formatDualMonthHeader,
+  isCurrentCalendarWeek,
+  getOrderedWeekDayLabels,
+  buildGoogleOAuthStartUrl,
+  parseOAuthHash,
+  getGoogleProvider,
+  isGoogleTokenValid,
+  tokensToGoogleProvider,
+  mergeGoogleProviderIntoUser,
+  refreshGoogleAccessToken,
+  ensureValidGoogleTokens,
+  getOAuthProxyBaseUrl,
+  GOOGLE_CALENDAR_SCOPES,
+  BLOCKS_OAUTH_PROXY_PRODUCTION_URL,
+  BLOCKS_OAUTH_PROXY_DEV_URL,
+  resolveOAuthProxyBaseUrl,
+  isLikelyOAuthDevContext,
+  syncCalendarEvents,
+  calendarEventsToTimeBlocks,
+  mergeTimelineBlocks,
+  credentialsFromTokens,
 } from "./calendar";
 export type {
   CalendarCredentials,
   CalendarInfo,
   CalendarSyncOptions,
+  GoogleOAuthTokens,
+  ParsedOAuthHash,
+  CalendarSyncInput,
+  ResolveOAuthProxyOptions,
 } from "./calendar";
+export type { CalendarWeekRow } from "./calendar";
 
 // Sync (Yjs CRDT)
 export {
@@ -129,6 +185,7 @@ export {
   BaseSyncProvider,
   NullSyncProvider,
   WebRTCSyncProvider,
+  DexieYjsBridge,
 } from "./sync";
 export type {
   YjsTask,
@@ -137,7 +194,8 @@ export type {
   SyncEvent,
   SyncEventHandler,
   WebRTCSyncConfig,
+  DexieYjsBridgeOptions,
 } from "./sync";
 
 // Version
-export const VERSION = "0.0.4";
+export const VERSION = "26.06.12";

@@ -3,8 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@blocks/core", "@blocks/ui"],
   experimental: {
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ["@blocks/ui", "lucide-react"],
   },
 };
 
 module.exports = nextConfig;
+

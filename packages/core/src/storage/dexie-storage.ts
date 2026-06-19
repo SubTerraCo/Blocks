@@ -14,6 +14,7 @@ import type {
   TaskTemplate,
   Tag,
   Routine,
+  CalendarEvent,
 } from "../types";
 import type {
   IStorageWithEvents,
@@ -36,6 +37,7 @@ class BlocksDatabase extends Dexie {
   taskTemplates!: Table<TaskTemplate, string>;
   tags!: Table<Tag, string>;
   routines!: Table<Routine, string>;
+  calendarEvents!: Table<CalendarEvent, string>;
 
   constructor() {
     super("BlocksDB");
@@ -69,6 +71,18 @@ class BlocksDatabase extends Dexie {
       taskTemplates: "id, name, category, usageCount, createdAt",
       tags: "id, name, usageCount, createdAt",
       routines: "id, name, usageCount, createdAt",
+    });
+
+    this.version(4).stores({
+      tasks: "id, name, status, priority, category, scheduledAt, dueDate, createdAt, updatedAt, parentTaskId, recurrence, *tags",
+      quickAddBlocks: "id, name, sortOrder, createdAt",
+      users: "id, email",
+      settings: "id",
+      timeEntries: "id, taskId, startTime, createdAt",
+      taskTemplates: "id, name, category, usageCount, createdAt",
+      tags: "id, name, usageCount, createdAt",
+      routines: "id, name, usageCount, createdAt",
+      calendarEvents: "id, calendarId, startTime, endTime, source",
     });
   }
 }
@@ -514,6 +528,40 @@ export class DexieStorage implements IStorageWithEvents {
     if (routine) {
       await this.db.routines.update(id, { usageCount: (routine.usageCount || 0) + 1 });
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Calendar events (Google cache)
+  // -------------------------------------------------------------------------
+
+  async upsertCalendarEvents(events: CalendarEvent[]): Promise<void> {
+    if (events.length === 0) return;
+    await this.db.calendarEvents.bulkPut(events);
+    this.emit({
+      type: "calendar:updated",
+      data: { count: events.length },
+      timestamp: new Date(),
+    });
+  }
+
+  async getCalendarEventsInRange(start: Date, end: Date): Promise<CalendarEvent[]> {
+    const startMs = start.getTime();
+    const endMs = end.getTime();
+    return this.db.calendarEvents
+      .filter(
+        (e) =>
+          e.startTime.getTime() <= endMs && e.endTime.getTime() >= startMs,
+      )
+      .toArray();
+  }
+
+  async clearCalendarCache(): Promise<void> {
+    await this.db.calendarEvents.clear();
+    this.emit({
+      type: "calendar:cleared",
+      data: {},
+      timestamp: new Date(),
+    });
   }
 
   // -------------------------------------------------------------------------

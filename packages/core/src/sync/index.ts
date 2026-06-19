@@ -12,4 +12,5 @@ export {
   NullSyncProvider,
 } from "./sync-provider";
 export { WebRTCSyncProvider, type WebRTCSyncConfig } from "./webrtc-provider";
+export { DexieYjsBridge, type DexieYjsBridgeOptions } from "./dexie-yjs-bridge";
 

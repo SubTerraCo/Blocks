@@ -88,6 +88,12 @@ export function weekStripSelectionOffset(
   progress: MidnightBoundaryProgress,
 ): number | null {
   const fromIndex = stripDays.findIndex((d) => formatDayKey(d) === progress.fromDayKey);
-  if (fromIndex < 0) return null;
-  return fromIndex + progress.progress;
+  if (fromIndex >= 0) {
+    return fromIndex + progress.progress;
+  }
+  const toIndex = stripDays.findIndex((d) => formatDayKey(d) === progress.toDayKey);
+  if (toIndex >= 0) {
+    return toIndex + progress.progress - 1;
+  }
+  return null;
 }

@@ -14,6 +14,7 @@ export function useTimelineAutoTrack(
   enabled: boolean,
 ) {
   const startTimer = useTimerStore((s) => s.startTimer);
+  const resetTimer = useTimerStore((s) => s.resetTimer);
   const activeTaskId = useTimerStore((s) => s.activeTaskId);
   const isRunning = useTimerStore((s) => s.isRunning);
   const isPaused = useTimerStore((s) => s.isPaused);
@@ -32,6 +33,9 @@ export function useTimelineAutoTrack(
     );
 
     if (!block?.task) {
+      if (activeTaskId && (isRunning || isPaused)) {
+        resetTimer();
+      }
       lastAutoIdRef.current = null;
       return;
     }
@@ -46,7 +50,7 @@ export function useTimelineAutoTrack(
 
     lastAutoIdRef.current = taskId;
     startTimer(block.task);
-  }, [enabled, now.getTime(), timeBlocks, activeTaskId, isRunning, isPaused, startTimer]);
+  }, [enabled, now.getTime(), timeBlocks, activeTaskId, isRunning, isPaused, startTimer, resetTimer]);
 }
 
 /** While timer paused, shift anchor task + downstream schedules with wall clock */
@@ -70,7 +74,9 @@ export function useTimelinePauseSync(_tasks: Task[], enabled: boolean) {
       if (shiftMs === lastShiftRef.current) return;
       lastShiftRef.current = shiftMs;
 
-      const updates = Object.entries(baselineScheduleMs).map(([id, baseMs]) => ({
+      const updates = (
+        Object.entries(baselineScheduleMs) as [string, number][]
+      ).map(([id, baseMs]) => ({
         id,
         scheduledAt: new Date(baseMs + shiftMs),
       }));

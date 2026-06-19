@@ -47,4 +47,38 @@ export {
   getTaskDurationMinutes,
   getRemainingTimelineSlotMs,
   buildDownstreamScheduleShiftUpdates,
+  getNextScheduledTimelineTask,
 } from "./timeline-tracking";
+export {
+  SINGLE_FOCUS_TASK_SCHEDULING,
+  taskTimeRange,
+  rangesOverlap,
+  findOverlappingScheduledTasks,
+  findOverlappingCalendarEvents,
+  analyzeSchedulePlacement,
+  buildTimelineInsertPushBackUpdates,
+  hasTaskTimelineOverlaps,
+} from "./timeline-scheduling";
+export type {
+  TaskTimeRange,
+  ScheduleConflict,
+  CalendarScheduleConflict,
+  SchedulePlacementAnalysis,
+} from "./timeline-scheduling";
+export {
+  computeTimelineOverlapLayout,
+  overlapLayoutToStyle,
+} from "./timeline-overlap-layout";
+export type { OverlapLayout } from "./timeline-overlap-layout";
+export { planScheduleDoingTasks } from "./schedule-doing";
+export type { ScheduleDoingTasksInput, ScheduleDoingPlan } from "./schedule-doing";
+export {
+  isUserEventTask,
+  isAllDayUserEvent,
+  getUserEventDaySpan,
+  userEventOccursOnDay,
+  getAllDayUserEventsForDay,
+  userEventsToTimedBlocks,
+  getTasksForCalendarDay,
+  rescheduleUserEventTask,
+} from "./user-event-blocks";

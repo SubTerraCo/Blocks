@@ -55,6 +55,7 @@ export function TimelineBlockComponent({
   const getBlockColor = (): string => {
     switch (block.type) {
       case "task":
+        if (block.task?.isEvent) return "rgba(100, 116, 139, 0.45)";
         return block.task?.color ?? "#9b4dca"; // Magenta default
       case "calendar_event":
         return block.calendarEvent?.color ?? "#00bcd4"; // Teal default
@@ -107,9 +108,17 @@ export function TimelineBlockComponent({
       onClick={() => isClickable && onPress?.(block)}
       role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : undefined}
-      data-testid={block.type === "task" ? "timeline-block" : undefined}
+      data-testid={
+        block.type === "task"
+          ? block.task?.isEvent
+            ? "timeline-user-event-block"
+            : "timeline-block"
+          : block.type === "calendar_event"
+            ? "timeline-calendar-block"
+            : undefined
+      }
     >
-      {block.type === "task" && onRemoveFromTimeline && (
+      {block.type === "task" && onRemoveFromTimeline && !block.task?.isEvent && (
         <button
           type="button"
           data-testid="timeline-remove-button"
@@ -163,6 +172,22 @@ function TaskBlockContent({
   task: Task;
   pauseSegmentLayout?: { beforeRatio: number; gapRatio: number; afterRatio: number } | null;
 }) {
+  if (task.isEvent) {
+    return (
+      <>
+        <h4
+          className="shrink-0 truncate text-base font-bold leading-snug text-text-primary"
+          data-testid="timeline-task-name"
+        >
+          {task.name}
+        </h4>
+        <div className="mt-0.5 text-xs font-medium text-text-secondary" data-testid="timeline-task-meta">
+          Event
+        </div>
+      </>
+    );
+  }
+
   const title = (
     <h4
       className="shrink-0 truncate text-base font-semibold leading-snug"

@@ -25,7 +25,7 @@ import { BlocksMcpStore } from "./store.js";
 const store = new BlocksMcpStore();
 
 const server = new Server(
-  { name: "blocks-mcp", version: "0.0.3" },
+  { name: "blocks-mcp", version: "0.0.5" },
   { capabilities: { tools: {} } }
 );
 
@@ -104,6 +104,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ["routineId"],
       },
     },
+    {
+      name: "export_tasks_to_anytype_markdown",
+      description:
+        "Export all tasks as markdown for import into Anytype via anytype-mcp",
+      inputSchema: { type: "object", properties: {} },
+    },
   ],
 }));
 
@@ -149,6 +155,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           args?.startAt ? new Date(String(args.startAt)) : new Date()
         );
         return { content: [{ type: "text", text: JSON.stringify(tasks, null, 2) }] };
+      }
+      case "export_tasks_to_anytype_markdown": {
+        const md = await store.exportTasksMarkdown();
+        return { content: [{ type: "text", text: md }] };
       }
       default:
         throw new Error(`Unknown tool: ${name}`);

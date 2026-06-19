@@ -28,6 +28,8 @@ export class TaskEngine {
     const now = new Date();
     return {
       ...input,
+      isEvent: input.isEvent ?? false,
+      eventAllDay: input.eventAllDay ?? true,
       id: uuidv4(),
       timeSpent: 0,
       isRecurringInstance: false,

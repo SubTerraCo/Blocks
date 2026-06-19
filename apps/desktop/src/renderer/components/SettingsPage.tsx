@@ -10,7 +10,16 @@ import {
   WorkScheduleFields,
   TimelineSnapDelayField,
   TimelineNowBarOffsetField,
-  TimelineTimerDisplayField,
+  HourFormat24Field,
+  AccentColorFields,
+  TaskScheduleBehaviorField,
+  CalendarWeekLookbackField,
+  SlideToggle,
+  applyAccentColorsToDocument,
+  DEFAULT_ACCENT_PRIMARY,
+  DEFAULT_ACCENT_SECONDARY,
+  normalizeHexColor,
+  useSettingsStore,
 } from "@blocks/ui";
 import type { WeekStartsOn } from "@blocks/core";
 import { WEEK_DAY_TO_NUMBER } from "@blocks/core";
@@ -39,6 +48,8 @@ export type DayOfWeek = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 export interface SettingsData {
   // Appearance
   theme: Theme;
+  accentPrimary: string;
+  accentSecondary: string;
   
   // Work Schedule
   workStartTime: string;
@@ -48,7 +59,9 @@ export interface SettingsData {
   timelineSnapDelaySec: number;
   timelineNowBarViewportRatio: number;
   timelineTimerDisplayMode: "elapsed" | "remaining";
-  
+  calendarWeekLookback: 1 | 2 | 3;
+  use24HourTime: boolean;
+
   // Notifications
   notificationsEnabled: boolean;
   taskReminders: boolean;
@@ -67,6 +80,8 @@ export interface SettingsData {
 
 const DEFAULT_SETTINGS: SettingsData = {
   theme: "dark",
+  accentPrimary: DEFAULT_ACCENT_PRIMARY,
+  accentSecondary: DEFAULT_ACCENT_SECONDARY,
   workStartTime: "09:00",
   workEndTime: "17:00",
   workDays: [1, 2, 3, 4, 5],
@@ -74,6 +89,8 @@ const DEFAULT_SETTINGS: SettingsData = {
   timelineSnapDelaySec: 15,
   timelineNowBarViewportRatio: 0.5,
   timelineTimerDisplayMode: "elapsed",
+  calendarWeekLookback: 1,
+  use24HourTime: false,
   notificationsEnabled: true,
   taskReminders: true,
   timerAlerts: true,
@@ -114,14 +131,19 @@ function normalizeSettings(raw: Partial<SettingsData> & { workDays?: unknown }):
     merged.timelineSnapDelaySec = 15;
   }
   if (merged.timelineTimerDisplayMode !== "elapsed" && merged.timelineTimerDisplayMode !== "remaining") {
-    merged.timelineTimerDisplayMode = "elapsed";
+    merged.timelineTimerDisplayMode = "remaining";
   }
+  merged.accentPrimary = normalizeHexColor(merged.accentPrimary, DEFAULT_ACCENT_PRIMARY);
+  merged.accentSecondary = normalizeHexColor(merged.accentSecondary, DEFAULT_ACCENT_SECONDARY);
   if (
     typeof merged.timelineNowBarViewportRatio !== "number" ||
     merged.timelineNowBarViewportRatio < 0.25 ||
     merged.timelineNowBarViewportRatio > 0.75
   ) {
     merged.timelineNowBarViewportRatio = 0.5;
+  }
+  if (merged.calendarWeekLookback !== 1 && merged.calendarWeekLookback !== 2 && merged.calendarWeekLookback !== 3) {
+    merged.calendarWeekLookback = 1;
   }
   return merged;
 }
@@ -141,6 +163,10 @@ function loadSettings(): SettingsData {
 function saveSettings(settings: SettingsData): void {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    applyAccentColorsToDocument({
+      accentPrimary: settings.accentPrimary,
+      accentSecondary: settings.accentSecondary,
+    });
     window.dispatchEvent(new Event("blocks-settings-changed"));
   } catch (e) {
     console.error("Failed to save settings:", e);
@@ -158,24 +184,7 @@ interface ToggleSwitchProps {
 }
 
 function ToggleSwitch({ enabled, onChange, disabled }: ToggleSwitchProps) {
-  return (
-    <button
-      onClick={() => !disabled && onChange(!enabled)}
-      className={cn(
-        "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-        enabled ? "bg-accent-magenta" : "bg-bg-tertiary",
-        disabled && "opacity-50 cursor-not-allowed"
-      )}
-      disabled={disabled}
-    >
-      <span
-        className={cn(
-          "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-          enabled ? "translate-x-6" : "translate-x-1"
-        )}
-      />
-    </button>
-  );
+  return <SlideToggle checked={enabled} onChange={onChange} disabled={disabled} />;
 }
 
 interface SettingRowProps {
@@ -230,6 +239,10 @@ export function SettingsPage() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [isExporting, setIsExporting] = useState(false);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+
+  const dexieSettings = useSettingsStore((s) => s.settings);
+  const loadDexieSettings = useSettingsStore((s) => s.loadSettings);
+  const updateDexieSettings = useSettingsStore((s) => s.updateSettings);
   
   // Theme hook
   const { theme: currentTheme, setTheme } = useTheme();
@@ -251,6 +264,10 @@ export function SettingsPage() {
       if (v) setAppVersion(v);
     });
   }, []);
+
+  useEffect(() => {
+    void loadDexieSettings();
+  }, [loadDexieSettings]);
   
   const updateSetting = <K extends keyof SettingsData>(
     key: K, 
@@ -364,6 +381,16 @@ export function SettingsPage() {
               ))}
             </div>
           </SettingRow>
+          <div className="px-4 py-3">
+            <AccentColorFields
+              accentPrimary={settings.accentPrimary}
+              accentSecondary={settings.accentSecondary}
+              onAccentPrimaryChange={(accentPrimary) => updateSetting("accentPrimary", accentPrimary)}
+              onAccentSecondaryChange={(accentSecondary) =>
+                updateSetting("accentSecondary", accentSecondary)
+              }
+            />
+          </div>
         </SettingsSection>
         
         {/* Work Schedule */}
@@ -413,11 +440,21 @@ export function SettingsPage() {
               />
             </div>
             <div className="mt-4">
-              <TimelineTimerDisplayField
-                value={settings.timelineTimerDisplayMode}
-                onChange={(timelineTimerDisplayMode) =>
-                  updateSetting("timelineTimerDisplayMode", timelineTimerDisplayMode)
-                }
+              <TaskScheduleBehaviorField
+                value={dexieSettings.taskScheduleBehavior}
+                onChange={(value) => void updateDexieSettings({ taskScheduleBehavior: value })}
+              />
+            </div>
+            <div className="mt-4">
+              <HourFormat24Field
+                value={settings.use24HourTime ?? false}
+                onChange={(use24HourTime) => updateSetting("use24HourTime", use24HourTime)}
+              />
+            </div>
+            <div className="mt-4">
+              <CalendarWeekLookbackField
+                value={settings.calendarWeekLookback}
+                onChange={(value) => updateSetting("calendarWeekLookback", value)}
               />
             </div>
           </div>

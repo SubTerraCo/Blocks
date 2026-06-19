@@ -66,19 +66,19 @@ export default function ProfilePage() {
     let streak = 0;
     const checkDate = new Date(now);
     checkDate.setHours(0, 0, 0, 0);
-
+    
     for (let i = 0; i < 366; i++) {
       const dayStart = new Date(checkDate);
       const dayEnd = new Date(checkDate);
       dayEnd.setDate(dayEnd.getDate() + 1);
-
+      
       const hasCompletedTask = completedTasks.some(
         (t) => t.completedAt && t.completedAt >= dayStart && t.completedAt < dayEnd
       );
-
-      if (!hasCompletedTask) break;
+      
+      if (!hasCompletedTask && checkDate < now) break;
       if (hasCompletedTask) streak++;
-
+      
       checkDate.setDate(checkDate.getDate() - 1);
     }
 
@@ -122,7 +122,15 @@ export default function ProfilePage() {
       {/* Profile header */}
       <div className="mb-6 flex items-center gap-4">
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent-magenta text-3xl font-bold text-white">
-          {user.name.charAt(0).toUpperCase()}
+          {user.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              alt={user.name}
+              className="h-full w-full rounded-full object-cover"
+            />
+          ) : (
+            user.name.charAt(0).toUpperCase()
+          )}
         </div>
         <div>
           <h1 className="text-xl font-bold text-text-primary">{user.name}</h1>

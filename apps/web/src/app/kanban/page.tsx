@@ -9,14 +9,16 @@ import { Plus } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
-  PointerSensor,
   useDraggable,
   useDroppable,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverEvent,
+  closestCenter,
+  PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
 
 // Draggable task card wrapper
 interface DraggableTaskCardProps {
@@ -148,7 +150,7 @@ function DroppableColumn({
       </div>
 
       {/* Add task button at bottom */}
-      <div className="border-t border-border-default p-3 pb-10">
+      <div className="border-t border-border-default p-3">
         <button
           onClick={() => onAddTask(id)}
           className={cn(

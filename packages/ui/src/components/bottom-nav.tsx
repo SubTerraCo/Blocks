@@ -72,6 +72,7 @@ export function BottomNav({ activeItem, onItemPress, className }: BottomNavProps
           isActive={activeItem === "add"}
           onPress={() => onItemPress("add")}
           variant="primary"
+          data-testid="bottom-nav-add"
         />
       </div>
     </nav>
@@ -84,14 +85,16 @@ interface ActionButtonProps {
   isActive: boolean;
   onPress: () => void;
   variant: "primary" | "secondary";
+  "data-testid"?: string;
 }
 
-function ActionButton({ icon: Icon, label, isActive, onPress, variant }: ActionButtonProps) {
+function ActionButton({ icon: Icon, label, isActive, onPress, variant, "data-testid": testId }: ActionButtonProps) {
   const isPrimary = variant === "primary";
   
   return (
     <button
       onClick={onPress}
+      data-testid={testId}
       className={cn(
         "flex h-12 w-12 items-center justify-center rounded-xl",
         "transition-all active:scale-95",

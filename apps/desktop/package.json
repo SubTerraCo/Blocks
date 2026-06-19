@@ -1,28 +1,35 @@
 {
   "name": "blocks-desktop",
-  "version": "0.0.4",
+  "version": "26.6.19-b1",
+  "blocksVersion": "v26.06.19b1",
   "description": "Blocks - Time Management Desktop App",
   "main": "dist/main/index.js",
-  "author": "PoweredUpLabs",
+  "author": "Blocks Team",
   "license": "MIT",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/PoweredUpLabs/Blocks.git"
+    "url": "https://github.com/poweredupbass/Blocks.git"
   },
   "scripts": {
     "dev": "vite",
     "prebuild": "node scripts/prepare-win-build.mjs",
     "build": "tsc && vite build && node scripts/run-electron-builder-dir.mjs",
-    "prebuild:win": "node scripts/prepare-win-build.mjs",
+    "prebuild:win": "node scripts/prepare-win-build.mjs && node ../../scripts/apply-batch-version.mjs",
     "build:win": "tsc && vite build && node scripts/run-electron-builder-win.mjs",
     "postbuild:win": "node scripts/post-win-build.mjs",
+    "build:check": "tsc && vite build",
     "build:mac": "tsc && vite build && electron-builder --mac",
     "build:linux": "tsc && vite build && electron-builder --linux",
     "build:all": "tsc && vite build && electron-builder -mwl",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "release": "electron-builder --publish always"
+    "release": "electron-builder --publish always",
+    "build:release": "node ../../scripts/build-release.mjs",
+    "build:release:context": "node ../../scripts/read-ci-context.mjs",
+    "test:features:roadmap:headed": "node ../../scripts/run-feature-tests.mjs roadmap-headed",
+    "test:features:roadmap": "node ../../scripts/run-feature-tests.mjs roadmap",
+    "test:features:headed": "node ../../scripts/run-feature-tests.mjs headed"
   },
   "dependencies": {
     "@blocks/core": "workspace:*",
@@ -32,8 +39,8 @@
     "electron-log": "^5.1.1",
     "electron-updater": "^6.1.7",
     "lucide-react": "^0.294.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "uuid": "^9.0.1",
     "zustand": "^4.4.0"
   },
@@ -43,7 +50,7 @@
     "@types/uuid": "^9.0.7",
     "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.16",
-    "electron": "28.1.0",
+    "electron": "^28.1.0",
     "electron-builder": "^24.9.1",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",

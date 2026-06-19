@@ -11,7 +11,16 @@
       "command": "node",
       "args": ["packages/mcp-server/dist/index.js"],
       "env": {
+        "BLOCKS_MCP_MODE": "file",
         "BLOCKS_MCP_DATA_PATH": "<PATH_TO_HOME>/.blocks/mcp-data.json"
+      }
+    },
+    "blocks-export": {
+      "command": "node",
+      "args": ["packages/mcp-server/dist/index.js"],
+      "env": {
+        "BLOCKS_MCP_MODE": "export",
+        "BLOCKS_MCP_EXPORT_PATH": "<PATH_TO_HOME>/.blocks/blocks-export.json"
       }
     }
   }

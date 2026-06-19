@@ -1,13 +1,13 @@
 /**
  * File-backed store for Blocks MCP server.
- * Uses @blocks/core business logic; persists to JSON for agent access.
+ * Modes: file (default JSON) | export (read/write desktop ExportData snapshot)
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { Task, Routine, CreateTaskInput, TaskStatus } from "@blocks/core";
+import type { Task, Routine, CreateTaskInput, TaskStatus, ExportData } from "@blocks/core";
 import {
   TaskEngine,
   clearTimelineForNewDay,
@@ -22,6 +22,9 @@ interface McpData {
 }
 
 function defaultDataPath(): string {
+  if (process.env.BLOCKS_MCP_EXPORT_PATH) {
+    return process.env.BLOCKS_MCP_EXPORT_PATH;
+  }
   return process.env.BLOCKS_MCP_DATA_PATH ?? join(homedir(), ".blocks", "mcp-data.json");
 }
 
@@ -36,12 +39,22 @@ function reviveDates<T>(obj: T): T {
 
 export class BlocksMcpStore {
   private dataPath = defaultDataPath();
+  private mode = process.env.BLOCKS_MCP_MODE ?? "file";
   private data: McpData = { tasks: [], routines: [] };
 
   async init(): Promise<void> {
     try {
       const raw = await readFile(this.dataPath, "utf8");
-      this.data = reviveDates(JSON.parse(raw));
+      const parsed = reviveDates(JSON.parse(raw));
+      if (this.mode === "export" && parsed.tasks && parsed.version) {
+        const exp = parsed as ExportData;
+        this.data = {
+          tasks: exp.tasks ?? [],
+          routines: [createDefaultMorningRoutine()],
+        };
+      } else {
+        this.data = parsed as McpData;
+      }
     } catch {
       this.data = {
         tasks: [],
@@ -53,6 +66,18 @@ export class BlocksMcpStore {
 
   private async save(): Promise<void> {
     await mkdir(dirname(this.dataPath), { recursive: true });
+    if (this.mode === "export") {
+      const payload: ExportData = {
+        version: "0.0.5",
+        exportedAt: new Date().toISOString(),
+        tasks: this.data.tasks,
+        quickAddBlocks: [],
+        timeEntries: [],
+        settings: {} as ExportData["settings"],
+      };
+      await writeFile(this.dataPath, JSON.stringify(payload, null, 2), "utf8");
+      return;
+    }
     await writeFile(this.dataPath, JSON.stringify(this.data, null, 2), "utf8");
   }
 
@@ -65,6 +90,20 @@ export class BlocksMcpStore {
 
   async listTimelineTasks(): Promise<Task[]> {
     return tasksToTimeBlocks(this.data.tasks).map((b) => b.task!);
+  }
+
+  async exportTasksMarkdown(): Promise<string> {
+    const lines = ["# Blocks tasks export", ""];
+    for (const task of this.data.tasks) {
+      lines.push(`## ${task.name}`);
+      lines.push(`- Status: ${task.status}`);
+      lines.push(`- Priority: ${task.priority}`);
+      if (task.scheduledAt) {
+        lines.push(`- Scheduled: ${new Date(task.scheduledAt).toISOString()}`);
+      }
+      if (task.notes) lines.push(`\n${task.notes}\n`);
+    }
+    return lines.join("\n");
   }
 
   async createTask(input: {

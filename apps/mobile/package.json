@@ -1,6 +1,6 @@
 {
   "name": "blocks-mobile",
-  "version": "0.0.4",
+  "version": "26.6.12",
   "description": "Blocks - Time Management Mobile App",
   "main": "expo-router/entry",
   "private": true,

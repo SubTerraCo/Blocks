@@ -14,25 +14,183 @@
 
 | ID     | Title                                  | Severity | Status | Opened | Fixed |
 | ------ | -------------------------------------- | :------: | :----: | :----: | :---: |
-| [B-0001](#b-0001-installer-cannot-close-tray-instance) | Installer cannot close tray instance   |    P1    | Fixed  | 0.0.3  | 0.0.4 |
-| [B-0002](#b-0002-win-build-fails-when-blocks-is-running) | Win build fails when Blocks is running |    P2    | Fixed  | 0.0.3  | 0.0.4 |
-| [B-0003](#b-0003-themes-lightsystem-not-applying) | Themes: Light/System not applying      |    P3    | Fixed  | 0.0.3  | 0.0.4 |
-| [B-0004](#b-0004-week-strip-animation-after-calendar-toggle) | Week strip animation after calendar toggle |    P2    | Fixed  | 0.0.5  | 0.0.4 |
-| [B-0005](#b-0005-timeline-remove-button-covered-by-timer) | Remove button covered by timer button  |    P2    | Fixed  | 0.0.5  | 0.0.4 |
-| [B-0006](#b-0006-timeline-scroll-blocked-by-live-follow) | Timeline scroll blocked by live follow |    P1    | Fixed  | 0.0.5  | 0.0.4 |
-| [B-0007](#b-0007-floating-timer-blocks-timeline-view) | Floating timer blocks timeline view    |    P2    | Fixed  | 0.0.5  | 0.0.4 |
-| [B-0008](#b-0008-schedule-button-off-viewport-empty-timeline) | Schedule button off-viewport on empty timeline |    P2    | Fixed  | 0.0.5  | 0.0.4 |
-| [B-0009](#b-0009-timeline-task-names-not-visible) | Timeline task names not visible on cards |    P2    | Fixed  | 0.0.5  | 0.0.4 |
-| [B-0010](#b-0010-tracking-control-strip-ui) | Tracking control strip UI mismatch |    P2    | Fixed  | 0.0.5  | 0.0.4 |
-| [B-0011](#b-0011-timeline-card-typography) | Timeline card typography too small |    P3    | Fixed  | 0.0.5  | 0.0.4 |
-| [B-0012](#b-0012-remove-button-covers-task-name) | Remove button covers task name |    P2    | Fixed  | 0.0.5  | 0.0.4 |
-| [B-0013](#b-0013-add-time-stretch-button-invisible) | Add-time stretch button invisible |    P2    | Fixed  | 0.0.5  | 0.0.4 |
+| [B-0001](#b-0001-installer-cannot-close-tray-instance) | Installer cannot close tray instance   |    P1    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0002](#b-0002-win-build-fails-when-blocks-is-running) | Win build fails when Blocks is running |    P2    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0003](#b-0003-themes-lightsystem-not-applying) | Themes: Light/System not applying      |    P3    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0004](#b-0004-week-strip-animation-after-calendar-toggle) | Week strip animation after calendar toggle |    P2    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0005](#b-0005-timeline-remove-button-covered-by-timer) | Remove button covered by timer button  |    P2    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0006](#b-0006-timeline-scroll-blocked-by-live-follow) | Timeline scroll blocked by live follow |    P1    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0007](#b-0007-floating-timer-blocks-timeline-view) | Floating timer blocks timeline view    |    P2    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0008](#b-0008-schedule-button-off-viewport-empty-timeline) | Schedule button off-viewport on empty timeline |    P2    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0009](#b-0009-timeline-task-names-not-visible) | Timeline task names not visible on cards |    P2    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0010](#b-0010-tracking-control-strip-ui) | Tracking control strip UI mismatch |    P2    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0011](#b-0011-timeline-card-typography) | Timeline card typography too small |    P3    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0012](#b-0012-remove-button-covers-task-name) | Remove button covers task name |    P2    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0013](#b-0013-add-time-stretch-button-invisible) | Add-time stretch button invisible |    P2    | Fixed  | v26.06.12 | v26.06.12 |
+| [B-0014](#b-0014-timer-runs-outside-active-task-window) | Timer runs outside active task window |    P2    | In Progress | v26.06.12 | — |
+| [B-0015](#b-0015-schedule-immediately-causes-overlaps) | Schedule immediately causes overlaps |    P1    | In Progress | v26.06.12 | — |
+| [B-0016](#b-0016-timeline-entry-snap-scrolls-to-midnight) | Entry snap scrolls to midnight not now |    P2    | In Progress | v26.06.12 | — |
+| [B-0017](#b-0017-desktop-google-connect-shows-localhost) | Desktop Google connect shows localhost |    P1    | In Progress | v26.06.12 | — |
+| [B-0018](#b-0018-desktop-timeline-invisible-missing-layout-vars) | Desktop timeline & now bar invisible |    P0    | In Progress | v26.06.12 | — |
+| [B-0019](#b-0019-event-toggle-missing-hide-priority-status) | Event toggle missing; hide task fields for events |    P1    | In Progress | v26.06.12 | — |
+| [B-0020](#b-0020-gcal-time-picker-all-day-missing) | GCal time picker + All Day missing |    P2    | In Progress | v26.06.12 | — |
+| [B-0021](#b-0021-drag-snap-task-edges-not-quarter-hour) | Drag snap should prefer task edges |    P2    | In Progress | v26.06.12 | — |
+| [B-0022](#b-0022-drag-pushback-jumps-unselected-tasks) | Drag overlap push-back jumps other tasks |    P1    | In Progress | v26.06.12 | — |
+| [B-0027](#b-0027-timeline-add-task-nav-broken) | Timeline Add nav does not open add-task page |    P1    | In Progress | v26.06.14 | — |
+| [B-0028](#b-0028-shell-now-task-alignment) | Shell Now task not aligned to clock |    P3    | In Progress | v26.06.14 | — |
 
 ---
 
 ## Open incidents
 
-_None._
+### B-0014 · Timer runs outside active task window {#b-0014-timer-runs-outside-active-task-window}
+
+| Field    | Value |
+| -------- | ----- |
+| **Status** | In Progress |
+| **Severity** | P2 |
+| |**Opened** | v26.06.12 |
+| **Related** | [N-0008](./ROADMAP.md#n-0008-timeline-auto-tracking--pause-sync) · [N-0010](./ROADMAP.md#n-0010-app-tracking-chrome) |
+| **Playwright** | Manual QA · desktop `useTimelineAutoTrack` reset |
+| **Fix** | `resetTimer()` when now bar leaves all task blocks (discard session) |
+
+**Symptoms:** Tracking clock keeps running after the now bar leaves the active scheduled task block.
+
+**Expected:** Timer resets/discards the session when now is not over a task block; only time inside the block counts (manual stop still saves).
+
+**Actual:** Auto-track starts at now but never stops when now leaves the block.
+
+**Affects matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|   Auto-stop when now leaves    | ✅ B-0014 | 📋 B-0014 | ✅ B-0014 | ✅ B-0014 |
+|   App tracking chrome clock    | ✅ B-0014 |    —     |    —     |    —     |
+```
+
+| Code                 | Feature                         | Break # |
+| -------------------- | ------------------------------- | :-----: |
+| DT.UI.02.034.020-001 | Auto-tracking at now (N-0008)   |    1    |
+| SH.EN.02.060.010-001 | Active-task-at-now detection    |    1    |
+
+---
+
+### B-0015 · Schedule immediately causes overlaps {#b-0015-schedule-immediately-causes-overlaps}
+
+| Field    | Value |
+| -------- | ----- |
+| **Status** | In Progress |
+| **Severity** | P1 |
+| |**Opened** | v26.06.12 |
+| **Related** | [N-0011](./ROADMAP.md#n-0011-schedule-immediately-quick-blocks) · [N-0021](./ROADMAP.md#n-0021-single-focus-task-scheduling) |
+| **Playwright** | `tests/integration/timeline-scheduling.spec.ts` · `@B-0015` |
+| **Fix** | `buildTimelineInsertPushBackUpdates` in `addToTimeline` + Quick Blocks push-back + `addTaskFromBlock` store path |
+
+**Symptoms:** Quick block “Schedule immediately” and other inserts overlap existing timeline tasks (web tap path bypassed push-back).
+
+**Expected:** Insert at now pushes all overlapping/downstream tasks later; no task-task overlap.
+
+**Actual:** `addToTimeline` set `scheduledAt` only with no cascade.
+
+**Affects matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Schedule immediately (N-0011) | ✅ B-0015 | ✅ B-0015 |    —     | ✅ B-0015 |
+|   Timeline insert / push-back  | ✅ B-0015 | ✅ B-0015 | ✅ B-0015 | ✅ B-0015 |
+```
+
+| Code                 | Feature                         | Break # |
+| -------------------- | ------------------------------- | :-----: |
+| DT.UI.03.020.020-001 | Schedule immediately            |    1    |
+| SB.EN.02.040.080-001 | Single-focus push-back engine   |    1    |
+
+---
+
+### B-0016 · Timeline entry snap scrolls to midnight {#b-0016-timeline-entry-snap-scrolls-to-midnight}
+
+| Field    | Value |
+| -------- | ----- |
+| **Status** | In Progress |
+| **Severity** | P2 |
+| |**Opened** | v26.06.12 |
+| **Related** | [N-0006](./ROADMAP.md#n-0006-timeline-entry-snap-to-now) |
+| **Playwright** | `tests/e2e/timeline-entry-snap.spec.ts` · `@B-0016` |
+| **Fix** | Entry snap always `scrollToNow`; remove persisted-day midnight scroll |
+
+**Symptoms:** Switching to Timeline scrolls viewport to **00:00** instead of the now-bar.
+
+**Repro**
+
+1. Visit Timeline once (sessionStorage stores selected day).
+2. Navigate away (Kanban / Blocks).
+3. Return to Timeline.
+4. Viewport lands at midnight of stored day.
+
+**Expected:** Every timeline entry snaps to today + current time (N-0006).
+
+**Actual:** `hasStoredSelection` routed entry snap through `scrollToDay()` → midnight.
+
+**Affects matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Entry snap to now (N-0006)    | 🐛 B-0016 | 🐛 B-0016 | 🐛 B-0016 |    —     |
+```
+
+| Code                 | Feature                         | Break # |
+| -------------------- | ------------------------------- | :-----: |
+| DT.UI.02.040.050-002 | Timeline entry snap to now      |    2    |
+| WB.UI.02.040.050-001 | Timeline entry snap to now (web)|    1    |
+| SH.EN.02.040.060-002 | `useTimelineNowFollow` entry    |    2    |
+
+---
+
+### B-0017 · Desktop Google connect shows localhost {#b-0017-desktop-google-connect-shows-localhost}
+
+| Field    | Value |
+| -------- | ----- |
+| **Status** | In Progress |
+| **Severity** | P1 |
+| |**Opened** | v26.06.12 |
+| **Related** | [N-0017](./ROADMAP.md#n-0017-google-calendar-timeline) · [N-0022](./ROADMAP.md#n-0022-profile-google-sign-in) |
+| **Playwright** | `tests/integration/oauth-proxy-health.spec.ts` · `@B-0017` |
+| **Fix** | Preflight `/health` on oauth-proxy; block connect with setup instructions; in-app error on Profile/Settings |
+
+**Symptoms:** Tapping Connect Google on desktop opens `http://localhost:8787/auth/google?returnUrl=…` and stays on localhost instead of redirecting to Google sign-in.
+
+**Repro**
+
+1. Open Blocks desktop (Profile or Settings → Google Calendar).
+2. Tap **Connect Google**.
+3. System browser opens localhost OAuth proxy URL; page does not redirect to `accounts.google.com`.
+
+**Expected:** Browser redirects to Google account picker; after consent, loopback callback stores tokens.
+
+**Actual:** User lands on localhost proxy start URL (proxy unreachable, missing credentials, or error page with no redirect).
+
+**Affects matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Profile Google connect        | 🐛 B-0017 |    —     | 🐛 B-0017 |    —     |
+|  Settings Google connect       | 🐛 B-0017 |    —     | 🐛 B-0017 |    —     |
+|  Desktop OAuth IPC loopback    | 🐛 B-0017 |    —     |    —     | 🐛 B-0017 |
+|  OAuth proxy PKCE redirect     | 🐛 B-0017 | 📋 B-0017 |    —     | 🐛 B-0017 |
+```
+
+| Code                 | Feature                         | Break # |
+| -------------------- | ------------------------------- | :-----: |
+| DT.UI.07.040.010-001 | Profile Google connect          |    1    |
+| DT.UI.06.007.010-001 | Connect / disconnect Google     |    1    |
+| DT.BG.06.008.010-001 | Desktop Google OAuth IPC        |    1    |
+| CX.EN.06.007.010-001 | OAuth proxy (PKCE)              |    1    |
+
+---
 
 ---
 
@@ -43,9 +201,9 @@ _None._
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.4 |
+| |**Fixed** | v26.06.12 |
 | **Severity** | P1 |
-| **Opened** | 0.0.5 |
+| |**Opened** | v26.06.12 |
 | **Related** | [N-0006](./ROADMAP.md#n-0006-timeline-entry-snap-to-now) · [N-0007](./ROADMAP.md#n-0007-live-scroll-lock--snap-delay) |
 | **Playwright** | `tests/e2e/timeline-manual-scroll.spec.ts` · `@B-0006` |
 
@@ -87,9 +245,9 @@ _None._
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.4 |
+| |**Fixed** | v26.06.12 |
 | **Severity** | P2 |
-| **Opened** | 0.0.5 |
+| |**Opened** | v26.06.12 |
 | **Related** | [N-0008](./ROADMAP.md#n-0008-timeline-auto-tracking--pause-sync) · [B-0005](#b-0005-timeline-remove-button-covered-by-timer) |
 | **Playwright** | `tests/e2e/timeline-card-actions.spec.ts` · `@B-0007` (footer layout) |
 
@@ -128,9 +286,9 @@ _None._
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.4 |
+| |**Fixed** | v26.06.12 |
 | **Severity** | P2 |
-| **Opened** | 0.0.5 |
+| |**Opened** | v26.06.12 |
 | **Related** | Schedule doing tasks · rolling timeline entry snap |
 | **Playwright** | `tests/e2e/timeline-schedule-fab.spec.ts` · `@B-0008` |
 
@@ -170,9 +328,9 @@ _None._
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.4 |
+| |**Fixed** | v26.06.12 |
 | **Severity** | P2 |
-| **Opened** | 0.0.5 |
+| |**Opened** | v26.06.12 |
 | **Related** | [N-0010](./ROADMAP.md#n-0010-app-tracking-chrome) (regression) |
 | **Playwright** | `tests/e2e/timeline-task-name.spec.ts` · `@B-0009` |
 
@@ -210,9 +368,9 @@ _None._
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.4 |
+| |**Fixed** | v26.06.12 |
 | **Severity** | P2 |
-| **Opened** | 0.0.5 |
+| |**Opened** | v26.06.12 |
 | **Related** | [N-0010](./ROADMAP.md#n-0010-app-tracking-chrome) |
 | **Playwright** | `tests/e2e/timeline-bottom-actions.spec.ts` · `@B-0010` (shared buttons); desktop `tracking-pause-resume` testid |
 
@@ -250,9 +408,9 @@ _None._
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.4 |
+| |**Fixed** | v26.06.12 |
 | **Severity** | P3 |
-| **Opened** | 0.0.5 |
+| |**Opened** | v26.06.12 |
 | **Related** | [N-0010](./ROADMAP.md#n-0010-app-tracking-chrome) |
 | **Playwright** | `tests/e2e/timeline-card-typography.spec.ts` · `@B-0011` |
 
@@ -290,9 +448,9 @@ _None._
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.4 |
+| |**Fixed** | v26.06.12 |
 | **Severity** | P2 |
-| **Opened** | 0.0.5 |
+| |**Opened** | v26.06.12 |
 | **Playwright** | `tests/e2e/timeline-card-actions.spec.ts` · `@B-0012` |
 
 **Symptoms:** Remove-from-timeline control renders as a full-width footer row, overlapping or pushing task name/meta.
@@ -327,9 +485,9 @@ _None._
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.4 |
+| |**Fixed** | v26.06.12 |
 | **Severity** | P2 |
-| **Opened** | 0.0.5 |
+| |**Opened** | v26.06.12 |
 | **Related** | [N-0016](./ROADMAP.md#n-0016-add-time-menu-stretch) |
 | **Playwright** | `tests/e2e/tracking-add-time-menu.spec.ts` · `@B-0013` |
 
@@ -370,9 +528,9 @@ _None._
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.4 |
+| |**Fixed** | v26.06.12 |
 | **Severity** | P2 |
-| **Opened** | 0.0.5 |
+| |**Opened** | v26.06.12 |
 | **Related** | [N-0004](./ROADMAP.md#n-0004-scroll-sync-week-strip) · [N-0005](./ROADMAP.md#n-0005-due-date-calendar-view) |
 | **Playwright** | `tests/e2e/timeline-calendar-view.spec.ts` · `@B-0004` |
 
@@ -415,9 +573,9 @@ _None._
 | Field    | Value |
 | -------- | ----- |
 | **Status** | Fixed |
-| **Fixed** | 0.0.4 |
+| |**Fixed** | v26.06.12 |
 | **Severity** | P2 |
-| **Opened** | 0.0.5 |
+| |**Opened** | v26.06.12 |
 | **Related** | [N-0008](./ROADMAP.md#n-0008-timeline-auto-tracking--pause-sync) (full tracking redesign queued separately) |
 | **Playwright** | `tests/e2e/timeline-card-actions.spec.ts` · `@B-0005` |
 
@@ -458,8 +616,8 @@ _None._
 | -------- | ------- |
 | **Status** | Fixed   |
 | **Severity** | P1      |
-| **Opened** | 0.0.3   |
-| **Fixed** | 0.0.4   |
+| |**Opened** | v26.06.12   |
+| |**Fixed** | v26.06.12   |
 | **Legacy** | BUG-001 |
 
 **Affects matrix**
@@ -485,8 +643,8 @@ _None._
 | -------- | ------- |
 | **Status** | Fixed   |
 | **Severity** | P2      |
-| **Opened** | 0.0.3   |
-| **Fixed** | 0.0.4   |
+| |**Opened** | v26.06.12   |
+| |**Fixed** | v26.06.12   |
 | **Legacy** | BUG-002 |
 
 **Affects matrix**
@@ -511,8 +669,8 @@ _None._
 | -------- | ------- |
 | **Status** | Fixed   |
 | **Severity** | P3      |
-| **Opened** | 0.0.3   |
-| **Fixed** | 0.0.4   |
+| |**Opened** | v26.06.12   |
+| |**Fixed** | v26.06.12   |
 | **Verified** | 2026-06-09 · Light & System confirmed on desktop |
 | **Legacy** | BUG-003 |
 | **Playwright** | `tests/e2e/theme.spec.ts` · `pnpm exec playwright test --grep @B-0003` |
@@ -537,6 +695,205 @@ _None._
 | WB.UI.06.001.030-001 | System theme            |    1    |
 
 **Fix:** Shared `applyThemePreference` + `ThemeSync`; Tailwind semantic colors bound to CSS variables; `html.light` / `html.dark` token sets in `@blocks/ui` globals.
+
+---
+
+### B-0018 · Desktop timeline & now bar invisible {#b-0018-desktop-timeline-invisible-missing-layout-vars}
+
+| Field    | Value |
+| -------- | ----- |
+| **Status** | In Progress |
+| **Severity** | P0 |
+| |**Opened** | v26.06.12 |
+| **Batch** | v26.06.12b2 |
+| **Related** | [N-0003](./ROADMAP.md#n-0003-rolling-timeline-window) · [N-0014](./ROADMAP.md#n-0014-now-bar-viewport-offset) · [B-0006](#b-0006-timeline-scroll-blocked-by-live-follow) |
+| **Playwright** | Manual QA desktop · `@B-0018` (layout vars) |
+| **Fix** | Restore `--title-bar-height` / `--top-bar-height` / `--bottom-nav-height` in `apps/desktop/src/renderer/index.css` |
+
+**Symptoms:** Timeline page shows week strip only (or blank); hour grid and magenta now bar are completely missing on desktop b2 build.
+
+**Repro**
+
+1. Install or run desktop `v26.06.12b2`
+2. Open Timeline nav item
+3. Observe no scrollable hour grid and no now indicator
+
+**Expected:** Rolling timeline fills viewport below week strip; now bar visible at current time (N-0003, N-0014).
+
+**Actual:** `rolling-timeline` container height calc uses undefined CSS vars → invalid height → collapsed timeline.
+
+**Affects matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |
+|--------------------------------|----------|----------|----------|
+|   Rolling timeline (N-0003)    | 🐛 B-0018 |    —     |    —     |
+|   Now bar / current time       | 🐛 B-0018 |    —     |    —     |
+|  Timeline week strip           | ✅ B-0018 |    —     |    —     |
+|  Live scroll lock (N-0007)     | 🐛 B-0018 |    —     |    —     |
+```
+
+| Code                 | Feature                         | Break # |
+| -------------------- | ------------------------------- | :-----: |
+| DT.UI.02.040.010-001 | Rolling timeline vertical scroll |    1    |
+| DT.UI.02.040.040-001 | Current-time now bar            |    1    |
+| SH.UI.02.040.060-001 | Timeline now-follow hook        |    1    |
+| SH.UI.08.001.010-001 | Desktop CSS layout variables    |    1    |
+
+**Root cause:** b2 build restore rewrote `index.css` without shell chrome variables that `TimelinePage` height calc depends on (regression of B-0006 fix note).
+
+---
+
+### B-0019 · Event toggle missing; hide Priority/Status {#b-0019-event-toggle-missing-hide-priority-status}
+
+| Field    | Value |
+| -------- | ----- |
+| **Status** | In Progress |
+| **Severity** | P1 |
+| **Batch** | v26.06.12b3 |
+| **Opened** | v26.06.12 |
+| **Related** | [N-0026](./ROADMAP.md#n-0026-user-events-on-tasks) |
+| **Playwright** | `@B-0019` · add/edit task e2e |
+
+**Symptoms:** Desktop has no Event toggle on create/edit. Web has toggle but Priority and Status remain visible when `isEvent=true`.
+
+**Expected:** Event toggle on add + edit (DT + WB). When Event on → **hide** Priority, Status, **Block Size**, and **Block Count** (duration comes from GCal clock time picker — B-0020; block fields conflict with timed events).
+
+**Affects matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Event toggle create/edit      | 🐛 B-0019 | 🐛 B-0019 | 🐛 B-0019 |    —     |
+|  Hide Priority/Status (event)  | 🐛 B-0019 | 🐛 B-0019 | 🐛 B-0019 |    —     |
+|  Hide Block Size/Count (event) | 🐛 B-0019 | 🐛 B-0019 | 🐛 B-0019 |    —     |
+|  Timeline event card meta      | ✅ B-0019 | ✅ B-0019 | ✅ B-0019 |    —     |
+```
+
+**Fix UX:** Shared event section in task editor; conditional render hides Priority, Status, Block Size, and Block Count when `isEvent`. Duration derived from `eventStartAt` / `eventEndAt` (B-0020) or All Day default.
+
+**Logic note (b3 PM):** Block Size/Count hidden because they conflict with clock-style event times — see B-0020.
+
+---
+
+### B-0020 · GCal time picker + All Day missing {#b-0020-gcal-time-picker-all-day-missing}
+
+| Field    | Value |
+| -------- | ----- |
+| **Status** | In Progress |
+| **Severity** | P2 |
+| **Batch** | v26.06.12b3 |
+| **Opened** | v26.06.12 |
+| **Related** | [N-0026](./ROADMAP.md#n-0026-user-events-on-tasks) · B-0019 |
+| **Playwright** | `@B-0020` |
+
+**Symptoms:** Desktop missing time UI; web uses native `type="time"` — not GCal **clock-face** picker. All Day toggle incomplete on desktop.
+
+**Expected:** Shared **GCal clock-face** time picker (circular dial + hour/minute hands — **not** scroll-column wheels) + All Day toggle on add + edit (DT + WB). All Day clears/disables times; default All Day until times set. Replaces Block Size/Count for events (B-0019).
+
+**Affects matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |
+|--------------------------------|----------|----------|----------|
+|  GCal clock-face time picker   | 🐛 B-0020 | 🐛 B-0020 | 🐛 B-0020 |
+|  All Day toggle                | 🐛 B-0020 | 🐛 B-0020 | 🐛 B-0020 |
+```
+
+**Fix UX:** `ClockTimePickerPopover` in `@blocks/ui` — analog clock dial (GCal-style tap/drag), not scroll lists; wired in shared task editor event section.
+
+**Logic note (b3 PM):** Scroll-column pickers rejected — too slow; must match GCal clock UI.
+
+---
+
+### B-0021 · Drag snap should prefer task edges {#b-0021-drag-snap-task-edges-not-quarter-hour}
+
+| Field    | Value |
+| -------- | ----- |
+| **Status** | In Progress |
+| **Severity** | P2 |
+| **Batch** | v26.06.12b3 |
+| **Opened** | v26.06.12 |
+| **Related** | [N-0024](./ROADMAP.md#n-0024-pause-snap-during-drag) · [N-0011](./ROADMAP.md#n-0011-schedule-immediately-quick-blocks) |
+| **Playwright** | `@B-0021` · timeline drag e2e |
+
+**Symptoms:** Drag-reschedule always snaps to 15-min grid; cannot drop flush below another task card.
+
+**Expected:** **Task-edge magnet first** (~8px), **15-min grid fallback** in gaps. **Schedule immediately (Quick Blocks):** no grid snap — insert at exact now. Quick Blocks use **flush push-back** (active + downstream start after new block end). Drag-reschedule uses same edge snap as regular tasks.
+
+**Affects matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Drag-reschedule snap          | 🐛 B-0021 | 🐛 B-0021 | 🐛 B-0021 | 🐛 B-0021 |
+|  Schedule immediately snap     | 🐛 B-0021 | 🐛 B-0021 |    —     | 🐛 B-0021 |
+|  Quick Blocks flush push-back  | 🐛 B-0021 | 🐛 B-0021 |    —     | 🐛 B-0021 |
+```
+
+**Fix UX:** Extend `resolveTimelineDropFromPointer` with task-edge candidates; separate snap mode for Quick Blocks insert-at-now.
+
+---
+
+### B-0022 · Drag overlap push-back jumps other tasks {#b-0022-drag-pushback-jumps-unselected-tasks}
+
+| Field    | Value |
+| -------- | ----- |
+| **Status** | In Progress |
+| **Severity** | P1 |
+| **Batch** | v26.06.12b3 |
+| **Opened** | v26.06.12 |
+| **Related** | [N-0021](./ROADMAP.md#n-0021-single-focus-task-scheduling) · [N-0029](./ROADMAP.md#n-0029-passive-overlap-on-bulk-move) |
+| **Playwright** | `@B-0022` · `@N-0029` partial |
+
+**Symptoms:** Single-task drag onto overlapping slot triggers `buildTimelineInsertPushBackUpdates` — unselected tasks jump away.
+
+**Expected (PM b3):** **Single drag only** — move dragged task; unselected tasks **stay in place** and render in **passive overlap columns** (including `isEvent` blocks). **Push-back retained** for Schedule Doing and Quick Blocks flush insert.
+
+**Affects matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Single drag passive overlap   | 🐛 B-0022 | 🐛 B-0022 | 🐛 B-0022 | 🐛 B-0022 |
+|  Schedule Doing push-back      | ✅ B-0022 | ✅ B-0022 | ✅ B-0022 | ✅ B-0022 |
+|  Quick Blocks flush push-back  | ✅ B-0022 | ✅ B-0022 |    —     | ✅ B-0022 |
+|  Event passive columns         | 🐛 B-0022 | 🐛 B-0022 | 🐛 B-0022 | 🐛 B-0022 |
+```
+
+**Fix UX:** Drag commit path skips push-back; overlap layout handles visual columns; extends N-0029 rules to single-task drag (not bulk select).
+
+---
+
+### B-0027 · Timeline Add nav does not open add-task page {#b-0027-timeline-add-task-nav-broken}
+
+| Field | Value |
+| ----- | ----- |
+| **Severity** | P1 |
+| **Status** | In Progress |
+| **Opened** | v26.06.14 |
+| **Related** | [N-0044](./ROADMAP.md#n-0044-task-edit-bottom-action-row) |
+| **Playwright** | `tests/integration/b14-b2-timeline-add.spec.ts` · `@B-0027` |
+
+**Symptoms:** From Timeline, bottom-nav **Add (+)** does not reliably open the add-task page (stale edit state / wrong return navigation).
+
+**Fix UX:** Dedicated add-nav path clears `editingTask`, sets `doing` default from timeline, tracks `returnPage` for back; bottom-nav Add gets `data-testid`.
+
+---
+
+### B-0028 · Shell Now task not aligned to clock {#b-0028-shell-now-task-alignment}
+
+| Field | Value |
+| ----- | ----- |
+| **Severity** | P3 |
+| **Status** | In Progress |
+| **Opened** | v26.06.14 |
+| **Related** | [N-0037](./ROADMAP.md#n-0037-nownext-task-names-flank-shell-clock) · [N-0041](./ROADMAP.md#n-0041-shell-clock-colon-centered) |
+| **Playwright** | `@B-0028` |
+
+**Symptoms:** While tracking, **Now** task name sits at the far left of the header instead of hugging the clock with right-aligned text (mirror of **Next** on the right).
+
+**Fix UX:** Left column uses `justify-end`; Now chip keeps `text-right` / `items-end`; Next unchanged with `justify-start` / `text-left`.
 
 ---
 

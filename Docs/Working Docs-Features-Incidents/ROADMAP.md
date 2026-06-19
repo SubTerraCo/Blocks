@@ -1,8 +1,8 @@
 # Blocks Roadmap & Core Functionality
 
-> **Version:** 0.0.5  
-> **Last Updated:** 2026-06-09  
-> **Status:** Sprint v0.0.5 — Timeline enhancements  
+> **Release:** v26.06.19  
+> **Last Updated:** 2026-06-12  
+> **Status:** Sprint 5 — Timeline, scheduling, events, calendar UX (active release v26.06.12)  
 > **Source of truth** for specifications, UX, acceptance criteria, and new-feature roadmap  
 > **Feature codes & health:** [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md) · **Bugs:** [INCIDENTS.md](./INCIDENTS.md)
 
@@ -1110,27 +1110,70 @@ All future GUI decisions should reference this Figma export for:
 
 ## Quick reference
 
-| ID     | Title                              | Target codes                    | Status      | Version |
+| ID     | Title                              | Target codes                    | Status      | Release |
 | ------ | ---------------------------------- | ------------------------------- | :---------: | :-----: |
-| [N-0001](#n-0001-timeline-week-strip) | Timeline week strip (7-day header) | DT.UI.02.010.* · WB.UI.02.010.* | 🧪 QA |  0.0.5  |
-| [N-0002](#n-0002-week-start-preference) | Week start preference (Mon/Sun) | DT.UI.06.002.030 · WB.UI.06.002.030 | 🧪 QA |  0.0.5  |
-| [N-0003](#n-0003-rolling-timeline-window) | Rolling timeline window (±7 days) | DT.UI.02.040.* · SB.EN.02.040.* | 🧪 QA |  0.0.5  |
-| [N-0004](#n-0004-scroll-sync-week-strip) | Scroll-sync week strip indicator | DT.UI.02.010.040 · WB.UI.02.010.040 | 🧪 QA |  0.0.5  |
-| [N-0005](#n-0005-due-date-calendar-view) | Due-date calendar view + toggle | DT.UI.02.050.* · WB.UI.02.050.* | 🧪 QA |  0.0.5  |
-| [N-0006](#n-0006-timeline-entry-snap-to-now) | Timeline entry snap to now | DT.UI.02.040.050 · WB.UI.02.040.050 | 🧪 QA | 0.0.5 |
-| [N-0007](#n-0007-live-scroll-lock--snap-delay) | Live scroll lock + snap delay setting | DT.UI.02.040.060 · DT.UI.06.002.040 | 🧪 QA | 0.0.5 |
-| [N-0008](#n-0008-timeline-auto-tracking--pause-sync) | Auto-tracking + pause-sync timeline | DT.UI.02.034.020 · SB.EN.02.060.* | 🧪 QA | 0.0.5 |
-| [N-0009](#n-0009-timeline-card-tracking-header) | Card tracking header + count up/down | DT.UI.02.034.030 · DT.UI.06.002.050 | ↪️ Superseded | 0.0.5 |
-| [N-0010](#n-0010-app-tracking-chrome) | App tracking clock + control strip | DT.UI.00.010.040 · DT.UI.02.034.040 | 🔄 In progress | 0.0.5 |
-| [N-0011](#n-0011-schedule-immediately-quick-blocks) | Schedule immediately (Quick Blocks) | DT.UI.03.020.020 | 🔄 In progress | 0.0.5 |
-| [N-0012](#n-0012-bottom-action-row-kanban-clearance) | Bottom action row + Kanban clearance | DT.UI.00.020.020 · DT.UI.01.010.020 | 🔄 In progress | 0.0.5 |
-| [N-0013](#n-0013-tracking-player-controls) | Tracking player prev/next controls | DT.UI.00.020.030 · SB.EN.02.060.020 | 🔄 In progress | 0.0.5 |
-| [N-0014](#n-0014-now-bar-viewport-offset) | Now-bar viewport offset slider | DT.UI.06.002.060 · SB.EN.02.040.070 | 🔄 In progress | 0.0.4 |
-| [N-0015](#n-0015-bottom-control-row-cushion) | Bottom control row cushion | SH.UI.02.040.030 | 🔄 In progress | 0.0.4 |
-| [N-0016](#n-0016-add-time-menu-stretch) | Add-time stretch menu | DT.UI.00.020.040 | 🔄 In progress | 0.0.4 |
+| [N-0001](#n-0001-timeline-week-strip) | Timeline week strip (7-day header) | DT.UI.02.010.* · WB.UI.02.010.* | 🧪 QA | v26.06.12 |
+| [N-0002](#n-0002-week-start-preference) | Week start preference (Mon/Sun) | DT.UI.06.002.030 · WB.UI.06.002.030 | 🧪 QA | v26.06.12 |
+| [N-0003](#n-0003-rolling-timeline-window) | Rolling timeline window (±7 days) | DT.UI.02.040.* · SB.EN.02.040.* | 🧪 QA | v26.06.12 |
+| [N-0004](#n-0004-scroll-sync-week-strip) | Scroll-sync week strip indicator | DT.UI.02.010.040 · WB.UI.02.010.040 | 🧪 QA | v26.06.12 |
+| [N-0005](#n-0005-due-date-calendar-view) | Due-date calendar view + toggle | DT.UI.02.050.* · WB.UI.02.050.* | 🧪 QA | v26.06.12 |
+| [N-0006](#n-0006-timeline-entry-snap-to-now) | Timeline entry snap to now | DT.UI.02.040.050 · WB.UI.02.040.050 | 🧪 QA | v26.06.12 |
+| [N-0007](#n-0007-live-scroll-lock--snap-delay) | Live scroll lock + snap delay setting | DT.UI.02.040.060 · DT.UI.06.002.040 | 🧪 QA | v26.06.12 |
+| [N-0008](#n-0008-timeline-auto-tracking--pause-sync) | Auto-tracking + pause-sync timeline | DT.UI.02.034.020 · SB.EN.02.060.* | 🧪 QA | v26.06.12 |
+| [N-0009](#n-0009-timeline-card-tracking-header) | Card tracking header + count up/down | DT.UI.02.034.030 · DT.UI.06.002.050 | ↪️ Superseded | v26.06.12 |
+| [N-0010](#n-0010-app-tracking-chrome) | App tracking clock + control strip | DT.UI.00.010.040 · DT.UI.02.034.040 | 🔄 In progress | v26.06.12 |
+| [N-0011](#n-0011-schedule-immediately-quick-blocks) | Schedule immediately (Quick Blocks) | DT.UI.03.020.020 | 🔄 In progress | v26.06.12 |
+| [N-0012](#n-0012-bottom-action-row-kanban-clearance) | Bottom action row + Kanban clearance | DT.UI.00.020.020 · DT.UI.01.010.020 | 🔄 In progress | v26.06.12 |
+| [N-0013](#n-0013-tracking-player-controls) | Tracking player prev/next controls | DT.UI.00.020.030 · SB.EN.02.060.020 | 🔄 In progress | v26.06.12 |
+| [N-0014](#n-0014-now-bar-viewport-offset) | Now-bar viewport offset slider | DT.UI.06.002.060 · SB.EN.02.040.070 | 🔄 In progress | v26.06.12 |
+| [N-0015](#n-0015-bottom-control-row-cushion) | Bottom control row cushion | SH.UI.02.040.030 | 🔄 In progress | v26.06.12 |
+| [N-0016](#n-0016-add-time-menu-stretch) | Add-time stretch menu | DT.UI.00.020.040 | 🔄 In progress | v26.06.12 |
+| [N-0017](#n-0017-google-calendar-timeline) | Google Calendar on timeline | DT.UI.02.036.* · WB | ⏸ On hold | v26.06.12 |
+| [N-0018](#n-0018-p2p-yjs-sync) | P2P Yjs task sync (web + desktop) | SH.EN.02.070.* | 🔄 In progress | v26.06.12 |
+| [N-0019](#n-0019-mcp-dexie-export-mode) | MCP export mode + Anytype markdown | CX.EN.09.020.* | 🔄 In progress | v26.06.12 |
+| [N-0020](#n-0020-schedule-conflict-alerts) | Schedule conflict alerts | DT · WB · SH · SB | 🔄 In progress | v26.06.12 |
+| [N-0021](#n-0021-single-focus-task-scheduling) | Single-focus task scheduling | DT · WB · SH · SB | 🔄 In progress | v26.06.12 |
+| [N-0022](#n-0022-profile-google-sign-in) | Profile Google sign-in + calendar | DT · WB · SH | ⏸ On hold | v26.06.12 |
+| [N-0023](#n-0023-retail-google-oauth) | Retail Google OAuth (hosted proxy) | DT · WB · CX | ⏸ On hold | v26.06.12 |
+| [N-0024](#n-0024-pause-snap-during-drag) | Pause snap during drag-reschedule | DT · WB · SH | 🔄 In progress | v26.06.12 |
+| [N-0025](#n-0025-schedule-doing-lock-current) | Schedule Doing — lock current task | DT · WB · SH · SB | 🔄 In progress | v26.06.12 |
+| [N-0026](#n-0026-user-events-on-tasks) | User events (Task property + create) | DT · WB · SH · SB | 🔄 In progress | v26.06.12 |
+| [N-0027](#n-0027-continuous-scroll-calendar) | Continuous scroll calendar (replaces N-0005) | DT · WB · SH | 🔄 In progress | v26.06.12 |
+| [N-0028](#n-0028-bulk-timeline-reschedule) | Bulk timeline reschedule | DT · WB · SH · SB | 📋 Proposed | v26.06.12 |
+| [N-0029](#n-0029-passive-overlap-on-bulk-move) | Passive overlap columns on bulk move | DT · WB · SH · SB | 📋 Proposed | v26.06.12 |
+| [N-0030](#n-0030-calendar-sticky-day-strip) | Calendar sticky day strip (global) | DT · WB · SH | 📋 Proposed | v26.06.12 |
+| [N-0031](#n-0031-timeline-nav-exits-calendar) | Timeline nav exits calendar view | DT · WB · SH | 📋 Proposed | v26.06.12 |
 
-**Status:** 📋 Proposed · 🔄 In progress · 🧪 QA · ✅ Shipped · ❌ Dropped
+**Status:** 📋 Proposed · 🔄 In progress · 🧪 QA · ✅ Shipped · ⏸ On hold · ❌ Dropped
 
+### Active sprint 5 (v26.06.19)
+
+All items not yet ✅ Shipped belong to **Sprint 5** at release **v26.06.19**. **Google** (N-0017, N-0022, N-0023) is **on hold** per product decision.
+
+| Track | IDs | Focus |
+| ----- | --- | ----- |
+| Timeline UX (QA) | N-0001–N-0008 | Week strip, rolling window, calendar toggle, snap/follow |
+| Tracking & chrome | N-0010–N-0016 | Control strip, schedule immediately, player controls, offsets |
+| Scheduling engine | N-0020–N-0021 | Conflict alerts, single-focus push-back, overlap columns |
+| Events & calendar | N-0024–N-0027 | Drag snap pause, schedule-doing lock, user events, scroll calendar |
+| Bulk reschedule | N-0028–N-0029 | Multi-select drag, passive column overlap |
+| Integrations (on hold) | N-0017–N-0019, N-0022–N-0023 | GCal, P2P, MCP, OAuth |
+
+### Batch log (Sprint 5)
+
+One `/NF` · `/NB` · `/RD` design session = one batch (`v26.06.12bX`). QA via `--grep` on listed N/B IDs.
+
+| Batch | Session | Items | Status |
+| ----- | ------- | ----- | :----: |
+| v26.06.09b1 | CI Ops + versioning + design pipeline | docs, skills | ✅ Shipped |
+| v26.06.12b2 | Events & calendar — finish timeline scheduling UX | N-0024 · N-0025 · N-0026 · N-0027 · B-0018 | 🧪 QA |
+| v26.06.12b3 | Events UI + drag snap + calendar polish | B-0019 · B-0020 · B-0021 · B-0022 · N-0030 · N-0031 | 🧪 QA |
+| v26.06.13b1 | UI polish — slide toggles, calendar, shell clock | B-0023 · B-0024 · N-0032 · N-0033 · N-0034 · N-0035 · N-0036 · N-0037 | 🧪 QA |
+| v26.06.14b1 | QA polish — now-bar, calendar, accents, clock | B-0025 · B-0026 · N-0038 · N-0039 · N-0040 · N-0041 · N-0042 · N-0043 | 🧪 QA |
+| v26.06.14b2 | Timeline add-task + task edit bottom bar | B-0027 · N-0044 | 🧪 QA |
+| v26.06.14b3 | Shell Now task alignment to clock | B-0028 | 🧪 QA |
+
+| v26.06.19b1 | Nightly dev push seal · v26.06.19 | — | 🧪 QA |
 ---
 
 ## Proposed
@@ -1140,7 +1183,7 @@ All future GUI decisions should reference this Figma export for:
 | Field          | Value                        |
 | -------------- | ---------------------------- |
 | **Status**     | 📋 Proposed                  |
-| **Target version** | 0.0.5                    |
+| **Target release** | v26.06.12                    |
 | **Platforms**  | DT · WB (first) · AD (later) |
 | **Related**    | Complements [N-0003](#n-0003-rolling-timeline-window) day navigation |
 
@@ -1193,7 +1236,7 @@ All future GUI decisions should reference this Figma export for:
 | Field          | Value                                      |
 | -------------- | ------------------------------------------ |
 | **Status**     | 📋 Proposed                                |
-| **Target version** | 0.0.5                                  |
+| **Target release** | v26.06.12                                  |
 | **Platforms**  | DT (first) · WB (when work schedule UI ships) · AD (later) |
 
 **Description:** Add a Work Schedule setting to choose how the **Work Days** row is ordered and labeled — **Start week on Monday** (ISO / current default) or **Start week on Sunday** (American calendar layout). Does not change which days are selected; only display order and first column in the picker.
@@ -1256,7 +1299,7 @@ weekStartsOn: z.enum(["monday", "sunday"]).default("monday")
 | Field          | Value                                      |
 | -------------- | ------------------------------------------ |
 | **Status**     | 📋 Proposed                                |
-| **Target version** | 0.0.5                                  |
+| **Target release** | v26.06.12                                  |
 | **Platforms**  | DT · WB · SB (core)                        |
 | **Supersedes** | Midnight daily clear — [DT.UI.02.032.010](./FEATURE_REGISTRY.md#matrix-timeline-v03), [SB.EN.02.032.010](./FEATURE_REGISTRY.md#aa-02), [DT.BG.01.060.010](./FEATURE_REGISTRY.md#dt-bg-01) |
 
@@ -1335,7 +1378,7 @@ weekStartsOn: z.enum(["monday", "sunday"]).default("monday")
 | Field          | Value                        |
 | -------------- | ---------------------------- |
 | **Status**     | 🧪 QA                        |
-| **Target version** | 0.0.5                    |
+| **Target release** | v26.06.12                    |
 | **Platforms**  | DT · WB (first)              |
 | **Related**    | Extends [N-0001](#n-0001-timeline-week-strip) · pairs with [N-0003](#n-0003-rolling-timeline-window) |
 
@@ -1386,7 +1429,7 @@ weekStartsOn: z.enum(["monday", "sunday"]).default("monday")
 | Field          | Value                        |
 | -------------- | ---------------------------- |
 | **Status**     | 🧪 QA                        |
-| **Target version** | 0.0.5                    |
+| **Target release** | v26.06.12                    |
 | **Platforms**  | DT · WB (first)              |
 | **Related**    | Timeline page · complements [N-0003](#n-0003-rolling-timeline-window) schedule view |
 
@@ -1444,7 +1487,7 @@ weekStartsOn: z.enum(["monday", "sunday"]).default("monday")
 | Field          | Value |
 | -------------- | ----- |
 | **Status**     | 📋 Proposed |
-| **Target version** | 0.0.5 |
+| **Target release** | v26.06.12 |
 | **Platforms**  | DT · WB |
 | **Related**    | Extends [N-0003](#n-0003-rolling-timeline-window) · pairs with [N-0007](#n-0007-live-scroll-lock--snap-delay) |
 
@@ -1487,7 +1530,7 @@ weekStartsOn: z.enum(["monday", "sunday"]).default("monday")
 | Field          | Value |
 | -------------- | ----- |
 | **Status**     | 📋 Proposed |
-| **Target version** | 0.0.5 |
+| **Target release** | v26.06.12 |
 | **Platforms**  | DT · WB · SH (settings) |
 | **Related**    | [N-0006](#n-0006-timeline-entry-snap-to-now) · supersedes N-0003 scroll-to-now on mount |
 
@@ -1543,7 +1586,7 @@ timelineSnapDelaySec: z.number().int().min(0).max(120).default(15)
 | Field          | Value |
 | -------------- | ----- |
 | **Status**     | 📋 Proposed |
-| **Target version** | 0.0.5 |
+| **Target release** | v26.06.12 |
 | **Platforms**  | DT (first) · WB · SB |
 | **Related**    | [B-0005](./INCIDENTS.md#b-0005-timeline-remove-button-covered-by-timer) (layout fix ships first) · DT.UI.02.034.010 |
 
@@ -1790,6 +1833,511 @@ timelineSnapDelaySec: z.number().int().min(0).max(120).default(15)
 
 ---
 
+### N-0017 · Google Calendar on timeline {#n-0017-google-calendar-timeline}
+
+**Description:** Google OAuth (proxy) + cached calendar events merged as read-only blocks on the rolling timeline.
+
+**Acceptance criteria**
+
+- [ ] Connect/disconnect in Settings (web + desktop)
+- [ ] Calendar multi-select + sync interval
+- [ ] Static events on timeline (`calendar_event` blocks)
+- [ ] Playwright: `@N-0017` mocked cache
+
+---
+
+### N-0018 · P2P Yjs task sync {#n-0018-p2p-yjs-sync}
+
+**Description:** Dexie↔Yjs bridge + WebRTC room sync for tasks across trusted devices.
+
+**Acceptance criteria**
+
+- [ ] Sync settings panel on web + desktop
+- [ ] Same room ID syncs task CRUD
+- [ ] Document conflict model (LWW on maps)
+
+---
+
+### N-0019 · MCP export mode {#n-0019-mcp-dexie-export-mode}
+
+**Description:** `@blocks/mcp-server` reads Desktop export JSON; `export_tasks_to_anytype_markdown` for Anytype MCP workflows.
+
+**Acceptance criteria**
+
+- [ ] `BLOCKS_MCP_MODE=export` documented in `.cursor/mcp.json.example`
+- [ ] Plan-day recipe in HERMES doc
+
+---
+
+### N-0020 · Schedule conflict alerts {#n-0020-schedule-conflict-alerts}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🔄 In progress |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · SH · SB |
+| **Related**    | [N-0021](#n-0021-single-focus-task-scheduling) · spec §2 conflict detection |
+
+**Description:** Alert / confirm before committing a schedule that double-books time — especially over **static Google Calendar events**. User can cancel or proceed (calendar overlaps use N-0021 confirm path).
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Conflict detection engine     | 🔄 N-0020 | 🔄 N-0020 |    —     | 🔄 N-0020 |
+|  Alert / confirm dialog        | 🔄 N-0020 | 🔄 N-0020 | 🔄 N-0020 |    —     |
+|  Calendar overlap messaging    | 🔄 N-0020 | 🔄 N-0020 |    —     | 🔄 N-0020 |
+```
+
+**Acceptance criteria**
+
+- [x] Detect calendar overlaps before add / drag-drop / schedule-immediately
+- [x] Alert names conflicting calendar event (`ScheduleConflictDialog`)
+- [x] User can cancel or confirm
+- [ ] Playwright: `@N-0020` headed E2E with seeded calendar event
+
+---
+
+### N-0021 · Single-focus task scheduling {#n-0021-single-focus-task-scheduling}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🔄 In progress |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · SH · SB |
+| **Related**    | [B-0015](./INCIDENTS.md#b-0015-schedule-immediately-causes-overlaps) · [N-0020](#n-0020-schedule-conflict-alerts) |
+
+**Description:** **Core principle:** only one task at a time — **no two task blocks may overlap** on the timeline. Enforced in `packages/core` (`SINGLE_FOCUS_TASK_SCHEDULING`). Inserts push downstream tasks later. **Calendar exception:** GCal events may overlap; user confirms via N-0020; UI renders **side-by-side columns** (Google Calendar style) for task + event in the overlap window, full width elsewhere.
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  No task-task overlap (engine) | 🔄 N-0021 | 🔄 N-0021 |    —     | 🔄 N-0021 |
+|  Push-back on insert           | ✅ N-0021 | ✅ N-0021 |    —     | ✅ N-0021 |
+|  GCal overlap confirm + split  | 🔄 N-0021 | 🔄 N-0021 | 🔄 N-0021 |    —     |
+```
+
+| Code (proposed)      | Feature |
+| -------------------- | ------- |
+| SB.EN.02.040.080     | Single-focus scheduling engine |
+| SB.EN.02.040.090     | Overlap / conflict detection |
+| SH.UI.02.031.020     | Side-by-side overlap columns |
+| DT.UI.02.036.020     | Calendar + task column split |
+
+**Acceptance criteria**
+
+- [x] Core push-back on `addToTimeline` (B-0015)
+- [x] Quick Blocks schedule applies push-back (desktop)
+- [x] Calendar overlap confirm + column split UI (task beside event)
+- [ ] Drag-reschedule uses conflict dialog (wired via `useTimelineSchedule`)
+- [ ] Playwright: `@N-0021` · `@B-0015` E2E headed
+
+**Playwright**
+
+- `tests/integration/timeline-scheduling.spec.ts`
+
+---
+
+### N-0022 · Profile Google sign-in + calendar access {#n-0022-profile-google-sign-in}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | ⏸ On hold |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · SH |
+| **Related**    | [N-0017](#n-0017-google-calendar-timeline) · spec §7 Profile |
+
+**Description:** Profile page **Linked Accounts** entry for Google sign-in. OAuth requests **calendar.readonly** + email; callback returns to `/profile`. Connected state shows identity + calendar access status. Reuses `useGoogleCalendarAuth` / Settings sync path.
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |    CX    |
+|--------------------------------|----------|----------|----------|----------|----------|
+|  Profile Google connect        | 🔄 N-0022 | 🔄 N-0022 | 🔄 N-0022 |    —     |    —     |
+|  Calendar scope consent copy   | 🔄 N-0022 | 🔄 N-0022 | 🔄 N-0022 | 📋 N-0017 | 📋 N-0017 |
+|  Identity display (email)      | 🔄 N-0022 | 🔄 N-0022 | 🔄 N-0022 |    —     |    —     |
+|  OAuth callback on profile     | 🔄 N-0022 | 🔄 N-0022 |    —     |    —     | 📋 N-0017 |
+```
+
+**Proposed registry codes (on ship)**
+
+| Code             | Feature |
+| ---------------- | ------- |
+| DT.UI.07.040.010 | Profile Google account connect |
+| WB.UI.07.040.010 | Profile Google account connect (web) |
+| SH.UI.07.040.010 | ProfileGoogleAccount component |
+| DT.BG.07.040.010 | Desktop profile OAuth (Electron IPC) |
+
+**Acceptance criteria**
+
+- [x] Profile Linked Accounts → Google starts OAuth (calendar.readonly + email)
+- [x] Consent copy mentions calendar read access
+- [x] Web OAuth callback on `/profile`
+- [x] Desktop connect via Electron IPC on profile
+- [x] Connected state shows email + disconnect
+- [x] Guest identity when disconnected
+- [ ] Playwright: `@N-0022` headed QA
+
+**Playwright**
+
+- `tests/e2e/profile-google-auth.spec.ts`
+
+---
+
+### N-0023 · Retail Google OAuth (hosted proxy) {#n-0023-retail-google-oauth}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | ⏸ On hold |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · CX |
+| **Related**    | [N-0017](#n-0017-google-calendar-timeline) · [N-0022](#n-0022-profile-google-sign-in) · [B-0017](../INCIDENTS.md#b-0017-desktop-google-connect-shows-localhost) |
+
+**Description:** Outlook-simple Google sign-in for retail users — no local proxy, no localhost. Hosted OAuth proxy at `https://auth.blocks.app`, production env in web/desktop builds, `blocks://` desktop callback, Google verification checklist.
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |    CX    |
+|--------------------------------|----------|----------|----------|----------|----------|
+|  Hosted OAuth proxy            | 📋 N-0023 | 📋 N-0023 |    —     | 📋 N-0023 | 🔄 N-0023 |
+|  Production proxy URL in builds| 📋 N-0023 | 📋 N-0023 |    —     |    —     | 📋 N-0023 |
+|  blocks:// desktop callback    | 🔄 N-0023 |    —     |    —     | 🔄 N-0023 |    —     |
+|  Google app verification       | 📋 N-0023 | 📋 N-0023 |    —     |    —     | 📋 N-0023 |
+|  Dev localhost fallback        | ✅ N-0023 | ✅ N-0023 |    —     |    —     | ✅ N-0023 |
+```
+
+**Acceptance criteria**
+
+- [x] Rollout doc: `Docs/Integrations/GOOGLE_OAUTH_ROLLOUT.md`
+- [x] `@blocks/core` dev vs production proxy URL resolution
+- [x] Vercel deploy config for `apps/oauth-proxy`
+- [x] Desktop `blocks://auth/callback` for packaged builds
+- [x] Env examples (web, desktop, proxy)
+- [ ] Deploy proxy to production URL
+- [ ] Google Console: production redirect + consent verification
+- [ ] CI: production `*_OAUTH_PROXY_URL` in release builds
+- [ ] Headed QA: full connect on web + packaged desktop against hosted proxy
+
+**Playwright**
+
+- `tests/integration/oauth-proxy-health.spec.ts` · `@B-0017`
+
+**Docs**
+
+- [GOOGLE_OAUTH_ROLLOUT.md](../../Integrations/GOOGLE_OAUTH_ROLLOUT.md)
+
+---
+
+### N-0024 · Pause snap during drag-reschedule {#n-0024-pause-snap-during-drag}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🔄 In progress |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · SH |
+| **Related**    | [N-0007](#n-0007-live-scroll-lock--snap-delay) · [N-0006](#n-0006-timeline-entry-snap-to-now) |
+
+**Description:** While actively dragging a task card to reschedule, pause live now-follow and snap-back scroll so the viewport does not fight the drag.
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Pause snap during drag        | 🔄 N-0024 | 🔄 N-0024 | 🔄 N-0024 |    —     |
+|  Resume snap after drag        | 🔄 N-0024 | 🔄 N-0024 | 🔄 N-0024 |    —     |
+```
+
+| Code             | Feature |
+| ---------------- | ------- |
+| DT.UI.02.040.070 | Pause snap during drag |
+| WB.UI.02.040.070 | Pause snap during drag (web) |
+| SH.EN.02.040.080 | `useTimelineNowFollow` drag pause |
+
+**Acceptance criteria**
+
+- [x] Drag start → pause follow/snap until drag end/cancel
+- [x] Drag end → snap-delay follow resumes (`resumeFollowAfterDrag`)
+- [ ] Playwright: `@N-0024` (headed desktop QA)
+
+---
+
+### N-0025 · Schedule Doing — lock current task {#n-0025-schedule-doing-lock-current}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🔄 In progress |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · SH · SB |
+| **Related**    | DT.UI.02.035.010 · [N-0021](#n-0021-single-focus-task-scheduling) |
+
+**Description:** **Schedule Task** schedules all **Doing** tasks except the **current task** when **Lock Current Task** is selected (default). Settings dropdown **Task Schedule Behavior**: **Lock Current Task** | **Reschedule All Tasks**.
+
+**Current task definition (clarified):** Task under the **now-bar** with the **active timer running** (not merely `currentTask` in store). Dynamic/left-column tasks take priority; when the active task completes, focus may shift to a static/right-column event.
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Lock current on Schedule Task | 🔄 N-0025 | 🔄 N-0025 | 🔄 N-0025 | 🔄 N-0025 |
+|  Task Schedule Behavior setting| 🔄 N-0025 | 🔄 N-0025 | 🔄 N-0025 |    —     |
+```
+
+| Code             | Feature |
+| ---------------- | ------- |
+| DT.UI.02.035.020 | Lock current on Schedule Task |
+| DT.UI.06.002.070 | Task Schedule Behavior setting |
+| SB.EN.02.035.010 | `scheduleDoingTasks` lock engine |
+
+**Acceptance criteria**
+
+- [x] Default **Lock Current Task**: skip now-bar + running-timer task; pack others after locked block ends
+- [x] **Reschedule All Tasks**: all Doing from now (legacy)
+- [x] Setting persisted in Dexie settings
+- [x] Events excluded from Schedule Doing (`isEvent` anchors)
+- [x] Playwright: `@N-0025` (`tests/integration/schedule-doing.spec.ts`)
+
+---
+
+### N-0026 · User events (Task property + create) {#n-0026-user-events-on-tasks}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🔄 In progress |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · SH · SB |
+| **Related**    | [N-0021](#n-0021-single-focus-task-scheduling) · [N-0027](#n-0027-continuous-scroll-calendar) |
+
+**Description:** **Events** are a property on **Task** (`isEvent`), not a separate entity. Create/edit toggle **Event** on the new-task page. Default **All Day** until due date and/or start/end times are set. Events render as static timeline blocks with **side columns** on overlap (Google Calendar style). Support multi-day span, all-day (24h, pinned top until midnight), and timed start/end.
+
+**Visual (v26.06.12b2 design):** GCal-style — muted fill, bold title, side columns on overlap. **All-day** events pin to a **sticky strip** at top of timeline until midnight. **Timed events:** draggable for **resize/move** (stretch end time) on timeline; edit full details on task page. **Schedule Doing:** events are **immovable anchors**; lock-current still applies to active timer task.
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Event toggle on create/edit   | 🔄 N-0026 | 🔄 N-0026 | 🔄 N-0026 | 🔄 N-0026 |
+|  All Day + timed + multi-day   | 🔄 N-0026 | 🔄 N-0026 | 🔄 N-0026 | 🔄 N-0026 |
+|  Timeline column overlap       | 🔄 N-0026 | 🔄 N-0026 | 🔄 N-0026 | 🔄 N-0026 |
+```
+
+| Code             | Feature |
+| ---------------- | ------- |
+| DT.UI.04.020.010 | Event toggle on create |
+| DT.UI.04.020.020 | All Day + time pickers |
+| DT.UI.04.020.030 | Multi-day event span |
+| DT.UI.02.037.010 | User events on timeline |
+| SB.EN.02.037.010 | Task `isEvent` model + overlap |
+
+**Acceptance criteria**
+
+- [x] `Task.isEvent` + `eventAllDay` + `eventStartAt` / `eventEndAt` in schema
+- [x] Add-task **Event** toggle; default All Day until date/times set (web)
+- [x] Timeline: events use overlap columns; GCal-style muted blocks; timed drag-reschedule
+- [x] All-day sticky strip per day header
+- [x] Playwright: `@N-0026` (`tests/integration/user-event-blocks.spec.ts`)
+
+---
+
+### N-0027 · Continuous scroll calendar (replaces N-0005) {#n-0027-continuous-scroll-calendar}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🔄 In progress |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · SH |
+| **Related**    | [N-0005](#n-0005-due-date-calendar-view) (**replaced**) · N-0014 week now-bar pattern |
+
+**Description:** **Replaces N-0005** month calendar — reuse N-0005 registry codes where applicable. One long **vertical scroll** calendar. **Week now-bar** with lookback settings **−1 / −2 / −3 weeks** (Settings → **Calendar View**).
+
+**b3 update ([N-0030](#n-0030-calendar-sticky-day-strip)):** Per-week dual-month sticky headers (`DT.UI.02.050.030`) **superseded** by N-0030 global weekday strip. Month labels move to 1st-of-month day cells only.
+
+**Navigation (v26.06.12b2 design):** **No new bottom-nav icon.** Stay on the **Timeline** nav item; upgrade the existing **bottom-left toggle** (N-0005 placement, opposite Schedule FAB) to switch **Day view ↔ continuous scroll calendar**. Preserves 3 center nav icons + 48px action buttons for mobile tap targets.
+
+**Events in calendar:** `isEvent` tasks appear in **both** timeline (sticky all-day strip + timed columns) and scroll calendar.
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Continuous scroll calendar    | 🔄 N-0027 | 🔄 N-0027 | 🔄 N-0027 |    —     |
+|  Dual-month sticky header      | ↪ N-0030 | ↪ N-0030 | ↪ N-0030 |    —     |
+|  Week now-bar + lookback       | 🔄 N-0027 | 🔄 N-0027 | 🔄 N-0027 |    —     |
+|  Calendar View settings        | 🔄 N-0027 | 🔄 N-0027 | 🔄 N-0027 |    —     |
+```
+
+| Code             | Feature |
+| ---------------- | ------- |
+| DT.UI.02.050.020 | Continuous scroll calendar (was N-0005) |
+| DT.UI.02.050.030 | Dual-month sticky header |
+| DT.UI.06.009.010 | Calendar View settings section |
+| DT.UI.06.009.020 | Week lookback (−1/−2/−3) |
+| SH.EN.02.050.010 | Calendar scroll + header sync |
+
+**Acceptance criteria**
+
+- [x] N-0005 month pager replaced; continuous scroll via bottom-left toggle
+- [x] Dual-month header on split weeks
+- [x] Week now-bar + lookback (−1/−2/−3) in Settings
+- [x] Events + due tasks on calendar days
+- [x] Playwright: `@N-0027` (`tests/integration/continuous-calendar.spec.ts`)
+
+---
+
+### N-0028 · Bulk timeline reschedule {#n-0028-bulk-timeline-reschedule}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 📋 Proposed |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · SH · SB |
+
+**Description:** Bulk select on timeline via click-and-hold or **drag-select from hour-marker gutter**. When **≥2** tasks selected, drag moves the group together preserving relative offsets.
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Gutter / hold bulk select     | 📋 N-0028 | 📋 N-0028 | 📋 N-0028 |    —     |
+|  Group drag reschedule         | 📋 N-0028 | 📋 N-0028 | 📋 N-0028 | 📋 N-0028 |
+```
+
+| Code             | Feature |
+| ---------------- | ------- |
+| DT.UI.02.020.020 | Bulk select (gutter + hold) |
+| DT.UI.02.020.030 | Group drag reschedule |
+| SB.EN.02.020.010 | Bulk schedule commit engine |
+
+**Acceptance criteria**
+
+- [ ] Gutter drag-select + hold-to-add selection
+- [ ] Group drag with relative offset preserved
+- [ ] Playwright: `@N-0028`
+
+---
+
+### N-0029 · Passive overlap columns on bulk move {#n-0029-passive-overlap-on-bulk-move}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 📋 Proposed |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · SH · SB |
+| **Related**    | [N-0028](#n-0028-bulk-timeline-reschedule) · [N-0021](#n-0021-single-focus-task-scheduling) |
+
+**Description:** Tasks **not** in the bulk selection that overlap the moving group shift to **right-side columns** (static-event style) instead of push-back jump. Depends on N-0028 + overlap layout.
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Passive column on bulk overlap| 📋 N-0029 | 📋 N-0029 | 📋 N-0029 | 📋 N-0029 |
+|  No jump for unselected tasks  | 📋 N-0029 | 📋 N-0029 | 📋 N-0029 | 📋 N-0029 |
+```
+
+| Code             | Feature |
+| ---------------- | ------- |
+| DT.UI.02.020.040 | Passive overlap during bulk drag |
+| SH.UI.02.040.040 | Overlap preview for unselected |
+| SB.EN.02.040.090 | Passive overlap commit rules |
+
+**Acceptance criteria**
+
+- [ ] Unselected overlapping tasks render in side column during bulk drag
+- [ ] On commit: no cascade jump for unselected tasks
+- [ ] Playwright: `@N-0029`
+
+---
+
+### N-0030 · Calendar sticky day strip (global) {#n-0030-calendar-sticky-day-strip}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 📋 Proposed → 🔄 b3 |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · SH |
+| **Related**    | [N-0027](#n-0027-continuous-scroll-calendar) · [N-0001](#n-0001-timeline-week-strip) |
+
+**Description:** **One global sticky strip** at the top of continuous calendar view. Strip shows **weekday labels only** (Mon–Sun per [N-0002](./ROADMAP.md#n-0002-week-start-preference) week-start order) — **not** per-week section headers. As the user scrolls, the strip scroll-syncs to the week in view (7 weekday columns). **Remove** N-0027 per-week dual-month sticky headers. Each **day cell** in the scroll body keeps its **date number in the top-left corner**; when a cell is the **1st of a month**, show the **month name** on that cell (e.g. “Jul 1”).
+
+**PM design (b3):** Global weekday strip only; no per-week headers; date stays in each day block corner; month label on 1st-of-month cells.
+
+**Supersedes:** N-0027 per-week `calendar-week-header` / dual-month row (replaced by N-0030 global strip).
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |
+|--------------------------------|----------|----------|----------|
+|  Global sticky weekday strip   | 📋 N-0030 | 📋 N-0030 | 📋 N-0030 |
+|  Date in day cell top-left     | 📋 N-0030 | 📋 N-0030 | 📋 N-0030 |
+|  Month label on 1st-of-month   | 📋 N-0030 | 📋 N-0030 | 📋 N-0030 |
+|  No per-week section headers   | 📋 N-0030 | 📋 N-0030 | 📋 N-0030 |
+|  Scroll-sync strip to week     | 📋 N-0030 | 📋 N-0030 | 📋 N-0030 |
+```
+
+| Code             | Feature |
+| ---------------- | ------- |
+| DT.UI.02.050.040 | Global sticky weekday strip |
+| SH.EN.02.050.020 | Calendar scroll → strip sync |
+
+**Acceptance criteria**
+
+- [ ] Sticky strip fixed at top; shows **weekday names only** (7 columns)
+- [ ] **No** per-week dual-month headers in scroll body
+- [ ] Each day cell shows date in **top-left** corner
+- [ ] 1st-of-month cells show month label on the cell
+- [ ] Strip updates to week in viewport as user scrolls
+- [ ] Playwright: `@N-0030`
+
+---
+
+### N-0031 · Timeline nav exits calendar view {#n-0031-timeline-nav-exits-calendar}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 📋 Proposed → 🔄 b3 |
+| **Target release** | v26.06.12 |
+| **Platforms**  | DT · WB · SH |
+| **Related**    | [N-0027](#n-0027-continuous-scroll-calendar) · [N-0005](#n-0005-due-date-calendar-view) |
+
+**Description:** Two ways to return to **timeline day view**: (1) bottom-left calendar/timeline toggle; (2) re-tap **Timeline** in bottom nav. Nav press must **force `viewMode = timeline`** and **reset calendar scroll session** (clear stored scroll position / re-center on current week when re-entering calendar later).
+
+**PM design (b3 Round 2):** Nav always exits calendar; toggle still toggles; clearing calendar scroll on nav exit.
+
+**Platform matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |
+|--------------------------------|----------|----------|----------|
+|  Timeline nav → day view       | 📋 N-0031 | 📋 N-0031 | 📋 N-0031 |
+|  Clear calendar scroll on exit | 📋 N-0031 | 📋 N-0031 | 📋 N-0031 |
+```
+
+| Code             | Feature |
+| ---------------- | ------- |
+| DT.UI.02.050.050 | Timeline nav exits calendar |
+| SH.EN.02.050.030 | Calendar scroll session reset |
+
+**Acceptance criteria**
+
+- [ ] In calendar mode, tap Timeline nav → rolling timeline visible
+- [ ] Bottom-left toggle still switches views both ways
+- [ ] Re-open calendar scrolls to current week (not stale position)
+- [ ] Playwright: `@N-0031`
+
+---
+
 ## New feature template
 
 Use `/NF` skill. Include **Platform matrix** + proposed codes before implementation.
@@ -1800,13 +2348,15 @@ On ship: FEATURE_REGISTRY rows ✅ · move to Shipped · CHANGELOG **Added**.
 
 ## Version History
 
-| Version | Date | Changes |
+| Release | Date | Changes |
 |---------|------|---------|
-| 0.0.5 | 2026-06-09 | N-0001–N-0005 timeline sprint; spec merged into ROADMAP |
-| 0.0.3 | 2026-06-09 | Sprint v0.0.3: PoweredUpLabs migration, timeline=doing-only, remove-from-timeline, midnight clear, routines, @blocks/mcp-server, Hermes/Anytype docs, Windows polish |
-| 0.0.3 | 2024-12-27 | Bug fixes: Top bar, Nav overlap, Timeline blocks |
-| 0.0.2 | 2024-12-27 | All 19 Phase 2 features implemented |
-| 0.0.1 | 2024-12-26 | Project initialization |
+| v26.06.12 | 2026-06-12 | Release bump; **v26.06.12b2** — events & calendar (N-0024–N-0027) |
+| v26.06.09 | 2026-06-09 | **Sprint 5** opened; **v26.06.09b1** CI Ops v3 + date/batch versioning |
+| v26.06.09 | 2026-06-09 | Themes, CI Ops, installer fixes (was 0.0.4) |
+| v26.06.09 | 2026-06-09 | Sprint 3: PoweredUpLabs, timeline rules, routines, MCP (was 0.0.3) |
+| v24.12.27 | 2024-12-27 | Bug fixes: Top bar, Nav overlap, Timeline blocks |
+| v24.12.27 | 2024-12-27 | Phase 2 features (was 0.0.2) |
+| v24.12.26 | 2024-12-26 | Project initialization (was 0.0.1) |
 
 ---
 

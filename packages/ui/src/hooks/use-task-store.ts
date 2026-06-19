@@ -5,7 +5,13 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import type { Task, CreateTaskInput, UpdateTaskInput, TaskStatus, Routine } from "@blocks/core";
-import { TaskEngine, DexieStorage, calculateDuration, clearTimelineForNewDay, spawnRoutineTasks } from "@blocks/core";
+import { TaskEngine, DexieStorage, calculateDuration, clearTimelineForNewDay, spawnRoutineTasks, buildTimelineInsertPushBackUpdates, planScheduleDoingTasks } from "@blocks/core";
+
+export interface ScheduleDoingTasksOptions {
+  /** Task under now-bar with active timer (N-0025) */
+  activeTrackingTaskId?: string;
+  isTimerRunning?: boolean;
+}
 
 interface TaskState {
   tasks: Task[];
@@ -21,14 +27,22 @@ interface TaskState {
   completeTask: (id: string) => Promise<Task>;
   startTask: (id: string) => Promise<Task>;
   setCurrentTask: (task: Task | null) => void;
-  scheduleDoingTasks: () => Promise<void>;
+  scheduleDoingTasks: (options?: ScheduleDoingTasksOptions) => Promise<void>;
   clearDailyTimeline: () => Promise<number>;
   removeFromTimeline: (id: string) => Promise<Task>;
   addToTimeline: (id: string, scheduledAt: Date) => Promise<Task>;
+  /** B-0022 · Drag-reschedule only — no push-back on other tasks */
+  rescheduleTimelineTaskDrag: (id: string, scheduledAt: Date) => Promise<Task>;
   spawnRoutine: (routine: Routine, startAt?: Date) => Promise<Task[]>;
   /** Batch-update scheduledAt (timeline pause-sync) */
   shiftTimelineSchedules: (
     updates: { id: string; scheduledAt: Date }[],
+  ) => Promise<void>;
+  /** Push downstream tasks before inserting/scheduling at `scheduledAt` (N-0021) */
+  applyTimelinePushBackForInsert: (
+    insertId: string,
+    scheduledAt: Date,
+    durationMinutes: number,
   ) => Promise<void>;
   
   // Filtered getters
@@ -143,45 +157,40 @@ export const useTaskStore = create<TaskState>()(
         set({ currentTask: task });
       },
 
-      scheduleDoingTasks: async () => {
+      scheduleDoingTasks: async (options?: ScheduleDoingTasksOptions) => {
         try {
           const db = await getStorage();
-          
-          // 1. Get all tasks with status "doing"
-          const doingTasks = get().tasks.filter((t) => t.status === "doing");
-          
+          const settings = await db.getSettings();
+          const doingTasks = get().tasks.filter((t) => t.status === "doing" && !t.isEvent);
+
           if (doingTasks.length === 0) return;
-          
-          // 2. Sort by priority (1 = highest first, so ascending order)
-          const sortedTasks = [...doingTasks].sort((a, b) => {
-            const priorityA = parseInt(a.priority, 10);
-            const priorityB = parseInt(b.priority, 10);
-            return priorityA - priorityB;
+
+          const { tasksToSchedule, startAt } = planScheduleDoingTasks({
+            doingTasks,
+            behavior: settings.taskScheduleBehavior,
+            activeTrackingTaskId: options?.activeTrackingTaskId,
+            isTimerRunning: options?.isTimerRunning,
           });
-          
-          // 3. Starting from current time, assign scheduledAt sequentially
-          let currentTime = new Date();
+
+          if (tasksToSchedule.length === 0) return;
+
+          let currentTime = new Date(startAt);
           const updatedTasks: Task[] = [];
-          
-          for (const task of sortedTasks) {
-            // Calculate duration: blockSize * blockCount
+
+          for (const task of tasksToSchedule) {
             const duration = calculateDuration(task.blockSize, task.blockCount);
-            
-            // Update task with scheduledAt and computed duration
+
             const updatedTask = TaskEngine.updateTask(task, {
               scheduledAt: new Date(currentTime),
               duration,
             });
-            
-            // Save to storage
+
             await db.updateTask(updatedTask);
             updatedTasks.push(updatedTask);
-            
-            // Move current time forward by the task's duration
+
             currentTime = new Date(currentTime.getTime() + duration * 60000);
           }
-          
-          // 4. Update state with all scheduled tasks
+
           set((state) => ({
             tasks: state.tasks.map((t) => {
               const updated = updatedTasks.find((u) => u.id === t.id);
@@ -266,6 +275,17 @@ export const useTaskStore = create<TaskState>()(
         if (!existingTask) throw new Error("Task not found");
 
         const duration = calculateDuration(existingTask.blockSize, existingTask.blockCount);
+        const pushUpdates = buildTimelineInsertPushBackUpdates(
+          get().tasks,
+          id,
+          scheduledAt,
+          duration,
+        );
+
+        if (pushUpdates.length > 0) {
+          await get().shiftTimelineSchedules(pushUpdates);
+        }
+
         const updated = TaskEngine.addToTimeline(existingTask, scheduledAt, duration);
         return get().updateTask(id, {
           status: updated.status,
@@ -273,6 +293,10 @@ export const useTaskStore = create<TaskState>()(
           duration: updated.duration,
           startedAt: updated.startedAt,
         });
+      },
+
+      rescheduleTimelineTaskDrag: async (id: string, scheduledAt: Date) => {
+        return get().updateTask(id, { scheduledAt });
       },
 
       shiftTimelineSchedules: async (updates: { id: string; scheduledAt: Date }[]) => {
@@ -290,6 +314,22 @@ export const useTaskStore = create<TaskState>()(
             return hit ? { ...t, scheduledAt: hit.scheduledAt } : t;
           }),
         }));
+      },
+
+      applyTimelinePushBackForInsert: async (
+        insertId: string,
+        scheduledAt: Date,
+        durationMinutes: number,
+      ) => {
+        const pushUpdates = buildTimelineInsertPushBackUpdates(
+          get().tasks,
+          insertId,
+          scheduledAt,
+          durationMinutes,
+        );
+        if (pushUpdates.length > 0) {
+          await get().shiftTimelineSchedules(pushUpdates);
+        }
       },
 
       getTasksByStatus: (status: TaskStatus) => {

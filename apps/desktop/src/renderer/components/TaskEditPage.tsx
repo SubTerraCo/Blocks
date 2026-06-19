@@ -12,7 +12,11 @@ import {
   Input, 
   Textarea, 
   Select, 
-  cn 
+  cn,
+  TaskEventFields,
+  buildEventTimestamps,
+  timeStringFromDate,
+  TASK_EDIT_BOTTOM_BAR,
 } from "@blocks/ui";
 import type { 
   Task, 
@@ -37,6 +41,7 @@ import {
   Palette,
   Trash2,
 } from "lucide-react";
+import { TrackingControlBar } from "./TrackingBar";
 
 // ============================================================================
 // Constants
@@ -140,6 +145,14 @@ export function TaskEditPage({
   const [color, setColor] = useState(task?.color || COLOR_OPTIONS[0]);
   const [subtasks, setSubtasks] = useState(task?.subtasks || []);
   const [subtaskInput, setSubtaskInput] = useState("");
+  const [isEvent, setIsEvent] = useState(task?.isEvent ?? false);
+  const [eventAllDay, setEventAllDay] = useState(task?.eventAllDay ?? true);
+  const [eventStartTime, setEventStartTime] = useState(
+    timeStringFromDate(task?.eventStartAt) || "",
+  );
+  const [eventEndTime, setEventEndTime] = useState(
+    timeStringFromDate(task?.eventEndAt) || "",
+  );
   
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -212,14 +225,29 @@ export function TaskEditPage({
     setIsSubmitting(true);
     
     try {
+      const eventFields = buildEventTimestamps(
+        isEvent,
+        dueDate,
+        eventAllDay,
+        eventStartTime,
+        eventEndTime,
+      );
+
       const taskData = {
         name: name.trim(),
         description: notes.trim() || undefined,
-        priority,
-        status,
-        blockSize,
-        blockCount,
-        duration: computedDuration,
+        priority: isEvent ? ("3" as TaskPriority) : priority,
+        status: isEvent ? ("doing" as TaskStatus) : status,
+        blockSize: isEvent ? ("30min" as BlockSize) : blockSize,
+        blockCount: isEvent ? 1 : blockCount,
+        duration: isEvent && eventStartTime && eventEndTime
+          ? Math.max(
+              15,
+              (new Date(`1970-01-01T${eventEndTime}`).getTime() -
+                new Date(`1970-01-01T${eventStartTime}`).getTime()) /
+                60000,
+            )
+          : computedDuration,
         accessContexts,
         assigneeId: "me",
         tags,
@@ -232,6 +260,8 @@ export function TaskEditPage({
         reminders: [],
         isQuickAdd: false,
         isPutzing: false,
+        isEvent,
+        ...eventFields,
       };
 
       if (isEditMode && task) {
@@ -267,7 +297,7 @@ export function TaskEditPage({
   };
 
   return (
-    <div className="h-full overflow-y-auto px-4 py-6 pb-24">
+    <div className="h-full overflow-y-auto px-4 py-6 pb-32">
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -297,7 +327,7 @@ export function TaskEditPage({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+      <form id="task-edit-form" onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
         {/* Header with Delete button (edit mode only) */}
         {isEditMode && (
           <div className="flex items-center justify-between">
@@ -322,44 +352,65 @@ export function TaskEditPage({
           autoFocus 
         />
 
-        {/* Duration Calculator */}
-        <div className="space-y-2">
-          <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-            <Timer className="mr-1 inline h-4 w-4" />
-            Duration: {formatBlockSize(blockSize)} × {blockCount} ={" "}
-            <span className="text-accent-magenta">{formattedDuration}</span>
-          </label>
+        {/* Duration / blocks — hidden for events (B-0019) */}
+        {!isEvent && (
+          <div className="space-y-2">
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+              <Timer className="mr-1 inline h-4 w-4" />
+              Duration: {formatBlockSize(blockSize)} × {blockCount} ={" "}
+              <span className="text-accent-magenta">{formattedDuration}</span>
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <Select 
+                label="Block Size" 
+                options={BLOCK_SIZE_OPTIONS} 
+                value={blockSize} 
+                onChange={(v) => setBlockSize(v as BlockSize)} 
+              />
+              <Select 
+                label="Block Count" 
+                options={BLOCK_COUNT_OPTIONS} 
+                value={String(blockCount)} 
+                onChange={(v) => setBlockCount(parseInt(v, 10))} 
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Priority & Status — hidden for events (B-0019) */}
+        {!isEvent && (
           <div className="grid grid-cols-2 gap-4">
             <Select 
-              label="Block Size" 
-              options={BLOCK_SIZE_OPTIONS} 
-              value={blockSize} 
-              onChange={(v) => setBlockSize(v as BlockSize)} 
+              label="Priority" 
+              options={PRIORITY_OPTIONS} 
+              value={priority} 
+              onChange={(v) => setPriority(v as TaskPriority)} 
             />
             <Select 
-              label="Block Count" 
-              options={BLOCK_COUNT_OPTIONS} 
-              value={String(blockCount)} 
-              onChange={(v) => setBlockCount(parseInt(v, 10))} 
+              label="Status" 
+              options={STATUS_OPTIONS} 
+              value={status} 
+              onChange={(v) => setStatus(v as TaskStatus)} 
             />
           </div>
-        </div>
+        )}
 
-        {/* Priority & Status */}
-        <div className="grid grid-cols-2 gap-4">
-          <Select 
-            label="Priority" 
-            options={PRIORITY_OPTIONS} 
-            value={priority} 
-            onChange={(v) => setPriority(v as TaskPriority)} 
-          />
-          <Select 
-            label="Status" 
-            options={STATUS_OPTIONS} 
-            value={status} 
-            onChange={(v) => setStatus(v as TaskStatus)} 
-          />
-        </div>
+        <TaskEventFields
+          isEvent={isEvent}
+          onIsEventChange={setIsEvent}
+          eventAllDay={eventAllDay}
+          onEventAllDayChange={setEventAllDay}
+          eventStartTime={eventStartTime}
+          eventEndTime={eventEndTime}
+          onEventStartTimeChange={(t) => {
+            setEventStartTime(t);
+            if (t) setEventAllDay(false);
+          }}
+          onEventEndTimeChange={(t) => {
+            setEventEndTime(t);
+            if (t) setEventAllDay(false);
+          }}
+        />
 
         {/* Access Context */}
         <div>
@@ -539,21 +590,24 @@ export function TaskEditPage({
           rows={3} 
         />
 
-        {/* Action Buttons - Always visible */}
-        <div className="flex gap-3 pt-4 sticky bottom-0 bg-bg-primary pb-4">
-          <Button 
-            type="button" 
-            variant="secondary" 
-            className="flex-1" 
+        {/* Action buttons — fixed above nav, flanking tracking controls (N-0044) */}
+        <div className={TASK_EDIT_BOTTOM_BAR} data-testid="task-edit-bottom-bar">
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-12 shrink-0 px-5"
             onClick={onBack}
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
-            variant="primary" 
-            className="flex-1" 
-            isLoading={isSubmitting} 
+          <div className="flex min-w-0 flex-1 items-center justify-center">
+            <TrackingControlBar layout="inline" />
+          </div>
+          <Button
+            type="submit"
+            variant="primary"
+            className="h-12 shrink-0 px-5"
+            isLoading={isSubmitting}
             disabled={!name.trim()}
           >
             {isEditMode ? "Save Changes" : "Create Task"}

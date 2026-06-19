@@ -1,18 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {
-  useSettingsStore,
-  Button,
-  Input,
-  Select,
-  cn,
-  WorkScheduleFields,
-  TimelineSnapDelayField,
-  TimelineNowBarOffsetField,
-  TimelineTimerDisplayField,
-} from "@blocks/ui";
-import type { Theme, AIProvider, WeekStartsOn } from "@blocks/core";
+import { useSettingsStore, Button, Input, Select, cn, TaskScheduleBehaviorField, SlideToggle, HourFormat24Field, AccentColorFields } from "@blocks/ui";
+import type { Theme, AIProvider } from "@blocks/core";
 import {
   Moon,
   Sun,
@@ -99,25 +89,7 @@ function Toggle({
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={cn(
-        "relative h-6 w-11 rounded-full transition-colors",
-        checked ? "bg-accent-magenta" : "bg-border-default"
-      )}
-    >
-      <span
-        className={cn(
-          "absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform",
-          checked && "translate-x-5"
-        )}
-      />
-    </button>
-  );
+  return <SlideToggle checked={checked} onChange={onChange} />;
 }
 
 export default function SettingsPage() {
@@ -130,6 +102,11 @@ export default function SettingsPage() {
 
   const handleThemeChange = async (theme: Theme) => {
     await updateSettings({ theme });
+    // Apply theme to document
+    document.documentElement.classList.remove("dark", "light");
+    if (theme !== "system") {
+      document.documentElement.classList.add(theme);
+    }
   };
 
   const handleSaveApiKey = async () => {
@@ -188,8 +165,6 @@ export default function SettingsPage() {
               return (
                 <button
                   key={option.value}
-                  type="button"
-                  data-testid={`theme-${option.value}`}
                   onClick={() => handleThemeChange(option.value)}
                   className={cn(
                     "flex flex-1 flex-col items-center gap-2 rounded-lg p-3 transition-colors",
@@ -203,46 +178,6 @@ export default function SettingsPage() {
                 </button>
               );
             })}
-          </div>
-        </div>
-      </SettingsSection>
-
-      <SettingsSection title="Work Schedule">
-        <div className="p-4">
-          <WorkScheduleFields
-            workDays={settings.workDays}
-            weekStartsOn={settings.weekStartsOn}
-            onWorkDaysChange={(workDays) => void updateSettings({ workDays })}
-            onWeekStartsOnChange={(weekStartsOn: WeekStartsOn) =>
-              void updateSettings({ weekStartsOn })
-            }
-          />
-        </div>
-      </SettingsSection>
-
-      <SettingsSection title="Timeline">
-        <div className="p-4">
-          <TimelineSnapDelayField
-            value={settings.timelineSnapDelaySec}
-            onChange={(timelineSnapDelaySec) =>
-              updateSettings({ timelineSnapDelaySec })
-            }
-          />
-          <div className="mt-4">
-            <TimelineNowBarOffsetField
-              value={settings.timelineNowBarViewportRatio ?? 0.5}
-              onChange={(timelineNowBarViewportRatio) =>
-                updateSettings({ timelineNowBarViewportRatio })
-              }
-            />
-          </div>
-          <div className="mt-4">
-            <TimelineTimerDisplayField
-              value={settings.timelineTimerDisplayMode ?? "elapsed"}
-              onChange={(timelineTimerDisplayMode) =>
-                updateSettings({ timelineTimerDisplayMode })
-              }
-            />
           </div>
         </div>
       </SettingsSection>
@@ -327,6 +262,32 @@ export default function SettingsPage() {
             onChange={(checked) => updateSettings({ taskSwitchSuggestions: checked })}
           />
         </SettingsItem>
+      </SettingsSection>
+
+      {/* Timeline */}
+      <SettingsSection title="Timeline">
+        <div className="space-y-4 p-4">
+          <TaskScheduleBehaviorField
+            value={settings.taskScheduleBehavior}
+            onChange={(value) => void updateSettings({ taskScheduleBehavior: value })}
+          />
+          <HourFormat24Field
+            value={settings.use24HourTime ?? false}
+            onChange={(use24HourTime) => void updateSettings({ use24HourTime })}
+          />
+        </div>
+      </SettingsSection>
+
+      {/* Appearance */}
+      <SettingsSection title="Appearance">
+        <div className="p-4">
+          <AccentColorFields
+            accentPrimary={settings.accentPrimary ?? "#9b4dca"}
+            accentSecondary={settings.accentSecondary ?? "#00bcd4"}
+            onAccentPrimaryChange={(accentPrimary) => void updateSettings({ accentPrimary })}
+            onAccentSecondaryChange={(accentSecondary) => void updateSettings({ accentSecondary })}
+          />
+        </div>
       </SettingsSection>
 
       {/* Calendar */}

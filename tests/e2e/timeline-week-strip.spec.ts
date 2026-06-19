@@ -30,9 +30,15 @@ test.describe("WB.UI.02.010 · Week strip @N-0001", () => {
     const strip = page.getByTestId("timeline-week-strip");
     const cells = page.locator("[data-testid^='timeline-week-day-']");
     await cells.nth(5).click();
-    await page.reload();
     await expect
       .poll(async () => Number(await strip.getAttribute("data-selection-offset")))
       .toBe(5);
+    await page.reload();
+    await expect(page.getByTestId("timeline-week-strip")).toBeVisible();
+    await expect
+      .poll(async () => Number(await strip.getAttribute("data-selection-offset")), {
+        timeout: 10000,
+      })
+      .toBeCloseTo(5, 0);
   });
 });

@@ -137,6 +137,12 @@ export const TaskSchema = z.object({
   // Scheduling
   scheduledAt: z.date().optional(),
   dueDate: z.date().optional(),
+  /** N-0026: user-created static event (property on Task, not separate entity) */
+  isEvent: z.boolean().default(false),
+  /** Default true for events until due date / times are set */
+  eventAllDay: z.boolean().default(true),
+  eventStartAt: z.date().optional(),
+  eventEndAt: z.date().optional(),
   recurrence: RecurrenceType.default("none"),
   recurrenceRule: z.string().optional(), // iCal RRULE format for custom
   recurrencePattern: RecurrencePatternSchema.optional(), // Detailed pattern
@@ -171,7 +177,21 @@ export const TaskSchema = z.object({
 
 export type Task = z.infer<typeof TaskSchema>;
 
-export type CreateTaskInput = Omit<Task, "id" | "createdAt" | "updatedAt" | "timeSpent" | "completedAt" | "isRecurringInstance" | "parentTaskId">;
+export type CreateTaskInput = Omit<
+  Task,
+  | "id"
+  | "createdAt"
+  | "updatedAt"
+  | "timeSpent"
+  | "completedAt"
+  | "isRecurringInstance"
+  | "parentTaskId"
+  | "isEvent"
+  | "eventAllDay"
+> & {
+  isEvent?: boolean;
+  eventAllDay?: boolean;
+};
 export type UpdateTaskInput = Partial<Omit<Task, "id" | "createdAt">>;
 
 // ----------------------------------------------------------------------------
@@ -397,9 +417,17 @@ export type Theme = z.infer<typeof ThemeSchema>;
 export const AIProviderSchema = z.enum(["openai", "anthropic", "ollama"]);
 export type AIProvider = z.infer<typeof AIProviderSchema>;
 
+/** N-0025: Schedule Task button behavior for Doing tasks */
+export const TaskScheduleBehaviorSchema = z.enum(["lock_current", "reschedule_all"]);
+export type TaskScheduleBehavior = z.infer<typeof TaskScheduleBehaviorSchema>;
+
 export const SettingsSchema = z.object({
   // Appearance
   theme: ThemeSchema.default("dark"),
+  /** N-0040 · User primary accent (today, active chrome) */
+  accentPrimary: z.string().default("#9b4dca"),
+  /** N-0040 · User secondary accent (selected calendar day, etc.) */
+  accentSecondary: z.string().default("#00bcd4"),
   
   // AI Configuration
   aiProvider: AIProviderSchema.default("openai"),
@@ -431,8 +459,14 @@ export const SettingsSchema = z.object({
   timelineSnapDelaySec: z.number().int().min(0).max(120).default(15),
   /** N-0014: viewport ratio for now-bar (0.25 = ¼ from top … 0.75 = ¼ from bottom) */
   timelineNowBarViewportRatio: z.number().min(0.25).max(0.75).default(0.5),
-  /** N-0009: elapsed vs remaining on timeline card tracking header */
-  timelineTimerDisplayMode: z.enum(["elapsed", "remaining"]).default("elapsed"),
+  /** N-0009 / N-0043 · remaining-only (elapsed option removed) */
+  timelineTimerDisplayMode: z.enum(["elapsed", "remaining"]).default("remaining"),
+  /** N-0025: lock active tracked task when scheduling Doing tasks */
+  taskScheduleBehavior: TaskScheduleBehaviorSchema.default("lock_current"),
+  /** N-0027: weeks of history before current week in scroll calendar (−1 / −2 / −3) */
+  calendarWeekLookback: z.union([z.literal(1), z.literal(2), z.literal(3)]).default(1),
+  /** N-0032: 24-hour time on timeline labels + GCal clock picker */
+  use24HourTime: z.boolean().default(false),
   overtimeWarningMinutes: z.number().default(30), // Warn after this many extra minutes
   
   // Data

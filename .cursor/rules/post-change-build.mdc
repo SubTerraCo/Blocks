@@ -1,0 +1,18 @@
+---
+description: Run compile build checks after making code changes so the user can test immediately
+alwaysApply: true
+---
+
+# Post-change build verification
+
+After completing substantive code changes (not question-only or review-only turns):
+
+1. Run `pnpm test:build` before telling the user the work is done.
+2. If the build fails, fix the errors and run `pnpm test:build` again until it passes.
+3. Do not ask the user to build manually when you can run the check yourself.
+
+The project also has a Cursor **stop hook** (`.cursor/hooks.json`) that runs the same compile checks automatically after each agent turn. When build output appears as an auto follow-up message, treat it as a required fix before finishing.
+
+Compile checks cover: `@blocks/core`, `@blocks/ui`, `web` (`next build`), and desktop (`tsc` + `vite build`). They intentionally skip electron installer packaging for speed.
+
+Skip build verification only when the turn was read-only (no edits to `apps/`, `packages/`, or build scripts).

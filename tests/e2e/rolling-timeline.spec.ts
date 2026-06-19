@@ -6,6 +6,7 @@ const DEFAULT_TIMELINE_WINDOW_DAYS = 7;
 test.describe("WB.UI.02.040 · Rolling timeline @N-0003", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/timeline");
+    await expect(page.getByTestId("rolling-timeline")).toBeVisible();
   });
 
   test("renders rolling timeline container", async ({ page }) => {
@@ -13,7 +14,6 @@ test.describe("WB.UI.02.040 · Rolling timeline @N-0003", () => {
   });
 
   test("shows multiple day headers in ±7 day window", async ({ page }) => {
-    await expect(page.getByTestId("rolling-timeline")).toBeVisible();
     const headers = page.getByTestId("timeline-day-header");
     await expect(headers.first()).toBeVisible({ timeout: 10000 });
     const count = await headers.count();
@@ -28,8 +28,12 @@ test.describe("WB.UI.02.040 · Rolling timeline @N-0003", () => {
   test("timeline scroller is scrollable", async ({ page }) => {
     const scroller = page.getByTestId("timeline-scroller");
     await expect(scroller).toBeVisible();
-    const scrollHeight = await scroller.evaluate((el) => el.scrollHeight);
-    const clientHeight = await scroller.evaluate((el) => el.clientHeight);
-    expect(scrollHeight).toBeGreaterThan(clientHeight + 100);
+    await expect
+      .poll(async () => {
+        const scrollHeight = await scroller.evaluate((el) => el.scrollHeight);
+        const clientHeight = await scroller.evaluate((el) => el.clientHeight);
+        return scrollHeight - clientHeight;
+      })
+      .toBeGreaterThan(100);
   });
 });

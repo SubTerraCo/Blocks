@@ -34,12 +34,16 @@ export interface UseTimelineNowFollowOptions {
   onNowChange?: (now: Date) => void;
   /** Changes while active re-trigger N-0006 entry snap (e.g. route pathname) */
   entryKey?: string;
+  /** Wait until sessionStorage day selection is restored before entry snap */
+  entryReady?: boolean;
 }
 
 export interface TimelineNowFollowState {
   now: Date;
   /** Pause live follow until re-entry or snap-back (week-strip day tap) */
   pauseFollow: () => void;
+  /** N-0024: resume snap-delay follow after drag ends */
+  resumeFollowAfterDrag: () => void;
   scrollToDay: (day: Date, behavior?: ScrollBehavior) => void;
   scrollToNow: (time?: Date, behavior?: ScrollBehavior) => void;
 }
@@ -55,6 +59,7 @@ export function useTimelineNowFollow({
   pauseScrollSync,
   onNowChange,
   entryKey,
+  entryReady = true,
 }: UseTimelineNowFollowOptions): TimelineNowFollowState {
   const [now, setNow] = useState(() => new Date());
 
@@ -70,6 +75,8 @@ export function useTimelineNowFollow({
   const programmaticRef = useRef(false);
   const snapTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const wasActiveRef = useRef(false);
+  const prevActiveRef = useRef(false);
+  const prevEntryReadyRef = useRef(false);
   const lastEntryKeyRef = useRef<string | null>(null);
   const prevSlotsLenRef = useRef(0);
 
@@ -154,8 +161,26 @@ export function useTimelineNowFollow({
     if (snapTimerRef.current) clearTimeout(snapTimerRef.current);
   }, []);
 
+  const resumeFollowAfterDrag = useCallback(() => {
+    if (snapDelaySec <= 0) {
+      userPausedRef.current = false;
+      hasUserScrolledRef.current = false;
+      return;
+    }
+    userPausedRef.current = true;
+    if (snapTimerRef.current) clearTimeout(snapTimerRef.current);
+    snapTimerRef.current = setTimeout(() => {
+      userPausedRef.current = false;
+      hasUserScrolledRef.current = false;
+      scrollToNow(new Date(), "smooth");
+    }, snapDelaySec * 1000);
+  }, [snapDelaySec, scrollToNow]);
+
   // N-0006: snap to now on timeline entry (mount, calendar toggle back, route remount)
   useEffect(() => {
+    const becameActive = active && !prevActiveRef.current;
+    prevActiveRef.current = active;
+
     if (!active) {
       wasActiveRef.current = false;
       lastEntryKeyRef.current = null;
@@ -163,28 +188,61 @@ export function useTimelineNowFollow({
       return;
     }
 
+    const entryReadyEdge = entryReady && !prevEntryReadyRef.current;
+    prevEntryReadyRef.current = entryReady;
+
+    if (!entryReady) return;
+
     if (slots.length === 0) return;
 
     const key = entryKey ?? "default";
-    const isEntry = !wasActiveRef.current || lastEntryKeyRef.current !== key;
+    const isEntry =
+      becameActive ||
+      entryReadyEdge ||
+      !wasActiveRef.current ||
+      lastEntryKeyRef.current !== key;
     const slotsJustReady = prevSlotsLenRef.current === 0 && slots.length > 0;
     prevSlotsLenRef.current = slots.length;
 
-    wasActiveRef.current = true;
-    lastEntryKeyRef.current = key;
     if (!isEntry && !slotsJustReady) return;
 
     const entryNow = new Date();
     publishNow(entryNow);
     userPausedRef.current = false;
     hasUserScrolledRef.current = false;
+
     onEntrySnap?.(entryNow);
 
-    const runSnap = () => scrollToNow(entryNow, "auto");
+    const runSnap = (attempt = 0) => {
+      const el = scrollRef.current;
+      if (!el) {
+        requestAnimationFrame(() => runSnap(attempt));
+        return;
+      }
+
+      const minScrollable = el.scrollHeight - el.clientHeight;
+      if (minScrollable < 100 && attempt < 60) {
+        requestAnimationFrame(() => runSnap(attempt + 1));
+        return;
+      }
+
+      scrollToNow(entryNow, "auto");
+      wasActiveRef.current = true;
+      lastEntryKeyRef.current = key;
+    };
+
     requestAnimationFrame(() => {
       requestAnimationFrame(runSnap);
     });
-  }, [active, entryKey, slots.length, onEntrySnap, scrollToNow, publishNow]);
+  }, [
+    active,
+    entryKey,
+    entryReady,
+    slots.length,
+    onEntrySnap,
+    scrollToNow,
+    publishNow,
+  ]);
 
   // N-0007: clock tick — update now-line only; do not fight user scroll every second
   useEffect(() => {
@@ -240,6 +298,7 @@ export function useTimelineNowFollow({
   return {
     now,
     pauseFollow,
+    resumeFollowAfterDrag,
     scrollToDay,
     scrollToNow,
   };
