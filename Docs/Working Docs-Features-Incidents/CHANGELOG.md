@@ -2,10 +2,24 @@
 
 All notable changes to the Blocks project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [0.0.4] - 2026-06-09
+**Versioning:** date-based releases `vYY.MM.DD` with implementation batches `vYY.MM.DDbX` (e.g. `v26.06.12b1`, `v26.06.12b10`). See [CI_OPS_FRAMEWORK.md](./CI_OPS_FRAMEWORK.md).
+
+## [Unreleased] — Sprint 5 · v26.06.12
+
+### v26.06.12b2 (ready for QA)
+
+- **N-0024**: Pause snap during drag + `resumeFollowAfterDrag`
+- **N-0025**: Schedule Doing lock current; exclude `isEvent` from pack
+- **N-0026**: User events — timeline blocks, all-day strip, GCal overlap, event drag
+- **N-0027**: Continuous scroll calendar replaces month pager; calendar lookback setting
+
+### v26.06.09b1 (shipped 2026-06-09)
+
+- **CI Ops v3**: Date+batch versioning, two-round design phase, `/RD` skill, Sprint 5 alignment
+
+## [v26.06.09] - 2026-06-09 (was 0.0.4)
 
 ### Fixed
 
@@ -18,9 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CI Ops Framework**: Feature registry (`PP.PR.AA.SSS.FFF`), incidents (`B-####`), roadmap (`N-####`), `/NB` + `/NF` skills
 - **CI Ops docs**: [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md), [INCIDENTS.md](./INCIDENTS.md), [ROADMAP.md](./ROADMAP.md), doc polish scripts
 
-## [Unreleased]
-
-## [0.0.3] - 2026-06-09
+## [v26.06.09] - 2026-06-09 (was 0.0.3)
 
 ### Added
 

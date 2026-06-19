@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "name": "blocks-oauth-proxy",
+  "builds": [{ "src": "api/index.mjs", "use": "@vercel/node" }],
+  "routes": [{ "src": "/(.*)", "dest": "api/index.mjs" }]
+}

@@ -81,7 +81,9 @@ export type StorageEventType =
   | "quickblock:updated"
   | "quickblock:deleted"
   | "settings:updated"
-  | "user:updated";
+  | "user:updated"
+  | "calendar:updated"
+  | "calendar:cleared";
 
 export interface StorageEvent {
   type: StorageEventType;

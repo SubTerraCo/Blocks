@@ -3,6 +3,7 @@
 > **Format:** `PP.PR.AA.SSS.FFF` (stable) · `PP.PR.AA.SSS.FFF-III` (incident)  
 > **Lookup:** Ctrl+F `DT.UI.06.001.020` · `B-0003` · `🐛` · `#matrix`  
 > **Incidents:** [INCIDENTS.md](./INCIDENTS.md) · **New work:** [ROADMAP.md](./ROADMAP.md)  
+> **Manual QA:** [MANUAL_TEST_PLAN.md](./MANUAL_TEST_PLAN.md)  
 > **Spec detail:** [ROADMAP.md](./ROADMAP.md) (core specs + N-#### roadmap)
 
 ---
@@ -143,6 +144,10 @@ Migrated from spec § Phase 2 Required Features.
 |      Grouped routines UI       |    ✅     |    —     |    —     |    ✅     |
 |    Midnight timeline clear     |    ✅     |    ✅     |    ✅     |    ✅     |
 |    Remove from timeline (X)    |    ✅     |    ✅     |    ✅     |    ✅     |
+|   Rolling timeline (±7 days)  |    ✅     |    ✅     |    ✅     |    ✅     |
+|   Week strip + scroll sync    |    ✅     |    ✅     |    ✅     |    —     |
+|   Due-date calendar view      |    ✅     |    ✅     |    —     |    —     |
+|   Google Calendar events      |    🔄     |    🔄     |    —     |    ✅     |
 ```
 
 ---
@@ -169,6 +174,7 @@ Migrated from spec § Phase 2 Required Features.
 |         clear_timeline         |    ✅     |    ✅     |    ✅     |
 |      list_timeline_tasks       |    ✅     |    ✅     |    ✅     |
 |         spawn_routine          |    ✅     |    ✅     |    —     |
+|  export_tasks_to_anytype_md    |    ✅     |    —     |    —     |
 ```
 
 ---
@@ -194,6 +200,7 @@ Migrated from spec § Phase 2 Required Features.
 | DT.UI.00.002.010 | Bottom navigation bar            |   ✅    | `navigation.spec.ts` |
 | DT.UI.00.003.010 | Page routing                     |   ✅    | `navigation.spec.ts` |
 | DT.UI.00.004.010 | Keyboard shortcuts               |   ✅    | `keyboard.spec.ts` |
+| DT.UI.00.020.020 | Bottom action row + Kanban pad   |   🔄    | N-0012 · `bottom-action-kanban-clearance.spec.ts` |
 | SH.UI.00.004.010 | useKeyboardShortcuts hook        |   ✅    | `keyboard.spec.ts` |
 
 ---
@@ -220,6 +227,8 @@ Migrated from spec § Phase 2 Required Features.
 | Code             | Feature                          | Health | Playwright                   |
 | ---------------- | -------------------------------- | :----: | ---------------------------- |
 | DT.UI.02.010.010 | 24-hour time display             |   ✅    | `timeline.spec.ts`           |
+| DT.UI.02.010.020 | Week strip (7-day header)        |   ✅    | N-0001 · `timeline-week-strip.spec.ts` |
+| DT.UI.02.010.030 | Scroll-sync week strip           |   ✅    | N-0004 · `timeline-scroll-day-sync.spec.ts` |
 | DT.UI.02.020.010 | Drag-to-reschedule               |   ✅    | `timeline-drag.spec.ts`      |
 | DT.UI.02.030.010 | Doing-only visibility rule       |   ✅    | `timeline-status.spec.ts`    |
 | DT.UI.02.031.010 | Remove from timeline (X)         |   ✅    | B-0012 · -003 · `timeline-card-actions.spec.ts` |
@@ -227,8 +236,26 @@ Migrated from spec § Phase 2 Required Features.
 | DT.UI.02.032.010 | Midnight timeline clear          |   ✅    | `timeline-reset.spec.ts`     |
 | DT.UI.02.033.010 | Grouped routines (RoutineGroups) |   ✅    | `blocks-functionality.spec.ts` |
 | DT.UI.02.034.010 | Active task / timer display      |   ✅    | B-0007 · -002 · `timeline-card-actions.spec.ts` |
+| DT.UI.02.034.020 | Auto-tracking + pause-sync       |   🧪   | N-0008 · B-0014 in progress  |
 | DT.UI.02.035.010 | Schedule doing tasks button      |   ✅    | B-0008 · -001 · `timeline-schedule-fab.spec.ts` |
-| SH.UI.02.040.030 | Timeline bottom action buttons   |   ✅    | B-0010 · -001 · `timeline-bottom-actions.spec.ts` |
+| DT.UI.02.035.020 | Lock current on Schedule Task    |   🔄    | N-0025 · `schedule-doing.spec.ts` |
+| DT.UI.02.037.010 | User events on timeline          |   🔄    | N-0026 |
+| DT.UI.02.040.070 | Pause snap during drag           |   🔄    | N-0024 |
+| DT.UI.02.050.020 | Continuous scroll calendar       |   🔄    | N-0027 (replaces N-0005) |
+| DT.UI.02.036.010 | Google Calendar timeline events  |   🔄    | N-0017 · `timeline-calendar-events.spec.ts` |
+| DT.UI.02.040.010 | Rolling timeline window (±7 days)|   🔄    | N-0003 · B-0018 · `rolling-timeline.spec.ts` |
+| DT.UI.02.040.050 | Timeline entry snap to now       |   🐛    | N-0006 · B-0016 · `timeline-entry-snap.spec.ts` |
+| WB.UI.02.040.050 | Timeline entry snap to now (web) |   🐛    | N-0006 · B-0016 · `timeline-entry-snap.spec.ts` |
+| DT.UI.02.040.060 | Live scroll lock + snap delay    |   ✅    | N-0007 · `timeline-snap-delay.spec.ts` |
+| DT.UI.02.050.010 | Due-date calendar view           |   ✅    | N-0005 · `timeline-calendar-view.spec.ts` |
+| DT.UI.00.010.040 | App tracking chrome              |   🔄    | N-0010 · `tracking-chrome.spec.ts` |
+| DT.UI.00.020.030 | Tracking player row              |   🔄    | N-0013 · `tracking-player-row.spec.ts` |
+| DT.UI.00.020.040 | Add-time stretch menu            |   🔄    | N-0016 · `tracking-add-time-menu.spec.ts` |
+| SH.UI.02.040.030 | Timeline bottom action buttons   |   ✅    | B-0010 · N-0015 · `timeline-bottom-actions.spec.ts` |
+| SH.EN.02.070.010 | Dexie↔Yjs P2P sync bridge        |   🔄    | N-0018 · `dexie-yjs-bridge.spec.ts` |
+| SB.EN.02.036.010 | Calendar sync + merge helpers    |   🔄    | N-0017 · `calendar-merge.spec.ts` |
+| SB.EN.02.040.010 | Rolling timeline engine          |   ✅    | N-0003 · `rolling-timeline.spec.ts` |
+| SB.EN.02.040.070 | Now-bar viewport offset          |   🔄    | N-0014 · B-0018 · `timeline-now-bar-offset.spec.ts` |
 | SB.EN.02.030.010 | Timeline service (core)          |   ✅    | `timeline-status.spec.ts`    |
 | SB.EN.02.032.010 | clearTimelineForNewDay           |   ✅    | `timeline-reset.spec.ts`     |
 | SB.EN.02.033.010 | Routine engine                   |   ✅    | integration                  |
@@ -243,6 +270,7 @@ Migrated from spec § Phase 2 Required Features.
 | ---------------- | -------------------------------- | :----: | -------------- |
 | DT.UI.03.010.010 | Quick block grid                 |   ✅    | `blocks.spec.ts` |
 | DT.UI.03.020.010 | Tap-to-create + placement picker |   ✅    | `blocks.spec.ts` |
+| DT.UI.03.020.020 | Schedule immediately (web tap)   |   🐛    | N-0011 · B-0015 · `blocks-schedule-immediately.spec.ts` |
 | DT.UI.03.030.010 | Edit / reorder blocks            |   ✅    | `blocks.spec.ts` |
 | DT.UI.03.040.010 | Stats bar (duration totals)      |   ✅    | `blocks.spec.ts` |
 
@@ -296,6 +324,11 @@ Migrated from spec § Phase 2 Required Features.
 | ---------------- | --------------------- | :----: | ---------------- |
 | DT.UI.06.002.010 | Work start / end time |   ✅    | `settings.spec.ts` |
 | DT.UI.06.002.020 | Work days selector    |   ✅    | `settings.spec.ts` |
+| DT.UI.06.002.030 | Week start preference |   ✅    | N-0002 · `week-start-settings.spec.ts` |
+| DT.UI.06.002.040 | Timeline snap delay   |   ✅    | N-0007 · `timeline-snap-delay.spec.ts` |
+| DT.UI.06.002.050 | Timeline timer display|   ✅    | N-0009 · `timeline-timer-display-setting.spec.ts` |
+| DT.UI.06.002.060 | Now-bar viewport offset | ✅  | N-0014 · `timeline-now-bar-offset.spec.ts` |
+| DT.UI.06.002.070 | Task Schedule Behavior  | 🔄  | N-0025 · `schedule-doing.spec.ts` |
 
 ### DT.UI.06.003 · Notifications {#dt-ui-06-003}
 
@@ -319,7 +352,28 @@ Migrated from spec § Phase 2 Required Features.
 | ---------------- | ------------------- | :----: | -------------- |
 | DT.UI.06.005.010 | Export JSON         |   ✅    | `export.spec.ts` |
 | DT.UI.06.005.020 | Export CSV          |   ✅    | `export.spec.ts` |
-| DT.UI.06.005.030 | Sync status display |   ✅    | `sync.spec.ts` |
+| DT.UI.06.005.030 | Sync status display |   ✅    | `sync.spec.ts` · `sync-settings-panel.spec.ts` |
+
+### DT.UI.06.007 · Google Calendar {#dt-ui-06-007}
+
+| Code             | Feature                    | Health | Playwright                          |
+| ---------------- | -------------------------- | :----: | ----------------------------------- |
+| DT.UI.06.007.010 | Connect / disconnect Google|   🐛    | B-0017 · `google-calendar-settings.spec.ts` |
+| DT.UI.06.007.020 | Calendar multi-select      |   🔄    | N-0017 · component test             |
+| DT.UI.06.007.030 | Show on timeline toggle    |   🔄    | N-0017 · `google-calendar-settings.spec.ts` |
+| DT.UI.06.007.040 | Manual sync now            |   🔄    | N-0017 · component test             |
+| SB.EN.06.007.010 | Google OAuth token refresh |   🔄    | manual · oauth-proxy                |
+| SB.EN.06.007.020 | Calendar events Dexie cache|   🔄    | N-0017 · `timeline-calendar-events.spec.ts` |
+
+### DT.UI.06.008 · P2P device sync {#dt-ui-06-008}
+
+| Code             | Feature              | Health | Playwright                    |
+| ---------------- | -------------------- | :----: | ----------------------------- |
+| DT.UI.06.008.010 | Enable P2P sync      |   🔄    | N-0018 · `sync-settings-panel.spec.ts` |
+| DT.UI.06.008.020 | Room ID generate/save|   🔄    | N-0018 · `sync-settings-panel.spec.ts` |
+| DT.UI.06.008.030 | Copy room ID         |   🔄    | manual QA                     |
+| DT.BG.06.008.010 | Desktop Google OAuth IPC | 🐛 | B-0017 · `oauth-proxy-health.spec.ts` |
+| CX.EN.06.007.010 | OAuth proxy (PKCE)   |   🐛    | B-0017 · `oauth-proxy-health.spec.ts`   |
 
 ### DT.UI.06.006 · About {#dt-ui-06-006}
 
@@ -347,6 +401,9 @@ Migrated from spec § Phase 2 Required Features.
 | DT.UI.07.010.010 | User identity display  |   ✅    | `profile.spec.ts` |
 | DT.UI.07.020.010 | Stats dashboard        |   ✅    | `profile.spec.ts` |
 | DT.UI.07.030.010 | Productivity analytics |   ✅    | `profile.spec.ts` |
+| DT.UI.07.040.010 | Profile Google connect |   🐛    | B-0017 · `profile-google-auth.spec.ts` |
+| WB.UI.07.040.010 | Profile Google connect (web) | 🔄 | N-0022 · `profile-google-auth.spec.ts` |
+| SH.UI.07.040.010 | ProfileGoogleAccount   |   🔄    | N-0022 · `profile-google-auth.spec.ts` |
 
 ---
 
@@ -365,9 +422,9 @@ Migrated from spec § Phase 2 Required Features.
 
 | Code             | Feature                     | Health | Playwright            |
 | ---------------- | --------------------------- | :----: | --------------------- |
-| SB.EN.08.010.010 | Dexie storage (v3 routines) |   ✅    | `storage.spec.ts`     |
+| SB.EN.08.010.010 | Dexie storage (v4 calendar) |   🔄    | `storage.spec.ts`     |
 | SB.EN.08.020.010 | Task engine                 |   ✅    | integration           |
-| SB.EN.08.040.010 | P2P sync (Yjs/WebRTC)       |   ✅    | `sync.spec.ts`        |
+| SB.EN.08.040.010 | P2P sync (Yjs/WebRTC)       |   🔄    | N-0018 · `sync.spec.ts` · `dexie-yjs-bridge.spec.ts` |
 | SB.EN.08.050.010 | Notification engine         |   ✅    | `notifications.spec.ts` |
 
 ---
@@ -382,6 +439,8 @@ Migrated from spec § Phase 2 Required Features.
 | MC.EN.01.120.030 | clear_timeline        |   ✅    | manual / MCP |
 | MC.EN.01.130.010 | spawn_routine         |   ✅    | manual / MCP |
 | MC.EN.02.100.010 | File-backed MCP store |   ✅    | manual       |
+| MC.EN.02.110.010 | export_tasks_to_anytype_markdown | 🔄 | N-0019 · `mcp-export-store.spec.ts` |
+| MC.EN.02.120.010 | Dexie export mode     |   🔄    | N-0019 · manual / MCP config |
 
 ---
 

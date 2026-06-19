@@ -1,0 +1,59 @@
+name: Daily Dev Push
+
+# CI Ops §12 — nightly merge → build:release → push origin/dev
+# Schedule: 23:00 MST = 06:00 UTC (MST = UTC-7). During MDT (summer), use 0 5 * * * for 23:00 local.
+# Manual: Actions → Daily Dev Push → Run workflow
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: "Release branch to merge into dev (default today's vYY.MM.DD)"
+        required: false
+        default: ""
+      skip_build:
+        description: "Skip build:release (commit/push only)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  nightly-dev-push:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Configure git
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Nightly merge, build, and push to dev
+        shell: bash
+        env:
+          DAILY_PUSH_BRANCH: dev
+          DAILY_PUSH_SOURCE_BRANCH: ${{ github.event.inputs.source_branch || vars.DAILY_PUSH_SOURCE_BRANCH || '' }}
+        run: |
+          ARGS=""
+          if [ "${{ github.event.inputs.skip_build }}" = "true" ]; then
+            ARGS="--skip-build"
+          fi
+          node scripts/daily-dev-push.mjs $ARGS

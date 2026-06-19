@@ -1,0 +1,55 @@
+{
+  "builds": [
+    {
+      "batch": "v26.06.12b3",
+      "release": "v26.06.12",
+      "displayVersion": "v26.06.12b3",
+      "npmVersion": "26.6.12-b3",
+      "builtAt": "2026-06-09T00:00:00.000Z",
+      "gitSha": null,
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.6.12-b3.exe",
+      "note": "Backfilled — batch built before build-log guard existed"
+    },
+    {
+      "batch": "v26.06.13b1",
+      "release": "v26.06.13",
+      "displayVersion": "v26.06.13b1",
+      "npmVersion": "26.6.13-b1",
+      "builtAt": "2026-06-13T21:44:37.485Z",
+      "gitSha": "a0c5f4a",
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.6.13-b1.exe"
+    },
+    {
+      "batch": "v26.06.14b1",
+      "release": "v26.06.14",
+      "displayVersion": "v26.06.14b1",
+      "npmVersion": "26.6.14-b1",
+      "builtAt": "2026-06-14T20:47:23.073Z",
+      "gitSha": "a0c5f4a",
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.6.14-b1.exe"
+    },
+    {
+      "batch": "v26.06.14b2",
+      "release": "v26.06.14",
+      "displayVersion": "v26.06.14b2",
+      "npmVersion": "26.6.14-b2",
+      "builtAt": "2026-06-14T20:56:27.445Z",
+      "gitSha": "a0c5f4a",
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.6.14-b2.exe"
+    },
+    {
+      "batch": "v26.06.14b3",
+      "release": "v26.06.14",
+      "displayVersion": "v26.06.14b3",
+      "npmVersion": "26.6.14-b3",
+      "builtAt": "2026-06-15T03:21:15.430Z",
+      "gitSha": "a0c5f4a",
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.6.14-b3.exe"
+    }
+  ]
+}

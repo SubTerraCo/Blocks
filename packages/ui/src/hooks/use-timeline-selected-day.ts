@@ -7,6 +7,8 @@ const STORAGE_KEY = "blocks:timelineSelectedDay";
 
 export function useTimelineSelectedDay(defaultDate: Date = new Date()) {
   const [selectedDay, setSelectedDayState] = useState<Date>(() => startOfDay(defaultDate));
+  const [hydrated, setHydrated] = useState(false);
+  const [hasStoredSelection, setHasStoredSelection] = useState(false);
 
   useEffect(() => {
     try {
@@ -15,10 +17,13 @@ export function useTimelineSelectedDay(defaultDate: Date = new Date()) {
         const parsed = new Date(raw);
         if (!Number.isNaN(parsed.getTime())) {
           setSelectedDayState(startOfDay(parsed));
+          setHasStoredSelection(true);
         }
       }
     } catch {
       // ignore
+    } finally {
+      setHydrated(true);
     }
   }, []);
 
@@ -32,5 +37,11 @@ export function useTimelineSelectedDay(defaultDate: Date = new Date()) {
     }
   }, []);
 
-  return { selectedDay, setSelectedDay, selectedDayKey: formatDayKey(selectedDay) };
+  return {
+    selectedDay,
+    setSelectedDay,
+    selectedDayKey: formatDayKey(selectedDay),
+    hydrated,
+    hasStoredSelection,
+  };
 }

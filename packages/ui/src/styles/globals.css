@@ -15,10 +15,12 @@
   --bg-elevated: #1e1e32;
   
   /* Accent */
-  --accent-magenta: #9b4dca;
+  --accent-primary: #9b4dca;
+  --accent-secondary: #00bcd4;
+  --accent-magenta: var(--accent-primary);
   --accent-magenta-light: #b366d9;
   --accent-magenta-dark: #7a3da1;
-  --accent-teal: #00bcd4;
+  --accent-teal: var(--accent-secondary);
   --accent-teal-light: #26c6da;
   --accent-teal-dark: #00acc1;
   

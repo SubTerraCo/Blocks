@@ -41,7 +41,7 @@ flowchart TB
 
   subgraph mcpServers [MCP Servers]
     AnytypeMCP["@anyproto/anytype-mcp"]
-    BlocksMCP["blocks-mcp future"]
+    BlocksMCP["@blocks/mcp-server"]
     BillBotMCP["billbot-mcp future"]
     MailbotMCP["mailbot-mcp future"]
   end
@@ -59,7 +59,7 @@ flowchart TB
   Hermes --> BillBotMCP
   Hermes --> MailbotMCP
   AnytypeMCP --> AnytypeDB
-  BlocksMCP --> BlocksDB
+  BlocksMCP -->|"file or export JSON"| BlocksDB
 ```
 
 ## Integration Phases
@@ -77,7 +77,20 @@ flowchart TB
 ### Phase C — Cross-Bot Workflows (v0.1.0)
 - [ ] BillBot MCP: invoice status, create invoice
 - [ ] Mailbot MCP: summarize inbox, triage
-- [ ] Poe orchestration prompts: "Plan my day from Anytype + Blocks"
+- [x] Plan-day agent recipe (Sprint 5): Anytype MCP lists notes → Blocks MCP schedules around calendar gaps
+
+#### Plan my day (agent recipe)
+
+1. **Anytype MCP:** List today's tasks/notes from your daily space.
+2. **Blocks MCP:** `list_timeline_tasks` + `export_tasks_to_anytype_markdown` for context.
+3. **Google Calendar:** User timeline already shows cached events (read-only).
+4. **Agent:** Propose Blocks tasks in free slots; use `add_to_timeline` via Blocks MCP.
+
+Use `BLOCKS_MCP_MODE=export` with a Desktop JSON export for agents to see real user data. See [INTEGRATIONS_BLOCKS_MCP.md](./INTEGRATIONS_BLOCKS_MCP.md).
+
+### AnySync (v0.1+ spike — out of Sprint 5 scope)
+
+[AnySync](https://github.com/anyproto/any-sync) is MIT-licensed but requires Go middleware (`anytype-heart`) and sync infrastructure. Sprint 5 ships **Yjs P2P** instead. Evaluate AnySync for bidirectional Anytype object sync in v0.1+.
 
 ## Hermes vs Cursor: Who Does What?
 
@@ -85,7 +98,7 @@ flowchart TB
 |---------|------|
 | Model access + billing | Hermes with Cursor provider OR Cursor directly |
 | Anytype read/write | `@anyproto/anytype-mcp` |
-| Blocks task ops | Future `blocks-mcp` |
+| Blocks task ops | `@blocks/mcp-server` (file or export mode) |
 | Dev-time coding | Cursor IDE |
 | Runtime home assistant | Hermes Agent (Poe) |
 

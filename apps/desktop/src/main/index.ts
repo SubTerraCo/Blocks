@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, dialog, globalShortcut, powerMonitor } from "electron";
 import path from "path";
+import { readFileSync } from "fs";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
 
@@ -25,6 +26,20 @@ let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isAppQuitting = false;
 let updateDownloaded = false;
+
+/** User-facing version (v26.06.12b2); npm semver stays in app.getVersion() for updates */
+function getBlocksDisplayVersion(): string {
+  try {
+    const pkgPath = path.join(app.getAppPath(), "package.json");
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as {
+      blocksVersion?: string;
+      version?: string;
+    };
+    return pkg.blocksVersion ?? pkg.version ?? app.getVersion();
+  } catch {
+    return app.getVersion();
+  }
+}
 
 /** @deprecated N-0003 rolling timeline — midnight auto-clear disabled */
 function scheduleMidnightTimelineClear() {
@@ -306,7 +321,7 @@ function createTray() {
     },
     { type: "separator" },
     {
-      label: `Version ${app.getVersion()}`,
+      label: `Version ${getBlocksDisplayVersion()}`,
       enabled: false,
     },
     {
@@ -318,7 +333,7 @@ function createTray() {
     },
   ]);
 
-  tray.setToolTip(`Blocks v${app.getVersion()}`);
+  tray.setToolTip(`Blocks ${getBlocksDisplayVersion()}`);
   tray.setContextMenu(contextMenu);
 
   tray.on("click", () => {
@@ -353,7 +368,7 @@ function setupIpcHandlers() {
 
   // App info
   ipcMain.handle("app:getVersion", () => {
-    return app.getVersion();
+    return getBlocksDisplayVersion();
   });
 
   ipcMain.handle("app:getPlatform", () => {
@@ -441,7 +456,7 @@ function setupIpcHandlers() {
 // App Lifecycle
 // =============================================================================
 app.whenReady().then(() => {
-  log.info(`Blocks v${app.getVersion()} starting...`);
+  log.info(`Blocks ${getBlocksDisplayVersion()} starting...`);
   
   setupIpcHandlers();
   createWindow();

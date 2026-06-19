@@ -8,8 +8,12 @@ export const TIMELINE_BOTTOM_ACTION_BTN =
 export const TIMELINE_BOTTOM_ACTION_BTN_SM =
   "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-magenta text-white shadow-md transition-all hover:bg-accent-magenta/90 disabled:opacity-50";
 
-/** Fixed row above bottom nav — h-16 nav + ~12px cushion (B-0013) */
+/** Fixed row above bottom nav — h-16 nav + ~12px cushion (B-0013 · N-0044) */
 export const TIMELINE_BOTTOM_ACTION_FIXED = "fixed bottom-[calc(4rem+12px)] z-20";
+
+/** Three-column task edit footer — Cancel | tracking | Save (N-0044) */
+export const TASK_EDIT_BOTTOM_BAR =
+  "fixed bottom-[calc(4rem+12px)] left-4 right-4 z-20 flex items-center gap-3";
 
 /** Centered tracking player cluster — items-center; add-time menu is out-of-flow (B-0013-003) */
 export const TIMELINE_TRACKING_PLAYER_ROW =

@@ -1,6 +1,37 @@
 import { calculateDuration } from "../types";
 import type { Task } from "../types";
 import { getDownstreamTimelineTasks } from "./timeline-scroll";
+import { isSameCalendarDay } from "./timeline-service";
+import { startOfDay } from "./timeline-window";
+
+/** N-0037 · Next scheduled doing task on today's timeline after anchor task ends. */
+export function getNextScheduledTimelineTask(
+  tasks: Task[],
+  anchorTaskId: string,
+): Task | null {
+  const anchor = tasks.find((t) => t.id === anchorTaskId);
+  if (!anchor?.scheduledAt) return null;
+
+  const today = startOfDay(new Date());
+  const anchorEndMs =
+    new Date(anchor.scheduledAt).getTime() + getTaskDurationMinutes(anchor) * 60_000;
+
+  const candidates = tasks
+    .filter(
+      (t) =>
+        t.id !== anchorTaskId &&
+        t.status === "doing" &&
+        t.scheduledAt &&
+        isSameCalendarDay(new Date(t.scheduledAt), today),
+    )
+    .filter((t) => new Date(t.scheduledAt!).getTime() >= anchorEndMs)
+    .sort(
+      (a, b) =>
+        new Date(a.scheduledAt!).getTime() - new Date(b.scheduledAt!).getTime(),
+    );
+
+  return candidates[0] ?? null;
+}
 
 /** Minutes for a task (blockSize × blockCount or duration override). */
 export function getTaskDurationMinutes(task: Task): number {

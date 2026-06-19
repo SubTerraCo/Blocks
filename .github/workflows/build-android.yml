@@ -56,9 +56,12 @@ jobs:
         env:
           EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
         run: |
+          # Check if project is already configured
           if grep -q "projectId" app.json 2>/dev/null; then
-            echo "EAS project already configured in app.json"
+            echo "✅ EAS project already configured in app.json"
           elif [ -n "$EAS_PROJECT_ID" ]; then
+            echo "📝 Configuring EAS with project ID from secrets..."
+            # Add projectId to app.json using Node.js
             node -e "
               const fs = require('fs');
               const config = JSON.parse(fs.readFileSync('app.json'));
@@ -66,9 +69,17 @@ jobs:
               config.expo.extra.eas = config.expo.extra.eas || {};
               config.expo.extra.eas.projectId = '$EAS_PROJECT_ID';
               fs.writeFileSync('app.json', JSON.stringify(config, null, 2));
+              console.log('✅ Added projectId to app.json');
             "
           else
-            echo "EAS project not configured. Run 'cd apps/mobile && eas init' locally."
+            echo "⚠️ EAS project not configured and no EAS_PROJECT_ID secret found."
+            echo "Please run 'cd apps/mobile && eas init' locally and commit the changes,"
+            echo "OR add EAS_PROJECT_ID to your GitHub repository secrets."
+            echo ""
+            echo "To get your project ID:"
+            echo "1. Run: cd apps/mobile && eas init"
+            echo "2. The projectId will be added to app.json"
+            echo "3. Copy the projectId value and add it as a GitHub secret named EAS_PROJECT_ID"
             exit 1
           fi
 
@@ -76,9 +87,15 @@ jobs:
         id: eas-build
         working-directory: apps/mobile
         run: |
+          # Start EAS build and wait for completion
           BUILD_OUTPUT=$(eas build --platform android --profile ${{ inputs.profile || 'preview' }} --non-interactive --json)
+          echo "build_output=$BUILD_OUTPUT" >> $GITHUB_OUTPUT
+          
+          # Extract build URL
           BUILD_URL=$(echo "$BUILD_OUTPUT" | jq -r '.[0].artifacts.buildUrl // empty')
           echo "build_url=$BUILD_URL" >> $GITHUB_OUTPUT
+          
+          # Download APK if URL exists
           if [ -n "$BUILD_URL" ]; then
             curl -L -o blocks-${{ inputs.profile || 'preview' }}.apk "$BUILD_URL"
             echo "apk_downloaded=true" >> $GITHUB_OUTPUT
@@ -93,3 +110,45 @@ jobs:
           name: blocks-android-${{ inputs.profile || 'preview' }}-v${{ steps.version.outputs.version }}
           path: apps/mobile/*.apk
           retention-days: 90
+
+      - name: Create GitHub Release
+        if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') && steps.eas-build.outputs.apk_downloaded == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}-android
+          name: Blocks Android v${{ steps.version.outputs.version }}
+          body: |
+            ## 📱 Blocks Android App v${{ steps.version.outputs.version }}
+            
+            ### Download & Install
+            1. Download `blocks-preview.apk` from the **Assets** section below
+            2. On your Android device, enable "Install from unknown sources" in Settings > Security
+            3. Open the downloaded APK file to install
+            
+            ### What's Included
+            - ✅ Kanban board for task management
+            - ✅ Timeline view for daily scheduling
+            - ✅ Quick Blocks for immediate tasks
+            - ✅ AI assistant integration
+            - ✅ Dark/Light theme support
+            
+            ### Build Info
+            - Profile: ${{ inputs.profile || 'preview' }}
+            - Commit: ${{ github.sha }}
+            - Built: ${{ github.event.head_commit.timestamp }}
+          files: apps/mobile/*.apk
+          draft: false
+          prerelease: ${{ inputs.profile != 'production' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment build status
+        if: always()
+        run: |
+          if [ "${{ steps.eas-build.outputs.apk_downloaded }}" == "true" ]; then
+            echo "✅ APK built successfully and uploaded!"
+            echo "📥 Download from GitHub Actions artifacts or Releases page"
+          else
+            echo "⚠️ Build completed but APK download may have failed"
+            echo "🔗 Check EAS dashboard for manual download: https://expo.dev"
+          fi

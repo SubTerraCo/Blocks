@@ -11,7 +11,7 @@ async function expectAccentSquareButton(locator: Locator) {
   expect((await locator.innerText()).trim()).toBe("");
 }
 
-test.describe("SH.UI.02.040 · Timeline bottom actions @B-0010", () => {
+test.describe("SH.UI.02.040 · Timeline bottom actions @N-0010 @N-0015 @B-0010", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/timeline");
     await expect(page.getByTestId("rolling-timeline")).toBeVisible();

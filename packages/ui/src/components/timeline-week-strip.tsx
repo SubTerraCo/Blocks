@@ -4,6 +4,9 @@ import { isSameCalendarDay, type WeekStartsOn } from "@blocks/core";
 import { useLayoutEffect, useRef, useState } from "react";
 import { cn } from "../lib/utils";
 
+/** Calendar gutter width — matches Month/Today column in week strip (N-0042). */
+export const CALENDAR_GUTTER_CLASS = "w-10 shrink-0";
+
 export interface TimelineWeekStripProps {
   days: Date[];
   selectedDay: Date;
@@ -14,6 +17,8 @@ export interface TimelineWeekStripProps {
   weekStartsOn?: WeekStartsOn;
   onSelectDay: (day: Date) => void;
   onJumpToToday?: () => void;
+  /** N-0034 · Left gutter: month abbrev stacked above Today */
+  gutter?: { monthAbbrev: string };
   className?: string;
 }
 
@@ -24,6 +29,7 @@ export function TimelineWeekStrip({
   isScrollTransitioning = false,
   onSelectDay,
   onJumpToToday,
+  gutter,
   className,
 }: TimelineWeekStripProps) {
   const today = new Date();
@@ -67,15 +73,37 @@ export function TimelineWeekStrip({
       data-scroll-transitioning={isScrollTransitioning ? "true" : "false"}
       data-selection-offset={effectiveOffset.toFixed(3)}
     >
-      {onJumpToToday && (
-        <button
-          type="button"
-          data-testid="timeline-jump-today"
-          onClick={onJumpToToday}
-          className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-accent-magenta hover:bg-bg-tertiary"
+      {gutter && onJumpToToday ? (
+        <div
+          className={cn(
+            "flex flex-col items-center justify-center gap-0.5 border-r border-border-default/60 pr-2",
+            CALENDAR_GUTTER_CLASS,
+          )}
+          data-testid="calendar-strip-gutter"
         >
-          Today
-        </button>
+          <span className="text-[10px] font-bold uppercase tracking-wide text-text-tertiary">
+            {gutter.monthAbbrev}
+          </span>
+          <button
+            type="button"
+            data-testid="timeline-jump-today"
+            onClick={onJumpToToday}
+            className="rounded px-1 py-0.5 text-[10px] font-semibold text-accent-magenta hover:bg-bg-tertiary"
+          >
+            Today
+          </button>
+        </div>
+      ) : (
+        onJumpToToday && (
+          <button
+            type="button"
+            data-testid="timeline-jump-today"
+            onClick={onJumpToToday}
+            className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-accent-magenta hover:bg-bg-tertiary"
+          >
+            Today
+          </button>
+        )
       )}
       <div ref={rowRef} className="relative flex flex-1 gap-1">
         {showIndicator && (

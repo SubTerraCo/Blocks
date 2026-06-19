@@ -2,7 +2,10 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { BottomNav, TopBar, type NavItem, useTaskStore, useSettingsStore, useQuickBlocksStore, ThemeSync } from "@blocks/ui";
+import { 
+  BottomNav, TopBar, type NavItem, useTaskStore, useSettingsStore, useQuickBlocksStore, exitToTimelineView,
+  AccentSync, ThemeSync,
+} from "@blocks/ui";
 
 const routeToNav: Record<string, NavItem> = {
   "/ai": "search",
@@ -38,6 +41,7 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const path = pathname ?? "/";
   
   // Initialize stores on mount
   const loadTasks = useTaskStore((state) => state.loadTasks);
@@ -56,16 +60,14 @@ export function AppShell({ children }: AppShellProps) {
     void initializeApp();
   }, [loadTasks, loadSettings, loadBlocks, initializeDefaultBlocks]);
 
-  const currentPath = pathname ?? "/";
-  const activeNav = routeToNav[currentPath] ?? "timeline";
-  const title = routeTitles[currentPath] ?? "Blocks";
-  const showBackButton =
-    currentPath === "/add-task" ||
-    currentPath === "/settings" ||
-    currentPath === "/profile" ||
-    currentPath.startsWith("/edit-task");
+  const activeNav = routeToNav[path] ?? "timeline";
+  const title = routeTitles[path] ?? "Blocks";
+  const showBackButton = path === "/add-task" || path === "/settings" || path === "/profile" || path.startsWith("/edit-task");
 
   const handleNavPress = (item: NavItem) => {
+    if (item === "timeline") {
+      exitToTimelineView();
+    }
     router.push(navToRoute[item]);
   };
 
@@ -84,6 +86,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <ThemeSync />
+      <AccentSync />
       <TopBar
         title={title}
         showBackButton={showBackButton}
@@ -92,7 +95,7 @@ export function AppShell({ children }: AppShellProps) {
         onProfilePress={handleProfilePress}
       />
       
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden pt-bar pb-nav">
+      <main className="flex-1 pt-bar pb-nav overflow-auto">
         {children}
       </main>
 

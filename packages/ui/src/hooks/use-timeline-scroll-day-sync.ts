@@ -11,13 +11,12 @@ import {
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 
 export interface TimelineScrollDaySyncState {
-  /** Fractional index (0–6) for the sliding week-strip indicator */
   selectionOffset: number;
   isTransitioning: boolean;
-  /** Week strip days anchored to the scroll-visible day */
   stripDays: Date[];
-  /** Pause scroll-driven updates during programmatic scroll (ms) */
   pauseSync: (ms?: number) => void;
+  /** Snap week-strip indicator to an explicitly chosen day (click / persisted restore) */
+  alignSelectionToDay: (day: Date) => void;
 }
 
 export function useTimelineScrollDaySync(
@@ -25,7 +24,6 @@ export function useTimelineScrollDaySync(
   selectedDay: Date,
   weekStartsOn: WeekStartsOn,
   setSelectedDay: (day: Date) => void,
-  /** When false (e.g. calendar view), listeners detach; true rebinds on remount — B-0004 */
   active = true,
 ): TimelineScrollDaySyncState {
   const skipSyncRef = useRef(false);
@@ -45,9 +43,23 @@ export function useTimelineScrollDaySync(
     }, ms);
   }, []);
 
+  const alignSelectionToDay = useCallback(
+    (day: Date) => {
+      const days = getWeekStripDays(day, weekStartsOn);
+      setStripDays(days);
+      const index = days.findIndex((d) => formatDayKey(d) === formatDayKey(day));
+      if (index >= 0) {
+        setSelectionOffset(index);
+        setIsTransitioning(false);
+        lastLockedDayRef.current = formatDayKey(day);
+      }
+    },
+    [weekStartsOn],
+  );
+
   const update = useCallback(() => {
     const container = scrollRef.current;
-    if (!container || skipSyncRef.current) return;
+    if (!container) return;
 
     const viewportHeight = container.clientHeight;
     const containerTop = container.getBoundingClientRect().top;
@@ -65,16 +77,22 @@ export function useTimelineScrollDaySync(
     if (!progress) return;
 
     const anchorDay = dayKeyToDate(
-      progress.progress >= 0.5 ? progress.toDayKey : progress.fromDayKey,
+      progress.isTransitioning
+        ? progress.fromDayKey
+        : progress.progress >= 0.5
+          ? progress.toDayKey
+          : progress.fromDayKey,
     );
     const days = getWeekStripDays(anchorDay, weekStartsOn);
     const offset = weekStripSelectionOffset(days, progress);
 
-    if (offset === null) return;
-
     setStripDays(days);
-    setSelectionOffset(offset);
     setIsTransitioning(progress.isTransitioning);
+    if (offset !== null) {
+      setSelectionOffset(offset);
+    }
+
+    if (skipSyncRef.current) return;
 
     if (!progress.isTransitioning && progress.progress >= 1) {
       if (lastLockedDayRef.current !== progress.toDayKey) {
@@ -92,13 +110,8 @@ export function useTimelineScrollDaySync(
   useEffect(() => {
     lastLockedDayRef.current = formatDayKey(selectedDay);
     if (!skipSyncRef.current) return;
-    const days = getWeekStripDays(selectedDay, weekStartsOn);
-    setStripDays(days);
-    const index = days.findIndex((d) => formatDayKey(d) === formatDayKey(selectedDay));
-    if (index >= 0) {
-      setSelectionOffset(index);
-    }
-  }, [selectedDay, weekStartsOn]);
+    alignSelectionToDay(selectedDay);
+  }, [selectedDay, alignSelectionToDay]);
 
   useEffect(() => {
     if (!active) return;
@@ -108,6 +121,7 @@ export function useTimelineScrollDaySync(
     let observer: ResizeObserver | null = null;
 
     const onScroll = () => {
+      update();
       if (rafRef.current !== undefined) cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(update);
     };
@@ -137,5 +151,5 @@ export function useTimelineScrollDaySync(
     };
   }, [scrollRef, update, active]);
 
-  return { selectionOffset, isTransitioning, stripDays, pauseSync };
+  return { selectionOffset, isTransitioning, stripDays, pauseSync, alignSelectionToDay };
 }

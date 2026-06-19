@@ -2,6 +2,9 @@ appId: com.blocks.app
 productName: Blocks
 copyright: Copyright © 2024 Blocks Team
 
+# pnpm hoists electron to repo root; pin version for electron-builder
+electronVersion: 28.1.0
+
 # Version is read from package.json
 asar: true
 compression: maximum
@@ -86,6 +89,12 @@ linux:
 # =============================================================================
 # Auto-Update Configuration (GitHub Releases)
 # =============================================================================
+protocols:
+  - name: Blocks OAuth
+    role: Editor
+    schemes:
+      - blocks
+
 publish:
   provider: github
   owner: PoweredUpLabs

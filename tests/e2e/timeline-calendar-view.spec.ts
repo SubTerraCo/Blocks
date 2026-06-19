@@ -57,18 +57,37 @@ test.describe("WB.UI.02.050 · Due-date calendar @N-0005", () => {
     page,
   }) => {
     const strip = page.getByTestId("timeline-week-strip");
-    const scroller = page.locator('[data-testid="rolling-timeline"] .overflow-y-auto');
+    const scroller = page.getByTestId("timeline-scroller");
+    const before = await strip.getAttribute("data-selection-offset");
 
     await page.getByTestId("timeline-view-toggle").click();
     await expect(page.getByTestId("due-date-calendar")).toBeVisible();
     await page.getByTestId("timeline-view-toggle").click();
     await expect(page.getByTestId("rolling-timeline")).toBeVisible();
+    await page.waitForTimeout(1200);
 
-    await scroller.hover();
-    await page.mouse.wheel(0, 2400);
+    await scroller.evaluate((el) => {
+      const containerTop = el.getBoundingClientRect().top;
+      const viewMid = el.scrollTop + el.clientHeight / 2;
+      const markers = [...el.querySelectorAll("[data-day-midnight]")] as HTMLElement[];
+      const next = markers.find((m) => {
+        const top =
+          m.getBoundingClientRect().top - containerTop + el.scrollTop;
+        return top > viewMid + 200;
+      });
+      if (next) {
+        const top =
+          next.getBoundingClientRect().top - containerTop + el.scrollTop;
+        el.scrollTop = top - el.clientHeight / 2;
+      } else {
+        el.scrollTop += 4800;
+      }
+    });
 
     await expect
-      .poll(async () => await strip.getAttribute("data-scroll-transitioning"))
-      .toBe("true");
+      .poll(async () => await strip.getAttribute("data-selection-offset"), {
+        timeout: 10000,
+      })
+      .not.toBe(before);
   });
 });

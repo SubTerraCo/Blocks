@@ -4,7 +4,6 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
-  Clock,
   Pause,
   Play,
   SkipBack,
@@ -19,27 +18,26 @@ import {
 } from "@blocks/ui";
 import {
   buildDownstreamScheduleShiftUpdates,
+  getNextScheduledTimelineTask,
   getRemainingTimelineSlotMs,
   getTaskDurationMinutes,
 } from "@blocks/core";
 import { useTimerStore, formatTimerDisplay } from "../hooks/useTimerStore";
 
-const SETTINGS_KEY = "blocks-settings";
 /** Top → bottom: +30 … +5 (N-0016) */
 const TIME_ADD_OPTIONS = [30, 15, 10, 5] as const;
 const DOUBLE_TAP_MS = 600;
 
-export function loadTimelineTimerDisplayMode(): "elapsed" | "remaining" {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as { timelineTimerDisplayMode?: string };
-      if (parsed.timelineTimerDisplayMode === "remaining") return "remaining";
-    }
-  } catch {
-    // ignore
-  }
-  return "elapsed";
+function splitClockAtColon(label: string): { prefix: string; hours: string; rest: string } {
+  const prefix = label.startsWith("+") ? "+" : "";
+  const body = prefix ? label.slice(1) : label;
+  const colonIdx = body.indexOf(":");
+  if (colonIdx < 0) return { prefix, hours: body, rest: "" };
+  return {
+    prefix,
+    hours: body.slice(0, colonIdx),
+    rest: body.slice(colonIdx + 1),
+  };
 }
 
 function useTrackingTimerDisplay() {
@@ -47,40 +45,23 @@ function useTrackingTimerDisplay() {
     activeTaskId,
     isRunning,
     isPaused,
-    getElapsedTime,
     getRemainingTime,
   } = useTimerStore();
-  const [displayMode, setDisplayMode] = useState(loadTimelineTimerDisplayMode);
-  const [elapsed, setElapsed] = useState(0);
+  const [, setTick] = useState(0);
 
   const isTracking = !!activeTaskId && (isRunning || isPaused);
 
   useEffect(() => {
-    const onSettingsChange = () => setDisplayMode(loadTimelineTimerDisplayMode());
-    window.addEventListener("storage", onSettingsChange);
-    window.addEventListener("blocks-settings-changed", onSettingsChange);
-    return () => {
-      window.removeEventListener("storage", onSettingsChange);
-      window.removeEventListener("blocks-settings-changed", onSettingsChange);
-    };
-  }, []);
-
-  useEffect(() => {
     if (!isTracking) return;
-    const tick = () => setElapsed(getElapsedTime());
-    tick();
-    const interval = setInterval(tick, 1000);
+    const interval = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(interval);
-  }, [isTracking, isRunning, isPaused, getElapsedTime]);
+  }, [isTracking, isRunning, isPaused]);
 
   const remaining = isTracking ? getRemainingTime() : 0;
   const isOvertime = remaining < 0;
-  const showRemaining = displayMode === "remaining";
-  const displayMs = showRemaining ? Math.max(0, remaining) : elapsed;
-  const clockLabel = showRemaining
-    ? isOvertime
-      ? `+${formatTimerDisplay(Math.abs(remaining))}`
-      : formatTimerDisplay(displayMs)
+  const displayMs = Math.max(0, remaining);
+  const clockLabel = isOvertime
+    ? `+${formatTimerDisplay(Math.abs(remaining))}`
     : formatTimerDisplay(displayMs);
 
   return {
@@ -88,50 +69,104 @@ function useTrackingTimerDisplay() {
     isRunning,
     isPaused,
     activeTaskId,
-    showRemaining,
     isOvertime,
     clockLabel,
+    /** N-0043 · remaining-only countdown */
+    clockColorClass: "text-red-500",
   };
 }
 
-/** Replaces page title in app header while a task is being tracked */
-export function AppTrackingClock() {
-  const { isTracking, isRunning, showRemaining, isOvertime, clockLabel } =
-    useTrackingTimerDisplay();
+function HeaderTaskChip({
+  label,
+  taskName,
+  side,
+  onClick,
+}: {
+  label: string;
+  taskName: string;
+  side: "left" | "right";
+  onClick?: () => void;
+}) {
+  const Wrapper = onClick ? "button" : "div";
+  return (
+    <Wrapper
+      type={onClick ? "button" : undefined}
+      onClick={onClick}
+      className={cn(
+        "flex max-w-[8rem] min-w-0 flex-col truncate sm:max-w-[10rem]",
+        side === "left" ? "items-end text-right" : "items-start text-left",
+        onClick && "hover:opacity-80",
+      )}
+      data-testid={`app-tracking-${side}-task`}
+    >
+      <span className="text-[10px] font-medium uppercase tracking-wide text-text-muted">
+        {label}
+      </span>
+      <span className="truncate text-xs font-medium text-text-primary">{taskName}</span>
+    </Wrapper>
+  );
+}
 
-  if (!isTracking) return null;
+/** Replaces page title in app header while a task is being tracked (N-0036 · N-0037). */
+export function AppTrackingClock({ onEditTask }: { onEditTask?: (taskId: string) => void }) {
+  const { isTracking, activeTaskId, clockLabel, clockColorClass } =
+    useTrackingTimerDisplay();
+  const tasks = useTaskStore((s) => s.tasks);
+
+  if (!isTracking || !activeTaskId) return null;
+
+  const activeTask = tasks.find((t) => t.id === activeTaskId);
+  const nextTask = getNextScheduledTimelineTask(tasks, activeTaskId);
+  const { prefix, hours, rest } = splitClockAtColon(clockLabel);
 
   return (
     <div
-      className="flex items-center justify-center gap-2.5"
+      className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2"
       data-testid="app-tracking-clock"
     >
-      <Clock
+      <div className="flex min-w-0 justify-end">
+        <HeaderTaskChip
+          label="Now"
+          taskName={activeTask?.name ?? "—"}
+          side="left"
+          onClick={activeTask && onEditTask ? () => onEditTask(activeTask.id) : undefined}
+        />
+      </div>
+      <div
         className={cn(
-          "h-5 w-5 text-accent-magenta",
-          isRunning && "animate-pulse",
-        )}
-      />
-      <span
-        className={cn(
-          "font-mono text-2xl font-bold tabular-nums tracking-tight text-text-primary",
-          showRemaining && isOvertime && "text-status-warning",
+          "flex items-baseline justify-center font-mono text-2xl font-bold tabular-nums tracking-tight",
+          clockColorClass,
         )}
         data-testid="app-tracking-clock-value"
       >
-        {clockLabel}
-      </span>
-      <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
-        {showRemaining ? "left" : isRunning ? "elapsed" : "paused"}
-      </span>
+        {prefix && <span>{prefix}</span>}
+        <span>{hours}</span>
+        <span className="px-px">:</span>
+        <span>{rest}</span>
+      </div>
+      <div className="flex min-w-0 justify-start">
+        <HeaderTaskChip
+          label="Next"
+          taskName={nextTask?.name ?? "—"}
+          side="right"
+          onClick={nextTask && onEditTask ? () => onEditTask(nextTask.id) : undefined}
+        />
+      </div>
     </div>
   );
 }
 
 /**
  * Music-player row: extend time (prev) · pause/resume · complete (next, double-tap).
+ * layout="inline" embeds in task edit footer (N-0044); default stays centered above nav.
  */
-export function TrackingControlBar() {
+export function TrackingControlBar({
+  hidden = false,
+  layout = "fixed-center",
+}: {
+  hidden?: boolean;
+  layout?: "fixed-center" | "inline";
+} = {}) {
   const { isTracking, isRunning, isPaused, activeTaskId } = useTrackingTimerDisplay();
   const tasks = useTaskStore((s) => s.tasks);
   const updateTask = useTaskStore((s) => s.updateTask);
@@ -275,13 +310,10 @@ export function TrackingControlBar() {
     return () => document.removeEventListener("mousedown", onPointerDown);
   }, [showTimeMenu, closeTimeMenu]);
 
-  if (!isTracking) return null;
+  if (hidden || !isTracking) return null;
 
-  return (
-    <div
-      className={TIMELINE_TRACKING_PLAYER_ROW}
-      data-testid="tracking-control-bar"
-    >
+  const controls = (
+    <>
       {/* B-0013: fixed h-10 slot; menu grows upward via absolute positioning */}
       <div ref={timeMenuRef} className="relative h-10 w-10 shrink-0">
         <div
@@ -355,6 +387,20 @@ export function TrackingControlBar() {
       >
         <SkipForward className="h-4 w-4" />
       </button>
+    </>
+  );
+
+  if (layout === "inline") {
+    return (
+      <div className="flex items-center gap-2" data-testid="tracking-control-bar-inline">
+        {controls}
+      </div>
+    );
+  }
+
+  return (
+    <div className={TIMELINE_TRACKING_PLAYER_ROW} data-testid="tracking-control-bar">
+      {controls}
     </div>
   );
 }

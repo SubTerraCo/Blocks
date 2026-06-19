@@ -1,0 +1,144 @@
+name: Build Release
+
+# CI Ops: compile + batch tests + Windows installer for QA handoff.
+# Local equivalent: pnpm build:release
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch:
+        description: "Batch ID (e.g. v26.06.12b2). Default: latest 🧪 QA row in ROADMAP batch log."
+        required: false
+        default: ""
+      grep:
+        description: "Playwright grep override for integration tests"
+        required: false
+        default: ""
+      skip_tests:
+        description: "Skip Playwright integration tests"
+        type: boolean
+        default: false
+
+jobs:
+  context:
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.ctx.outputs.release }}
+      batch: ${{ steps.ctx.outputs.batch }}
+      grep: ${{ steps.ctx.outputs.grep }}
+      integration_grep: ${{ steps.ctx.outputs.integration_grep }}
+      display_version: ${{ steps.ctx.outputs.display_version }}
+      npm_version: ${{ steps.ctx.outputs.npm_version }}
+      items: ${{ steps.ctx.outputs.items }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Read ROADMAP release context
+        id: ctx
+        run: |
+          ARGS="--validate"
+          if [ -n "${{ github.event.inputs.batch }}" ]; then
+            ARGS="$ARGS --batch ${{ github.event.inputs.batch }}"
+          fi
+          node scripts/read-ci-context.mjs --json $ARGS > ci-context.json
+          node -e "
+            const c = require('./ci-context.json');
+            const fs = require('fs');
+            const out = process.env.GITHUB_OUTPUT;
+            const w = (k,v) => fs.appendFileSync(out, k + '=' + v + '\n');
+            w('release', c.release || '');
+            w('batch', c.batch || '');
+            w('items', (c.items || []).join(' · '));
+            w('grep', process.env.GREP_OVERRIDE || c.grep || '@core');
+            w('integration_grep', process.env.GREP_OVERRIDE || c.integrationGrep || c.grep || '@core');
+            w('display_version', c.version?.displayVersion || '');
+            w('npm_version', c.version?.npmVersion || '');
+          "
+        env:
+          ALLOW_RELEASE_DATE_DRIFT: "1"
+          GREP_OVERRIDE: ${{ github.event.inputs.grep }}
+
+  test-and-compile:
+    runs-on: ubuntu-latest
+    needs: context
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build shared packages
+        run: pnpm build --filter @blocks/core --filter @blocks/ui
+
+      - name: Install Playwright Chromium
+        if: ${{ github.event.inputs.skip_tests != 'true' }}
+        run: npx playwright install --with-deps chromium
+
+      - name: Integration tests (batch scope)
+        if: ${{ github.event.inputs.skip_tests != 'true' }}
+        run: pnpm exec playwright test tests/integration --config=tests/playwright.config.ts --project=chromium
+        env:
+          PLAYWRIGHT_FEATURES: "1"
+          PLAYWRIGHT_GREP: ${{ needs.context.outputs.integration_grep }}
+
+      - name: Compile build tests
+        run: node scripts/run-build-tests.mjs
+
+  build-windows:
+    runs-on: windows-latest
+    needs: [context, test-and-compile]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build shared packages
+        run: pnpm build --filter @blocks/core --filter @blocks/ui
+
+      - name: Build Windows installer
+        run: pnpm --filter blocks-desktop run build:win
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: blocks-desktop-${{ needs.context.outputs.batch || needs.context.outputs.release || 'release' }}-win
+          path: |
+            apps/desktop/release/Blocks-Setup-*.exe
+            apps/desktop/release/Blocks-Setup-*.exe.blockmap
+            apps/desktop/release/.build/Blocks-Setup-*.exe
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: QA handoff summary
+        run: |
+          echo "Release: ${{ needs.context.outputs.release }}"
+          echo "Batch:   ${{ needs.context.outputs.batch }}"
+          echo "Version: ${{ needs.context.outputs.display_version }} (npm ${{ needs.context.outputs.npm_version }})"
+          echo "Items:   ${{ needs.context.outputs.items }}"
+          echo ""
+          echo "Download Blocks-Setup-*.exe from workflow artifacts, install, then:"
+          echo "  pnpm test:features:roadmap:headed"
+          echo "  PLAYWRIGHT_GREP=\"${{ needs.context.outputs.grep }}\" pnpm exec playwright test tests/e2e --headed --workers=1 --config=tests/playwright.config.ts --project=chromium"

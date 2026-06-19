@@ -1,0 +1,25 @@
+---
+description: Single-focus timeline scheduling — one task at a time (N-0021)
+alwaysApply: true
+---
+
+# Single-focus scheduling
+
+**Core principle:** A user can only do one task at a time. **Two task blocks must never overlap** on the timeline.
+
+## Engine (`packages/core`)
+
+- `SINGLE_FOCUS_TASK_SCHEDULING` invariant in `timeline-scheduling.ts`
+- Use `buildTimelineInsertPushBackUpdates` before placing a task — never set `scheduledAt` alone without push-back
+- `findOverlappingCalendarEvents` for static GCal blocks (exception path)
+
+## Calendar exception (N-0020 + N-0021)
+
+- Google Calendar events may overlap tasks (reference / shared calendar)
+- Show `ScheduleConflictDialog` before committing; user may confirm
+- Render overlapping task + event in **side-by-side columns** via `computeTimelineOverlapLayout`
+
+## All schedule paths must use
+
+- `useTimelineSchedule` / `checkCalendarConflictsForNewTask` for calendar gate
+- `applyTimelinePushBackForInsert` or `addToTimeline` for task push-back

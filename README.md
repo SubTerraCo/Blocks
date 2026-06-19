@@ -4,7 +4,7 @@
 
 Blocks is a cross-platform time/task management application that uses AI to help schedule tasks and optimize your time. Built with a local-first architecture, your data stays on your device with optional sync capabilities.
 
-**Current Version: 0.0.4** (Pre-release development)
+**Current Release: v26.06.12** (Sprint 5 — pre-release development)
 
 ## Features
 
@@ -108,6 +108,23 @@ pnpm dev --filter web
 pnpm --filter desktop dev
 ```
 
+### Google Calendar sign-in (dev)
+
+Retail users connect via a hosted OAuth proxy — no local setup. For **local development**:
+
+1. **Start the OAuth proxy** (you already did this):
+   ```bash
+   pnpm --filter @blocks/oauth-proxy dev
+   ```
+2. **Add Google credentials** — your proxy reports `googleConfigured: false` until this is done:
+   ```bash
+   cp apps/oauth-proxy/.env.example apps/oauth-proxy/.env
+   # Edit .env: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET from Google Cloud Console
+   ```
+3. Restart the proxy, then connect from **Profile** or **Settings → Google Calendar**.
+
+Full checklist (dev + production deploy): [GOOGLE_OAUTH_ROLLOUT.md](Docs/Integrations/GOOGLE_OAUTH_ROLLOUT.md)
+
 ### Building
 
 ```bash
@@ -135,9 +152,15 @@ pnpm build:win
 
 **Platforms:** DT Desktop · WB Web · AD Android · AP macOS · IO iOS · SH Shared UI · SB backend · MC MCP · CX CI
 
-**Chat workflows:** `/NB` or **report bug** · `/NF` or **new feature** (see `.cursor/skills/`)
+**Chat workflows:** `/NB` or **report bug** · `/NF` or **new feature** · `/RD` **next sprint planning** · `/BUILD` **release build for QA** (see `.cursor/skills/`)
 
-**Headed QA:** `pnpm exec playwright test --headed --grep @B-0003`
+**Release build (jump into testing):**
+
+```bash
+pnpm build:release:context   # show active batch + grep from ROADMAP
+pnpm build:release           # compile · batch tests · Windows installer
+pnpm test:features:roadmap:headed   # headed QA after install
+```
 
 ### Testing
 
@@ -204,13 +227,13 @@ pnpm --filter desktop build:win
 ## Versioning
 
 We use semantic versioning:
-- `0.0.x` - Pre-release development (current)
+- `v26.06.12` — Sprint 5 active release (date-based; batches `v26.06.12b1`, `b2`, …)
 - `0.1.0` - First MVP release (planned)
 - `1.0.0` - Production release (future)
 
 ## Roadmap
 
-### Sprint v0.0.3 (Current)
+### Sprint 5 (Current) · v26.06.12
 - [x] Dependency health check and GitHub repo migration (PoweredUpLabs)
 - [x] Hermes AI ecosystem planning (Poe, Blocks, BillBot, Mailbot)
 - [x] Anytype MCP + Hermes/Cursor integration setup

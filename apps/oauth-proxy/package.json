@@ -1,0 +1,14 @@
+{
+  "name": "@blocks/oauth-proxy",
+  "version": "26.6.12",
+  "private": true,
+  "description": "Minimal Google OAuth token exchange proxy for Blocks (no user data storage)",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.mjs",
+    "start": "node src/server.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

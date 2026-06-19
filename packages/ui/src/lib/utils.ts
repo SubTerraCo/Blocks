@@ -28,9 +28,16 @@ export function formatDuration(minutes: number): string {
 }
 
 /**
- * Format time to HH:MM AM/PM
+ * Format time to HH:MM AM/PM or 24h when requested (N-0032).
  */
-export function formatTime(date: Date): string {
+export function formatTime(date: Date, use24Hour = false): string {
+  if (use24Hour) {
+    return date.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  }
   return date.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",

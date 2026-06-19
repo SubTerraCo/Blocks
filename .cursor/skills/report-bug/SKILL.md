@@ -1,77 +1,91 @@
 ---
 name: report-bug
 description: >-
-  Blocks /NB bug pipeline. Logs incident B-####, maps PP.PR.AA.SSS.FFF-III
-  affects from FEATURE_REGISTRY, updates aligned matrices, creates or updates
-  Playwright tests with @B-#### tags, runs headed QA. Use when user says /NB,
-  report bug, log bug, new bug, or NB.
+  Blocks /NB bug pipeline. Two-round design phase, logs B-#### to current sprint
+  (vYY.MM.DD + batch), implements fix + @B-#### tests. Use when user says /NB,
+  report bug, log bug, or NB.
 disable-model-invocation: true
 ---
 
 # /NB — Report Bug Pipeline
 
-PM + QA workflow. User reports; agent qualifies, maps codes, builds fix + tests.
+PM reports; agent runs **design rounds**, assigns **batch**, documents, fixes, tests.
 
 ## Read first
 
 - [docs/Working Docs-Features-Incidents/FEATURE_REGISTRY.md](../../docs/Working%20Docs-Features-Incidents/FEATURE_REGISTRY.md)
 - [docs/Working Docs-Features-Incidents/INCIDENTS.md](../../docs/Working%20Docs-Features-Incidents/INCIDENTS.md)
-- [docs/Working Docs-Features-Incidents/ROADMAP.md](../../docs/Working%20Docs-Features-Incidents/ROADMAP.md) — core specs + acceptance criteria
+- [docs/Working Docs-Features-Incidents/ROADMAP.md](../../docs/Working%20Docs-Features-Incidents/ROADMAP.md) — **Active sprint**, **Batch log**, header release
 - [docs/Working Docs-Features-Incidents/CI_OPS_FRAMEWORK.md](../../docs/Working%20Docs-Features-Incidents/CI_OPS_FRAMEWORK.md)
 
-## ID format
+## Versioning
 
-```
-PP.PR.AA.SSS.FFF-III
-B-####  (incident group for lookback + Playwright + changelog)
-```
+- **Release:** `vYY.MM.DD` (e.g. `v26.06.12`)
+- **Batch:** `vYY.MM.DDbX` — `b1`…`b9`, `b10`, `b11` (no leading zero)
+- **Opened** in INCIDENTS = current release
 
-**Platforms (PP):** DT Desktop · WB Web · AD Android · AP macOS · IO iOS · SH Shared UI · SB Shared backend · MC MCP · CX CI/build
+## Sprint policy (default)
 
-**Prefix (PR):** UI · BG · EN
+- Every new **B-####** → current Sprint + release from ROADMAP header.
+- Log batch in ROADMAP **Batch log** with N/B IDs in session.
 
-## Matrix format
+---
 
-Use aligned pipes in `text` blocks: Feature col **32**, platform cells **10**.  
-Regenerate via `node docs/Working Docs-Features-Incidents/scripts/generate-registry.mjs` or `format-matrix.mjs`.
+## Phase 0 — Round 1 design (before any code)
 
-## Phase 1 — Qualify (ask user if missing)
+For **each** bug in the user input:
 
-1. **Symptoms** — what they see
-2. **Repro steps** — numbered
-3. **Expected vs actual**
-4. **Severity** — P0–P3
-5. **Version found** — e.g. 0.0.3
+1. Symptoms · repro · expected vs actual · severity P0–P3.
+2. Propose **affects matrix** (aligned pipes).
+3. Best-judgement fix UX at **component · section · integration · e2e** levels.
+4. **Conflict audit** — Round 1 table per [CI_OPS §4.1](../../docs/Working%20Docs-Features-Incidents/CI_OPS_FRAMEWORK.md#41-logic--design-conflict-audit).
+5. **AskQuestion** per item (recommended first; **Open discussion / Other**).
 
-Then **propose affects**: search FEATURE_REGISTRY + spec for all related codes. Present **Affects matrix** (aligned). **User confirms** before writing files.
+Wait for PM Round 1.
 
-Assign next **B-####** from INCIDENTS quick reference.
+---
 
-For each affected feature: **-001** (first break) or increment **-002** on regression.
+## Phase 0b — Round 2 design
 
-## Phase 2 — Document
+1. Review Round 1 answers.
+2. Check regression / related features / shared components.
+3. **Cross-feature conflict report** — Round 2 table per CI_OPS §4.1.
+4. **AskQuestion** for cross-feature fix impacts (conflict rows only if unresolved).
+5. Gate: PM refinement → **delta audit**; clarify or proceed.
 
-Update **docs/Working Docs-Features-Incidents/INCIDENTS.md** — open incident + affects matrix.
+Wait for PM Round 2.
 
-Update **docs/Working Docs-Features-Incidents/FEATURE_REGISTRY.md** — 🐛 rows + section matrix. Run `generate-registry.mjs` if editing matrix data in script.
+---
 
-## Phase 3 — Build
+## Phase 1 — Document
 
-1. Implement fix (likely SH/SB for cross-platform bugs)
-2. Playwright: `@core` + `@B-####`; test name includes feature code
-3. Link test path in INCIDENTS card
+Assign **B-####** · update **INCIDENTS.md** + **FEATURE_REGISTRY.md** + **Batch log**.
 
-## Phase 4 — QA (user)
+---
+
+## Phase 2 — Build
+
+Implement fix · **Conflict audit before each logical change** (CI_OPS §4.1 global rule) · **Stop + AskQuestion** if blocked or conflict found mid-build.
+
+Playwright: `@core` + `@B-####`.
+
+---
+
+## Phase 3 — Handoff
+
+Run release build, then tell PM batch is ready for QA:
 
 ```bash
-pnpm exec playwright test --headed --grep @B-####
+pnpm build:release
 ```
 
-## Phase 5 — Ship (after user confirms QA)
+**Batch `vYY.MM.DDbX` ready for QA** or follow-ups.
 
-1. INCIDENTS → Fixed · registry ✅ · CHANGELOG **Fixed** with B-#### + codes
+## Phase 4 — Ship (after PM confirms QA)
+
+INCIDENTS → Fixed · registry ✅ · CHANGELOG under batch heading.
 
 ## Do not
 
-- Skip affects matrix when multiple platforms affected
-- Use legacy BUG-### for new work
+- Skip design rounds for UX-ambiguous fixes
+- Use legacy BUG-### or `0.0.x` for new work

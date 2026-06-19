@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * Run Playwright feature-tagged suites with consistent env on all platforms.
+ * Runs compile build tests afterward unless SKIP_BUILD_TESTS=1.
  *
  * Usage: node scripts/run-feature-tests.mjs [all|headed|ui|roadmap|roadmap-headed]
  */
@@ -27,6 +28,8 @@ const playwrightArgs = [
   "playwright",
   "test",
   "tests/e2e",
+  "tests/integration",
+  "packages/ui/tests",
   "--config=tests/playwright.config.ts",
   "--project=chromium",
 ];
@@ -49,4 +52,17 @@ const result = spawnSync("pnpm", playwrightArgs, {
   shell: true,
 });
 
-process.exit(result.status ?? 1);
+const playwrightStatus = result.status ?? 1;
+
+if (process.env.SKIP_BUILD_TESTS !== "1") {
+  console.log("\n--- Build tests (after Playwright) ---");
+  const buildResult = spawnSync("node", ["scripts/run-build-tests.mjs"], {
+    cwd: root,
+    stdio: "inherit",
+    shell: true,
+  });
+  const buildStatus = buildResult.status ?? 1;
+  process.exit(playwrightStatus !== 0 || buildStatus !== 0 ? 1 : 0);
+}
+
+process.exit(playwrightStatus);

@@ -3,51 +3,38 @@
 @tailwind utilities;
 
 /* CSS Variables for theming */
-:root,
-html.dark {
+:root {
+  /* Dark theme (default) */
   --bg-primary: #0d0d0d;
   --bg-secondary: #1a1a1a;
   --bg-tertiary: #262626;
-  --bg-elevated: #2d2d2d;
   --text-primary: #ffffff;
   --text-secondary: #a3a3a3;
-  --text-tertiary: #737373;
   --text-muted: #525252;
   --border-default: #333333;
-  --border-hover: #444444;
-  --border-focus: #ff3366;
-  --accent-magenta: #ff3366;
-  --accent-magenta-light: #ff5c85;
-  --accent-magenta-dark: #cc2952;
-  --accent-teal: #00d9ff;
-  --accent-teal-light: #26c6da;
-  --accent-teal-dark: #00acc1;
+  --accent-magenta: #9b4dca;
+  --accent-magenta-light: #b366d9;
+  --accent-magenta-dark: #7a3da1;
   --scrollbar-track: #1a1a1a;
   --scrollbar-thumb: #333333;
   --scrollbar-thumb-hover: #444444;
+  /* Shell chrome — rolling timeline height calc (B-0018) */
   --top-bar-height: 56px;
   --bottom-nav-height: 64px;
   --title-bar-height: 40px;
 }
 
-html.light {
-  --bg-primary: #f5f5f5;
-  --bg-secondary: #ffffff;
+.light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
   --bg-tertiary: #e5e5e5;
-  --bg-elevated: #ffffff;
   --text-primary: #171717;
   --text-secondary: #525252;
-  --text-tertiary: #737373;
   --text-muted: #a3a3a3;
   --border-default: #e5e5e5;
-  --border-hover: #d4d4d4;
-  --border-focus: #ff3366;
-  --accent-magenta: #ff3366;
-  --accent-magenta-light: #ff5c85;
-  --accent-magenta-dark: #cc2952;
-  --accent-teal: #00acc1;
-  --accent-teal-light: #26c6da;
-  --accent-teal-dark: #00838f;
+  --accent-magenta: #9b4dca;
+  --accent-magenta-light: #b366d9;
+  --accent-magenta-dark: #7a3da1;
   --scrollbar-track: #f5f5f5;
   --scrollbar-thumb: #d4d4d4;
   --scrollbar-thumb-hover: #a3a3a3;
@@ -302,9 +289,12 @@ body {
   }
 }
 
-/* Focus ring animation */
-.focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-accent-magenta focus:ring-opacity-50 focus:ring-offset-2 focus:ring-offset-bg-primary;
+/* Focus ring — plain CSS; opacity modifiers don't work with @apply on CSS-var colors */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--bg-primary),
+    0 0 0 4px color-mix(in srgb, var(--accent-magenta) 50%, transparent);
 }
 
 /* Interactive hover effects */
@@ -313,12 +303,12 @@ body {
 }
 
 .hover-glow {
-  @apply transition-shadow duration-200 hover:shadow-lg;
+  @apply transition-shadow duration-200;
 }
 
 .hover-glow:hover {
   box-shadow:
-    0 10px 15px -3px color-mix(in srgb, var(--accent-magenta) 20%, transparent),
-    0 4px 6px -4px color-mix(in srgb, var(--accent-magenta) 10%, transparent);
+    0 10px 15px -3px rgba(155, 77, 202, 0.2),
+    0 4px 6px -4px rgba(155, 77, 202, 0.2);
 }
 

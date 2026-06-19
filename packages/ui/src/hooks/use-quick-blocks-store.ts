@@ -5,7 +5,8 @@
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
 import type { QuickAddBlock, BlockSize, Task, BlockCategory } from "@blocks/core";
-import { DexieStorage, TaskEngine } from "@blocks/core";
+import { DexieStorage } from "@blocks/core";
+import { useTaskStore } from "./use-task-store";
 
 // Helper to map duration to blockSize + blockCount
 function durationToBlocks(minutes: number): { blockSize: BlockSize; blockCount: number } {
@@ -173,19 +174,29 @@ export const useQuickBlocksStore = create<QuickBlocksState>((set, get) => {
 
       try {
         const db = await getStorage();
-        
-        // Map duration to blockSize + blockCount
+        const taskStore = useTaskStore.getState();
+
+        if (taskStore.tasks.length === 0) {
+          await taskStore.loadTasks();
+        }
+
         const { blockSize, blockCount } = durationToBlocks(block.defaultDuration);
-        
-        // Create task with "doing" status and schedule immediately
-        const task = TaskEngine.createTask({
+        const scheduledAt = new Date();
+
+        await taskStore.applyTimelinePushBackForInsert(
+          "__new__",
+          scheduledAt,
+          block.defaultDuration,
+        );
+
+        const task = await taskStore.createTask({
           name: block.name,
           status: "doing",
           blockSize,
           blockCount,
-          scheduledAt: new Date(), // Schedule immediately (now)
+          scheduledAt,
           isPutzing: block.isPutzing,
-          priority: "3", // Default priority
+          priority: "3",
           assigneeId: "me",
           accessContexts: [],
           tags: [],
@@ -195,24 +206,19 @@ export const useQuickBlocksStore = create<QuickBlocksState>((set, get) => {
           isQuickAdd: true,
           color: block.color,
         });
-        
-        // Save to database
-        await db.createTask(task);
-        
-        // Update usage count and time logged
+
         set((state) => ({
           timeLoggedToday: {
             ...state.timeLoggedToday,
             [blockId]: (state.timeLoggedToday[blockId] ?? 0) + block.defaultDuration,
           },
         }));
-        
-        // Update block usage count
+
         await db.updateQuickAddBlock({
           ...block,
           usageCount: block.usageCount + 1,
         });
-        
+
         return task;
       } catch (error) {
         set({ error: (error as Error).message });
