@@ -1,8 +1,8 @@
 # Blocks Roadmap & Core Functionality
 
-> **Release:** v26.06.30  
-> **Last Updated:** 2026-06-30  
-> **Status:** Sprint 5 — Timeline, scheduling, events, calendar UX (active release v26.06.30)  
+> **Release:** v26.07.01  
+> **Last Updated:** 2026-07-01  
+> **Status:** Sprint 5 — Timeline, scheduling, events, calendar UX (active release v26.07.01)
 > **Source of truth** for specifications, UX, acceptance criteria, and new-feature roadmap  
 > **Feature codes & health:** [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md) · **Bugs:** [INCIDENTS.md](./INCIDENTS.md)
 
@@ -1151,9 +1151,9 @@ All future GUI decisions should reference this Figma export for:
 
 **Status:** 📋 Proposed · 🔄 In progress · 🧪 QA · ✅ Shipped · ⏸ On hold · ❌ Dropped
 
-### Active sprint 5 (v26.06.19)
+### Active sprint 5 (v26.07.01)
 
-All items not yet ✅ Shipped belong to **Sprint 5** at release **v26.06.19**. **Google** (N-0017, N-0022, N-0023) is **on hold** per product decision.
+All items not yet ✅ Shipped belong to **Sprint 5** at release **v26.07.01**. **Google** (N-0017, N-0022, N-0023) is **on hold** per product decision.
 
 | Track | IDs | Focus |
 | ----- | --- | ----- |
@@ -1182,6 +1182,8 @@ One `/NF` · `/NB` · `/RD` design session = one batch (`v26.06.12bX`). QA via `
 | v26.06.19b1 | Nightly dev push seal · v26.06.19 | — | 🧪 QA |
 | v26.06.30b1 | Reusable block tasks · event section · event columns · Kanban sort/filter/views | N-0045 · N-0046 · N-0047 · N-0048 · N-0049 | 🧪 QA |
 | v26.06.30b2 | Nightly dev push seal · v26.06.30 | N-0045 · N-0046 · N-0047 · N-0048 · N-0049 | 🧪 QA |
+| v26.07.01b1 | Sprint 5 day open · v26.07.01 | — | 🧪 QA |
+
 ---
 
 ## Proposed

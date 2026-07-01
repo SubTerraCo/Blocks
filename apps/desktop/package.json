@@ -1,7 +1,7 @@
 {
   "name": "blocks-desktop",
-  "version": "26.6.30-b2",
-  "blocksVersion": "v26.06.30b2",
+  "version": "26.7.1-b1",
+  "blocksVersion": "v26.07.01b1",
   "description": "Blocks - Time Management Desktop App",
   "main": "dist/main/index.js",
   "author": "Blocks Team",
