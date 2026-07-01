@@ -34,23 +34,23 @@ function run(cmd, args, opts = {}) {
   const result = spawnSync(cmd, args, {
     cwd: root,
     encoding: "utf8",
-    shell: process.platform === "win32",
     ...opts,
   });
   return result;
 }
 
+/** Git argv must not use shell — Windows cmd mangles `-m` messages and ref args. */
 function git(...args) {
-  return run("git", args);
+  return run("git", args, { shell: false, allowInDryRun: true });
 }
 
 function hasUncommittedChanges() {
-  const status = run("git", ["status", "--porcelain"], { allowInDryRun: true });
+  const status = git("status", "--porcelain");
   return (status.stdout ?? "").trim().length > 0;
 }
 
 function currentHead() {
-  const result = run("git", ["rev-parse", "HEAD"], { allowInDryRun: true });
+  const result = git("rev-parse", "HEAD");
   return (result.stdout ?? "").trim();
 }
 
@@ -70,7 +70,13 @@ function mergeSourceBranch(source) {
     process.exit(1);
   }
 
-  const merge = git("merge", `origin/${source}`, "--no-edit", "-m", `chore(release): merge ${source} into ${branch} (nightly)`);
+  const ref = `origin/${source}`;
+  const mergeMessage = `chore(release): merge ${source} into ${branch} (nightly)`;
+
+  let merge = git("merge", ref, "--ff-only");
+  if ((merge.status ?? 1) !== 0) {
+    merge = git("merge", ref, "--no-edit", "-m", mergeMessage);
+  }
   if ((merge.status ?? 1) !== 0) {
     console.error(`Merge failed:`, merge.stderr?.trim() || merge.stdout?.trim());
     process.exit(1);

@@ -16,6 +16,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { todayLocalDate } from "./validate-build-release.mjs";
 import { readCiContext } from "./read-ci-context.mjs";
+import { insertBatchLogRow, parseBatchLogRows } from "./ci-roadmap-batch.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const roadmapPath = join(
@@ -34,36 +35,7 @@ export function todayReleaseTag(now = new Date()) {
   return `v${yy}.${mm}.${dd}`;
 }
 
-/**
- * @param {string} roadmap
- * @returns {{ batch: string; session: string; items: string[]; status: string }[]}
- */
-export function parseBatchLogRows(roadmap) {
-  const inBatchLog =
-    roadmap.indexOf("### Batch log") >= 0
-      ? roadmap.slice(roadmap.indexOf("### Batch log"))
-      : roadmap;
-
-  /** @type {{ batch: string; session: string; items: string[]; status: string }[]} */
-  const rows = [];
-
-  for (const line of inBatchLog.split("\n")) {
-    if (!line.startsWith("|") || line.includes("Batch |") || line.includes("-----")) {
-      continue;
-    }
-    const cells = line
-      .split("|")
-      .map((c) => c.trim())
-      .filter(Boolean);
-    if (cells.length < 4) continue;
-    const [batch, session, itemsCell, status] = cells;
-    if (!/^v[\d.]+b\d+$/.test(batch)) continue;
-    const items = [...itemsCell.matchAll(/\b(N-\d{4}|B-\d{4})\b/g)].map((m) => m[1]);
-    rows.push({ batch, session, items, status });
-  }
-
-  return rows;
-}
+export { parseBatchLogRows } from "./ci-roadmap-batch.mjs";
 
 /**
  * @param {string} releaseTag e.g. v26.06.19
@@ -132,20 +104,7 @@ export function stampPackageVersions(batchId) {
   return { batchId, displayVersion, npmVersion, release: ctx.release };
 }
 
-/**
- * Insert a row into the ROADMAP batch log table (before the section divider).
- * @param {string} roadmap
- * @param {string} row
- */
-export function insertBatchLogRow(roadmap, row) {
-  const sectionStart = roadmap.indexOf("### Batch log");
-  if (sectionStart < 0) return roadmap;
-  const afterSection = roadmap.slice(sectionStart);
-  const dividerIdx = afterSection.indexOf("\n---\n");
-  if (dividerIdx < 0) return roadmap;
-  const insertAt = sectionStart + dividerIdx;
-  return `${roadmap.slice(0, insertAt)}\n${row}${roadmap.slice(insertAt)}`;
-}
+export { insertBatchLogRow } from "./ci-roadmap-batch.mjs";
 
 /**
  * Nightly seal: sync today's release, auto-increment batch, append log row, stamp versions.
