@@ -350,6 +350,7 @@ docs/Working Docs-Features-Incidents/
   build-release/          # /BUILD
 scripts/
   read-ci-context.mjs     # ROADMAP release · batch · grep (--validate)
+  ci-roadmap-batch.mjs  # batch log parse/insert (CRLF + Sprint heading)
   validate-build-release.mjs  # date drift + duplicate batch guard
   daily-release-rollover.mjs  # sync vYY.MM.DD + batch b1 reset + version stamp
   daily-dev-push.mjs      # nightly commit + push origin/dev

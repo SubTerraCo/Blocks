@@ -39,18 +39,26 @@ function run(cmd, args, opts = {}) {
   return result;
 }
 
+function gitRead(...args) {
+  return run("git", args, { shell: false });
+}
+
 /** Git argv must not use shell — Windows cmd mangles `-m` messages and ref args. */
 function git(...args) {
-  return run("git", args, { shell: false, allowInDryRun: true });
+  if (dryRun) {
+    console.log(`[dry-run] git ${args.join(" ")}`);
+    return { status: 0, stdout: "", stderr: "" };
+  }
+  return gitRead(...args);
 }
 
 function hasUncommittedChanges() {
-  const status = git("status", "--porcelain");
+  const status = gitRead("status", "--porcelain");
   return (status.stdout ?? "").trim().length > 0;
 }
 
 function currentHead() {
-  const result = git("rev-parse", "HEAD");
+  const result = gitRead("rev-parse", "HEAD");
   return (result.stdout ?? "").trim();
 }
 
@@ -157,6 +165,10 @@ ${sourceBranch ? `Merged origin/${sourceBranch} → ${branch}.` : ""}`;
   }
 
   const push = git("push", "origin", branch);
+  if (dryRun) {
+    console.log(`\n[dry-run] Would push ${version} to origin/${branch}`);
+    return;
+  }
   if ((push.status ?? 1) !== 0) {
     console.error("Push failed:", push.stderr?.trim());
     process.exit(1);
