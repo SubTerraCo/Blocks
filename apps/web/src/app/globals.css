@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 /* Custom CSS Variables from Design Tokens */
 :root {
@@ -32,6 +31,20 @@
   /* Layout */
   --bottom-nav-height: 64px;
   --top-bar-height: 56px;
+  --title-bar-height: 0px;
+}
+
+.light {
+  --bg-primary: #f8f9fc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eef0f6;
+  --bg-elevated: #ffffff;
+  --text-primary: #171717;
+  --text-secondary: #525252;
+  --text-tertiary: #6b6b7b;
+  --text-muted: #a3a3a3;
+  --border-default: #e5e7ef;
+  --border-hover: #d4d8e4;
 }
 
 /* Base Styles */

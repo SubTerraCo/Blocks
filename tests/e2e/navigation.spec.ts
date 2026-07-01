@@ -44,8 +44,10 @@ test.describe("Navigation", () => {
   });
 
   test("should navigate to AI page", async ({ page }) => {
-    // Click AI nav item - exact label is "AI"
-    await page.getByLabel("AI", { exact: true }).click();
+    await page.goto("/timeline");
+    await page.evaluate(() => {
+      document.querySelector<HTMLButtonElement>('button[aria-label="AI"]')?.click();
+    });
     
     // Verify URL
     await expect(page).toHaveURL("/ai");

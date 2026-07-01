@@ -27,16 +27,16 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "dexie": "^3.2.4",
-    "uuid": "^9.0.1",
+    "dexie": "^4.4.4",
+    "uuid": "^11.1.0",
     "y-indexeddb": "^9.0.12",
     "y-webrtc": "^10.3.0",
-    "yjs": "^13.6.28",
-    "zod": "^3.22.4"
+    "yjs": "^13.6.31",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/uuid": "^9.0.7",
-    "tsup": "^8.0.1",
-    "typescript": "^5.3.3"
+    "@types/uuid": "^10.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
   }
 }

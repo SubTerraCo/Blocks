@@ -13,7 +13,7 @@ import { cn } from "../lib/utils";
 export interface WorkScheduleFieldsProps {
   workDays: number[];
   weekStartsOn: WeekStartsOn;
-  onWorkDaysChange: (workDays: number[]) => void;
+  onWorkDaysChange: (workDays: number[]) => void | Promise<void>;
   onWeekStartsOnChange: (value: WeekStartsOn) => void;
 }
 
@@ -25,8 +25,8 @@ export function WorkScheduleFields({
 }: WorkScheduleFieldsProps) {
   const orderedDays = getOrderedWeekDays(weekStartsOn);
 
-  const toggleDay = (day: WeekDayKey) => {
-    onWorkDaysChange(toggleWorkDayNumber(day, workDays));
+  const toggleDay = async (day: WeekDayKey) => {
+    await onWorkDaysChange(toggleWorkDayNumber(day, workDays));
   };
 
   return (
@@ -71,7 +71,7 @@ export function WorkScheduleFields({
               key={day}
               type="button"
               data-testid={`work-day-${day}`}
-              onClick={() => toggleDay(day)}
+              onClick={() => void toggleDay(day)}
               className={cn(
                 "h-8 w-8 rounded-lg text-sm font-medium transition-colors",
                 isWorkDaySelected(day, workDays)

@@ -82,9 +82,10 @@ linux:
   category: Office
   artifactName: "${productName}-${version}.${ext}"
   desktop:
-    Name: Blocks
-    Comment: Time Management Application
-    Categories: Office;Utility;
+    entry:
+      Name: Blocks
+      Comment: Time Management Application
+      Categories: Office;Utility;
 
 # =============================================================================
 # Auto-Update Configuration (GitHub Releases)

@@ -2,9 +2,7 @@
    BLOCKS - Global Styles
    ============================================================================ */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* Custom CSS Variables from Design Tokens */
 :root {

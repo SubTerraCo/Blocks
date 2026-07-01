@@ -1,22 +1,23 @@
 {
   "name": "blocks",
-  "version": "26.6.19",
+  "version": "26.6.30",
   "private": true,
   "description": "Blocks - AI-powered time management app",
   "author": "Blocks Team",
   "license": "MIT",
-  "packageManager": "pnpm@9.14.2",
+  "packageManager": "pnpm@11.8.0",
   "engines": {
     "node": ">=20.0.0",
-    "pnpm": ">=9.0.0"
+    "pnpm": ">=10.0.0"
   },
   "scripts": {
     "dev": "turbo dev",
+    "dev:web": "pnpm build --filter @blocks/ui && pnpm --filter web exec next dev --port 3004",
     "build": "turbo build",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
-    "test": "playwright test --config=tests/playwright.config.ts",
-    "test:e2e": "playwright test tests/e2e --config=tests/playwright.config.ts",
+    "test": "node scripts/run-playwright.mjs",
+    "test:e2e": "node scripts/run-playwright.mjs tests/e2e",
     "test:features": "node scripts/run-feature-tests.mjs all",
     "test:build": "node scripts/run-build-tests.mjs",
     "test:features:headed": "node scripts/run-feature-tests.mjs headed",
@@ -36,7 +37,7 @@
     "test:a11y": "playwright test tests/accessibility --config=tests/playwright.config.ts",
     "test:perf": "playwright test tests/performance --config=tests/playwright.config.ts",
     "test:integration": "playwright test tests/integration --config=tests/playwright.config.ts",
-    "test:ui": "playwright test --ui --config=tests/playwright.config.ts",
+    "test:ui": "node scripts/run-playwright.mjs --allow-interactive --ui",
     "test:report": "playwright show-report",
     "test:update-snapshots": "playwright test tests/visual --update-snapshots --config=tests/playwright.config.ts",
     "clean": "turbo clean && rm -rf node_modules",
@@ -44,15 +45,17 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.11.0",
-    "@playwright/test": "^1.57.0",
-    "@types/node": "^20.10.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.55.0",
-    "eslint-config-prettier": "^9.1.0",
-    "prettier": "^3.1.1",
-    "turbo": "^2.3.0",
-    "typescript": "^5.3.3"
+    "@axe-core/playwright": "^4.11.3",
+    "@playwright/test": "^1.61.0",
+    "@types/node": "^22.15.0",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
+    "@eslint/js": "^9.21.0",
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.1.0",
+    "typescript-eslint": "^8.61.0",
+    "prettier": "^3.8.4",
+    "turbo": "^2.9.18",
+    "typescript": "^5.9.3"
   }
 }

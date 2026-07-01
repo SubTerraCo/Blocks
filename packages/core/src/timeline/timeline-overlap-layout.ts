@@ -1,5 +1,6 @@
 // ============================================================================
 // BLOCKS - Timeline overlap column layout (N-0021 · Google Calendar style)
+// N-0047 · Events (user isEvent + calendar) keep the right-hand column(s)
 // ============================================================================
 
 import type { TimeBlock } from "../types";
@@ -10,11 +11,26 @@ export interface OverlapLayout {
   totalColumns: number;
 }
 
+/**
+ * Column bias rank for N-0047. Regular tasks stay left (rank 0); user events
+ * (`task.isEvent`) and Google Calendar events are pushed to the right (rank 1)
+ * whenever they overlap another block in the same cluster.
+ */
+type ColumnRank = 0 | 1;
+
 type LayoutableBlock = {
   id: string;
   startMs: number;
   endMs: number;
+  rank: ColumnRank;
 };
+
+/** N-0047: events and calendar blocks bias to the right column on conflict. */
+function columnRank(block: TimeBlock): ColumnRank {
+  if (block.type === "calendar_event") return 1;
+  if (block.type === "task" && block.task?.isEvent === true) return 1;
+  return 0;
+}
 
 function toLayoutable(block: TimeBlock): LayoutableBlock | null {
   if (block.type !== "task" && block.type !== "calendar_event") return null;
@@ -22,6 +38,7 @@ function toLayoutable(block: TimeBlock): LayoutableBlock | null {
     id: block.id,
     startMs: block.startTime.getTime(),
     endMs: block.endTime.getTime(),
+    rank: columnRank(block),
   };
 }
 
@@ -77,7 +94,12 @@ function layoutCluster(cluster: LayoutableBlock[]): Map<string, OverlapLayout> {
   const result = new Map<string, OverlapLayout>();
   if (cluster.length === 0) return result;
 
-  const sorted = [...cluster].sort((a, b) => a.startMs - b.startMs);
+  // N-0047: process regular tasks first so they claim the left lanes; events
+  // and calendar blocks then fall into the remaining right-hand lane(s) whenever
+  // they actually overlap a task. Ties within a rank keep start-time order.
+  const sorted = [...cluster].sort(
+    (a, b) => a.rank - b.rank || a.startMs - b.startMs,
+  );
   const columnEnds: number[] = [];
 
   for (const block of sorted) {

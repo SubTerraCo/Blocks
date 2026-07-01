@@ -184,7 +184,7 @@ export function TrackingControlBar({
   const [menuClosing, setMenuClosing] = useState(false);
   const [nextConfirmPending, setNextConfirmPending] = useState(false);
   const nextTapRef = useRef(0);
-  const confirmTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const timeMenuRef = useRef<HTMLDivElement>(null);
 
   const closeTimeMenu = useCallback(() => {

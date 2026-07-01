@@ -1,0 +1,33 @@
+# Playwright and dev-server safety
+
+Avoid hangs in automated agent runs and long local sessions.
+
+## Never use in agent / CI runs
+
+- `playwright test --debug` — opens inspector, waits forever
+- `playwright test --ui` — interactive UI mode (use `pnpm test:ui` only when the user is driving)
+- `pnpm test` without chromium scope when validating fixes — use chromium default or `PLAYWRIGHT_ALL_BROWSERS=1` only when explicitly requested
+
+## Preferred commands
+
+```bash
+pnpm dev:web                    # rebuild @blocks/ui, then next dev :3004
+PLAYWRIGHT_BASE_URL=http://localhost:3004 pnpm test
+pnpm test:e2e                   # chromium-only via run-playwright.mjs
+```
+
+## After editing `packages/ui` or `packages/core`
+
+1. `pnpm build --filter @blocks/ui` (or `pnpm dev:web` for a fresh server)
+2. Restart `next dev` — HMR does not pick up dist changes
+
+## If something looks frozen
+
+1. Check for a Playwright inspector window or `--debug` in the terminal command
+2. `npx kill-port 3004` then `pnpm dev:web`
+3. Full multi-browser suite can take 20m+ — use chromium-only unless cross-browser is required
+
+## Timeouts (enforced by `scripts/run-playwright.mjs`)
+
+- Per-test: 30s (`tests/playwright.config.ts`)
+- Whole run wall-clock: 45m default (`PLAYWRIGHT_MAX_MINUTES`)

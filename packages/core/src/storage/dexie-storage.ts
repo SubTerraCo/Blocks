@@ -15,6 +15,7 @@ import type {
   Tag,
   Routine,
   CalendarEvent,
+  KanbanView,
 } from "../types";
 import type {
   IStorageWithEvents,
@@ -38,6 +39,7 @@ class BlocksDatabase extends Dexie {
   tags!: Table<Tag, string>;
   routines!: Table<Routine, string>;
   calendarEvents!: Table<CalendarEvent, string>;
+  kanbanViews!: Table<KanbanView, string>;
 
   constructor() {
     super("BlocksDB");
@@ -84,6 +86,38 @@ class BlocksDatabase extends Dexie {
       routines: "id, name, usageCount, createdAt",
       calendarEvents: "id, calendarId, startTime, endTime, source",
     });
+
+    // Version 5 (v26.06.30):
+    //  · N-0048 Task.kanbanOrder — manual Kanban order (indexed for sorting)
+    //  · N-0045 QuickAddBlock.linkedTaskId / configured — block ↔ single task
+    //  · N-0049 kanbanViews — named saved filter+sort views
+    this.version(5)
+      .stores({
+        tasks: "id, name, status, priority, category, scheduledAt, dueDate, createdAt, updatedAt, parentTaskId, recurrence, kanbanOrder, *tags",
+        quickAddBlocks: "id, name, sortOrder, linkedTaskId, createdAt",
+        users: "id, email",
+        settings: "id",
+        timeEntries: "id, taskId, startTime, createdAt",
+        taskTemplates: "id, name, category, usageCount, createdAt",
+        tags: "id, name, usageCount, createdAt",
+        routines: "id, name, usageCount, createdAt",
+        calendarEvents: "id, calendarId, startTime, endTime, source",
+        kanbanViews: "id, name, sortOrder, isDefault, createdAt",
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table("tasks")
+          .toCollection()
+          .modify((task: Partial<Task>) => {
+            if (typeof task.kanbanOrder !== "number") task.kanbanOrder = 0;
+          });
+        await tx
+          .table("quickAddBlocks")
+          .toCollection()
+          .modify((block: Partial<QuickAddBlock>) => {
+            if (typeof block.configured !== "boolean") block.configured = false;
+          });
+      });
   }
 }
 
@@ -93,20 +127,22 @@ class BlocksDatabase extends Dexie {
 export class DexieStorage implements IStorageWithEvents {
   private db: BlocksDatabase;
   private eventHandlers: Set<StorageEventHandler> = new Set();
-  private static instance: DexieStorage | null = null;
 
   private constructor() {
     this.db = new BlocksDatabase();
   }
 
   /**
-   * Get singleton instance
+   * Get singleton instance (globalThis — survives duplicate @blocks/core bundles in Next.js)
    */
   static getInstance(): DexieStorage {
-    if (!DexieStorage.instance) {
-      DexieStorage.instance = new DexieStorage();
+    const globalKey = "__blocksDexieStorage__";
+    type G = typeof globalThis & { [globalKey]?: DexieStorage };
+    const g = globalThis as G;
+    if (!g[globalKey]) {
+      g[globalKey] = new DexieStorage();
     }
-    return DexieStorage.instance;
+    return g[globalKey];
   }
 
   // -------------------------------------------------------------------------
@@ -267,6 +303,28 @@ export class DexieStorage implements IStorageWithEvents {
   async deleteQuickAddBlock(id: string): Promise<void> {
     await this.db.quickAddBlocks.delete(id);
     this.emit({ type: "quickblock:deleted", data: { id }, timestamp: new Date() });
+  }
+
+  // -------------------------------------------------------------------------
+  // Kanban saved views (N-0049)
+  // -------------------------------------------------------------------------
+
+  async getKanbanViews(): Promise<KanbanView[]> {
+    return this.db.kanbanViews.orderBy("sortOrder").toArray();
+  }
+
+  async createKanbanView(view: KanbanView): Promise<KanbanView> {
+    await this.db.kanbanViews.add(view);
+    return view;
+  }
+
+  async updateKanbanView(view: KanbanView): Promise<KanbanView> {
+    await this.db.kanbanViews.put(view);
+    return view;
+  }
+
+  async deleteKanbanView(id: string): Promise<void> {
+    await this.db.kanbanViews.delete(id);
   }
 
   // -------------------------------------------------------------------------

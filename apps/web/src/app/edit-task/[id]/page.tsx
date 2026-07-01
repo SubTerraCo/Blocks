@@ -318,6 +318,24 @@ export default function EditTaskPage() {
           autoFocus
         />
 
+        {/* N-0046: Event section sits directly under Task Name */}
+        <TaskEventFields
+          isEvent={isEvent}
+          onIsEventChange={setIsEvent}
+          eventAllDay={eventAllDay}
+          onEventAllDayChange={setEventAllDay}
+          eventStartTime={eventStartTime}
+          eventEndTime={eventEndTime}
+          onEventStartTimeChange={(t) => {
+            setEventStartTime(t);
+            if (t) setEventAllDay(false);
+          }}
+          onEventEndTimeChange={(t) => {
+            setEventEndTime(t);
+            if (t) setEventAllDay(false);
+          }}
+        />
+
         {!isEvent && (
           <div className="space-y-2">
             <label className="mb-1.5 block text-sm font-medium text-text-secondary">
@@ -357,23 +375,6 @@ export default function EditTaskPage() {
             />
           </div>
         )}
-
-        <TaskEventFields
-          isEvent={isEvent}
-          onIsEventChange={setIsEvent}
-          eventAllDay={eventAllDay}
-          onEventAllDayChange={setEventAllDay}
-          eventStartTime={eventStartTime}
-          eventEndTime={eventEndTime}
-          onEventStartTimeChange={(t) => {
-            setEventStartTime(t);
-            if (t) setEventAllDay(false);
-          }}
-          onEventEndTimeChange={(t) => {
-            setEventEndTime(t);
-            if (t) setEventAllDay(false);
-          }}
-        />
 
         {/* Access Contexts (Anytype-aligned) */}
         <div>

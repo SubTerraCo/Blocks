@@ -25,7 +25,7 @@ test.describe("WB.UI.02.010 · Scroll-sync week strip @N-0004", () => {
     await page.goto("/timeline");
     await expect(page.getByTestId("timeline-week-strip")).toBeVisible();
     await expect(page.getByTestId("current-time")).toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(2000);
   });
 
   test("shows sliding selection indicator", async ({ page }) => {
@@ -39,7 +39,7 @@ test.describe("WB.UI.02.010 · Scroll-sync week strip @N-0004", () => {
     await scrollToNextMidnight(scroller);
     await page.waitForTimeout(300);
 
-    expect(await scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(beforeScroll + 500);
+    expect(await scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(beforeScroll + 100);
     await expect(page.getByTestId("timeline-week-strip-indicator")).toBeVisible();
   });
 

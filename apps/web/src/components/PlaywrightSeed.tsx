@@ -6,11 +6,15 @@ import {
   mergeGoogleProviderIntoUser,
   tokensToGoogleProvider,
 } from "@blocks/core";
+import { useSettingsStore } from "@blocks/ui";
 
 declare global {
   interface Window {
     blocksPlaywright?: {
       getDb: () => ReturnType<typeof DexieStorage.getInstance>;
+      getSettings: () => ReturnType<typeof useSettingsStore.getState>["settings"];
+      updateSettings: ReturnType<typeof useSettingsStore.getState>["updateSettings"];
+      isSettingsHydrated: () => boolean;
       mergeGoogleProviderIntoUser: typeof mergeGoogleProviderIntoUser;
       tokensToGoogleProvider: typeof tokensToGoogleProvider;
       DexieYjsBridge: typeof DexieYjsBridge;
@@ -25,6 +29,9 @@ if (
 ) {
   window.blocksPlaywright = {
     getDb: () => DexieStorage.getInstance(),
+    getSettings: () => useSettingsStore.getState().settings,
+    updateSettings: (updates) => useSettingsStore.getState().updateSettings(updates),
+    isSettingsHydrated: () => useSettingsStore.getState().isHydrated,
     mergeGoogleProviderIntoUser,
     tokensToGoogleProvider,
     DexieYjsBridge,

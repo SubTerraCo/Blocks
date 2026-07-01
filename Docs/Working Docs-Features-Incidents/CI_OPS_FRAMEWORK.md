@@ -389,6 +389,44 @@ After design gate: **Document** → **Build** → **Test** → **`/BUILD`** → 
 
 ## 8. Playwright tagging
 
+### 8.0 Test → build → release gate (mandatory)
+
+Every batch follows the same automated gate. **Do not skip steps or reorder them.**
+
+1. **Start the dev server first.** Always initiate the web dev server **before** running any Playwright suite (e2e, a11y, visual, perf, integration-that-needs-DOM). The Playwright `webServer` block auto-starts it, but the agent must confirm it is up (or start `pnpm dev:web`) so specs never race a cold server.
+
+```bash
+pnpm dev:web            # http://localhost:3004 — leave running for the suite
+# then, in a second shell:
+pnpm test               # or scoped: PLAYWRIGHT_GREP="@N-####|@core" pnpm test
+```
+
+2. **Debug until green.** Run the batch suites (`PLAYWRIGHT_GREP` = batch `@N-####`/`@B-####` + `@core`). Fix failures and re-run until the suite passes. Run heavy multi-file suites at `--workers=2` to avoid dev-server cold-compile timeouts.
+
+3. **Build test.** Once the suite passes, always run the compile gate:
+
+```bash
+pnpm test:build         # @blocks/core · @blocks/ui · web · desktop
+```
+
+4. **Release.** After the build test is green, always package the release:
+
+```bash
+pnpm build:release      # pre-flight · install · compile · batch tests · Windows installer
+```
+
+5. **Notify PM.** When `build:release` finishes, tell PM the **latest release is available to install** with the installer path (`apps/desktop/release/Blocks-Setup-<npmVersion>.exe`) and the batch id.
+
+| Step | Command | Gate |
+|------|---------|------|
+| Dev server | `pnpm dev:web` | Up on :3004 before any Playwright run |
+| Test | `pnpm test` (scoped grep) | Debug until green |
+| Build test | `pnpm test:build` | All 4 packages compile |
+| Release | `pnpm build:release` | Installer produced |
+| Notify | — | PM told installer path + batch id |
+
+**Agent rule:** Never report a batch "done" until this full gate — **dev server → tests green → `test:build` → `build:release` → PM notified with installer path** — has run. Only skip `build:release` when PM explicitly asks for a docs-only or read-only turn.
+
 ```typescript
 test.describe('DT.UI.06.001 · Appearance @core', () => {
   test('DT.UI.06.001.020 Light theme @B-0003', async ({ page }) => { … });
@@ -547,4 +585,4 @@ When PM designates the active implementation branch, set repo variable **`DAILY_
 
 ---
 
-*Blocks instance v6 · 2026-06-19 — Sprint 5 · daily release rollover · §12 nightly dev push (PM-locked)*
+*Blocks instance v7 · 2026-06-30 — Sprint 5 · daily release rollover · §8.0 test→build→release gate · §12 nightly dev push (PM-locked)*

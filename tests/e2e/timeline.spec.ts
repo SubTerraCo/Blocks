@@ -46,8 +46,7 @@ test.describe("Timeline Page", () => {
     // May not be visible if no doing tasks - check if at least the timeline is visible
     const visible = await scheduleButton.first().isVisible().catch(() => false);
     if (!visible) {
-      // If no schedule button, at least verify timeline content exists
-      await expect(page.getByText(/No tasks scheduled/i).or(page.locator("main"))).toBeVisible();
+      await expect(page.getByTestId("timeline-empty-state")).toBeVisible();
     }
   });
 

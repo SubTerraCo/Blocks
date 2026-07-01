@@ -1,8 +1,8 @@
 # Blocks Roadmap & Core Functionality
 
-> **Release:** v26.06.19  
-> **Last Updated:** 2026-06-12  
-> **Status:** Sprint 5 — Timeline, scheduling, events, calendar UX (active release v26.06.12)  
+> **Release:** v26.06.30  
+> **Last Updated:** 2026-06-30  
+> **Status:** Sprint 5 — Timeline, scheduling, events, calendar UX (active release v26.06.30)  
 > **Source of truth** for specifications, UX, acceptance criteria, and new-feature roadmap  
 > **Feature codes & health:** [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md) · **Bugs:** [INCIDENTS.md](./INCIDENTS.md)
 
@@ -1143,6 +1143,11 @@ All future GUI decisions should reference this Figma export for:
 | [N-0029](#n-0029-passive-overlap-on-bulk-move) | Passive overlap columns on bulk move | DT · WB · SH · SB | 📋 Proposed | v26.06.12 |
 | [N-0030](#n-0030-calendar-sticky-day-strip) | Calendar sticky day strip (global) | DT · WB · SH | 📋 Proposed | v26.06.12 |
 | [N-0031](#n-0031-timeline-nav-exits-calendar) | Timeline nav exits calendar view | DT · WB · SH | 📋 Proposed | v26.06.12 |
+| [N-0045](#n-0045-quick-blocks-as-reusable-tasks) | Quick Blocks as reusable task templates | DT · WB · SB | 🧪 QA | v26.06.30 |
+| [N-0046](#n-0046-event-section-below-task-name) | Event section below Task Name | DT · WB | 🧪 QA | v26.06.30 |
+| [N-0047](#n-0047-events-right-column-on-conflict) | Events right column on timeline conflict | DT · WB · SB | 🧪 QA | v26.06.30 |
+| [N-0048](#n-0048-kanban-sort--manual-order) | Kanban sort + manual drag order | DT · WB · SB | 🧪 QA | v26.06.30 |
+| [N-0049](#n-0049-kanban-filter--saved-views) | Kanban filter + saved views | DT · WB · SB | 🧪 QA | v26.06.30 |
 
 **Status:** 📋 Proposed · 🔄 In progress · 🧪 QA · ✅ Shipped · ⏸ On hold · ❌ Dropped
 
@@ -1157,6 +1162,7 @@ All items not yet ✅ Shipped belong to **Sprint 5** at release **v26.06.19**. *
 | Scheduling engine | N-0020–N-0021 | Conflict alerts, single-focus push-back, overlap columns |
 | Events & calendar | N-0024–N-0027 | Drag snap pause, schedule-doing lock, user events, scroll calendar |
 | Bulk reschedule | N-0028–N-0029 | Multi-select drag, passive column overlap |
+| Blocks & Kanban (v26.06.30) | N-0045–N-0049 | Reusable block tasks, event section, event columns, Kanban sort/filter/views |
 | Integrations (on hold) | N-0017–N-0019, N-0022–N-0023 | GCal, P2P, MCP, OAuth |
 
 ### Batch log (Sprint 5)
@@ -1174,6 +1180,7 @@ One `/NF` · `/NB` · `/RD` design session = one batch (`v26.06.12bX`). QA via `
 | v26.06.14b3 | Shell Now task alignment to clock | B-0028 | 🧪 QA |
 
 | v26.06.19b1 | Nightly dev push seal · v26.06.19 | — | 🧪 QA |
+| v26.06.30b1 | Reusable block tasks · event section · event columns · Kanban sort/filter/views | N-0045 · N-0046 · N-0047 · N-0048 · N-0049 | 🧪 QA |
 ---
 
 ## Proposed
@@ -2335,6 +2342,174 @@ timelineSnapDelaySec: z.number().int().min(0).max(120).default(15)
 - [ ] Bottom-left toggle still switches views both ways
 - [ ] Re-open calendar scrolls to current week (not stale position)
 - [ ] Playwright: `@N-0031`
+
+---
+
+### N-0045 · Quick Blocks as reusable task templates {#n-0045-quick-blocks-as-reusable-tasks}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🧪 QA · v26.06.30b1 |
+| **Target release** | v26.06.30 |
+| **Platforms**  | DT · WB · SB |
+| **Related**    | [N-0011](#n-0011-schedule-immediately-quick-blocks) (superseded) · [N-0021](#n-0021-single-focus-task-scheduling) |
+
+**Description:** A Quick Block manages exactly **one permanent, reusable Task** (a template). **First use** (`configured === false`) opens the task editor prefilled from block basics (name, duration→blocks, color, category); on save the block is linked to that Task (`linkedTaskId`, `configured = true`) and the flow proceeds to the **placement picker** (Now · After current task · Next free slot · End of day · Custom). **Subsequent uses** skip straight to the placement picker and reschedule the same Task (single-focus push-back via N-0021). **Long-press / right-click** (or the editor’s edit button) opens the linked Task for edits. Blocks are created and treated like any other Task object.
+
+**Schema:**
+- `QuickAddBlock.linkedTaskId?: uuid` · `QuickAddBlock.configured: boolean`
+- Dexie `version(5)` — `quickAddBlocks` index adds `linkedTaskId`; existing blocks upgraded to `configured = false`.
+
+**Store:** `useQuickBlocksStore` — `getLinkedTask`, `linkBlockToTask`, `scheduleBlock` (push-back aware). `addTaskFromBlock` deprecated (kept for compatibility).
+
+**Shared UI:** `PlacementPickerModal` extracted to `@blocks/ui` (generic: `title` + `durationMinutes` + `onSchedule(date)`); "Now" option supersedes N-0011.
+
+**Platform matrix**
+
+```text
+|            Feature                 |    DT    |    WB    |    SB    |
+|------------------------------------|----------|----------|----------|
+|  Block ↔ single permanent task     | 🧪 N-0045 | 🧪 N-0045 | 🧪 N-0045 |
+|  First-use editor prefill          | 🧪 N-0045 | 🧪 N-0045 |    —     |
+|  Reuse → placement picker only     | 🧪 N-0045 | 🧪 N-0045 |    —     |
+|  Long-press / edit linked task     | 🧪 N-0045 | 🧪 N-0045 |    —     |
+```
+
+**Acceptance criteria**
+
+- [ ] First tap of an unconfigured block opens the prefilled task editor
+- [ ] Saving links the task and opens the placement picker
+- [ ] Second tap opens the placement picker directly (no editor)
+- [ ] Long-press / right-click opens the linked task for editing
+- [ ] Scheduling honors single-focus push-back (N-0021)
+- [ ] Playwright: `@N-0045`
+
+---
+
+### N-0046 · Event section below Task Name {#n-0046-event-section-below-task-name}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🧪 QA · v26.06.30b1 |
+| **Target release** | v26.06.30 |
+| **Platforms**  | DT · WB |
+| **Related**    | [N-0026](#n-0026-user-events-on-tasks) |
+
+**Description:** The **"Is event" toggle** and its whole section (all-day / start time / end time) move to the **top of the new/edit task interface, directly below the Task Name field** — web add-task, web edit-task, and desktop TaskEditPage all match.
+
+**Platform matrix**
+
+```text
+|            Feature                 |    DT    |    WB    |
+|------------------------------------|----------|----------|
+|  Event section under Task Name      | 🧪 N-0046 | 🧪 N-0046 |
+```
+
+**Acceptance criteria**
+
+- [ ] Event toggle + time fields render immediately below Task Name on all three forms
+- [ ] Toggling event still hides duration/blocks (B-0019)
+- [ ] Playwright: `@N-0046`
+
+---
+
+### N-0047 · Events right column on timeline conflict {#n-0047-events-right-column-on-conflict}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🧪 QA · v26.06.30b1 |
+| **Target release** | v26.06.30 |
+| **Platforms**  | DT · WB · SB |
+| **Related**    | [N-0021](#n-0021-single-focus-task-scheduling) · N-0020 · N-0026 |
+
+**Description:** In `computeTimelineOverlapLayout`, both **user events** (`task.isEvent === true`) and **Google Calendar events** bias to the **right-hand column(s)** whenever they overlap another block; regular tasks keep the left lanes. Implemented via a `ColumnRank` (0 = task, 1 = event/calendar) sorted before greedy lane packing. Non-overlapping events remain full width.
+
+**Platform matrix**
+
+```text
+|            Feature                 |    DT    |    WB    |    SB    |
+|------------------------------------|----------|----------|----------|
+|  Events/calendar → right on conflict| 🧪 N-0047 | 🧪 N-0047 | 🧪 N-0047 |
+```
+
+**Acceptance criteria**
+
+- [ ] Event overlapping a task renders in the right column (even if it starts earlier)
+- [ ] Non-overlapping event stays full width
+- [ ] Calendar events continue right-column behavior (N-0021 exception path intact)
+- [ ] Integration test: `@N-0047`
+
+---
+
+### N-0048 · Kanban sort + manual drag order {#n-0048-kanban-sort--manual-order}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🧪 QA · v26.06.30b1 |
+| **Target release** | v26.06.30 |
+| **Platforms**  | DT · WB · SB |
+| **Related**    | [N-0049](#n-0049-kanban-filter--saved-views) · Anytype (reference) |
+
+**Description:** Board-wide **sort** by priority, access context, due date ("time"), tag, category, created, or name — **ascending/descending**, default **priority ascending** (P1 top → P5 bottom). Multi-value fields (tags, access contexts) sort by their **first value alphabetically**; nulls/empties last; stable tie-breakers. **Manual drag-and-drop** vertical reorder per column persists to `Task.kanbanOrder` (1..n) and overrides the active sort for that column. A per-column **Refresh sort** button clears manual order (`kanbanOrder = 0`) so the active sort reapplies. Sort preference lives in the active Kanban view (settings).
+
+**Schema:** `Task.kanbanOrder: number` (default 0; indexed in Dexie `version(5)`). Engine defaults new tasks to 0.
+
+**Core:** `sortKanbanTasks`, `buildKanbanBoard` in `@blocks/core/kanban`. **Store:** `useTaskStore.reorderKanbanColumn`, `clearKanbanOrder`.
+
+**Platform matrix**
+
+```text
+|            Feature                 |    DT    |    WB    |    SB    |
+|------------------------------------|----------|----------|----------|
+|  Board-wide sort (field + dir)     | 🧪 N-0048 | 🧪 N-0048 | 🧪 N-0048 |
+|  Manual drag order (kanbanOrder)   | 🧪 N-0048 | 🧪 N-0048 |    —     |
+|  Per-column refresh sort           | 🧪 N-0048 | 🧪 N-0048 |    —     |
+```
+
+**Acceptance criteria**
+
+- [ ] Default sort = priority ascending (P1 top)
+- [ ] Sort field + direction switch reorders every column
+- [ ] Multi-value fields sort by first value; empties last
+- [ ] Manual drag within a column persists and survives reload
+- [ ] Refresh sort clears manual order for that column
+- [ ] Playwright: `@N-0048`
+
+---
+
+### N-0049 · Kanban filter + saved views {#n-0049-kanban-filter--saved-views}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🧪 QA · v26.06.30b1 |
+| **Target release** | v26.06.30 |
+| **Platforms**  | DT · WB · SB |
+| **Related**    | [N-0048](#n-0048-kanban-sort--manual-order) · Anytype (reference) |
+
+**Description:** Object-oriented **filter** over Task properties: priority, tags, category, access context, due-date range, **kind** (event vs task), **scheduled** vs unscheduled, and **has subtasks**. Clauses combine with **AND** semantics. Filter + sort bundle into named **saved views** (Anytype-style) with a built-in **Default** view; views persist in Dexie (`kanbanViews`) and sync across devices. Active view id persists in `sessionStorage`.
+
+**Schema:** `KanbanFilterSchema`, `KanbanSortSchema`, `KanbanViewSchema`; Dexie `version(5)` adds `kanbanViews` table.
+
+**Core:** `taskMatchesKanbanFilter`, `filterKanbanTasks`, `isKanbanFilterActive`, `buildKanbanBoard`. **Store/UI:** `useKanbanViewStore` + shared `KanbanToolbar` (view selector, sort controls, refresh, filter panel).
+
+**Platform matrix**
+
+```text
+|            Feature                 |    DT    |    WB    |    SB    |
+|------------------------------------|----------|----------|----------|
+|  Property filters (AND)            | 🧪 N-0049 | 🧪 N-0049 | 🧪 N-0049 |
+|  Named saved views + Default       | 🧪 N-0049 | 🧪 N-0049 | 🧪 N-0049 |
+|  Views persist + sync (Dexie)      | 🧪 N-0049 | 🧪 N-0049 | 🧪 N-0049 |
+```
+
+**Acceptance criteria**
+
+- [ ] Each property filter narrows the board (AND across clauses)
+- [ ] Saving a view stores current filter + sort by name
+- [ ] Switching views reapplies its filter + sort
+- [ ] Default view always present and non-deletable
+- [ ] Views survive reload (Dexie)
+- [ ] Playwright: `@N-0049`
 
 ---
 

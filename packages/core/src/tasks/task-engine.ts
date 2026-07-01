@@ -30,6 +30,7 @@ export class TaskEngine {
       ...input,
       isEvent: input.isEvent ?? false,
       eventAllDay: input.eventAllDay ?? true,
+      kanbanOrder: input.kanbanOrder ?? 0,
       id: uuidv4(),
       timeSpent: 0,
       isRecurringInstance: false,

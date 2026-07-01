@@ -101,6 +101,16 @@ export {
 } from "./settings/week-start";
 export type { WeekStartsOn, WeekDayKey } from "./settings/week-start";
 
+// Kanban sort + filter (N-0048 · N-0049)
+export {
+  sortKanbanTasks,
+  filterKanbanTasks,
+  taskMatchesKanbanFilter,
+  isKanbanFilterActive,
+  buildKanbanBoard,
+} from "./kanban";
+export type { KanbanBoard } from "./kanban";
+
 // Recurring Engine
 export {
   getNextOccurrence,

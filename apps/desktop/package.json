@@ -1,7 +1,7 @@
 {
   "name": "blocks-desktop",
-  "version": "26.6.19-b1",
-  "blocksVersion": "v26.06.19b1",
+  "version": "26.6.30-b1",
+  "blocksVersion": "v26.06.30b1",
   "description": "Blocks - Time Management Desktop App",
   "main": "dist/main/index.js",
   "author": "Blocks Team",
@@ -9,7 +9,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/poweredupbass/Blocks.git"
+    "url": "https://github.com/PoweredUpLabs/Blocks.git"
   },
   "scripts": {
     "dev": "vite",
@@ -34,30 +34,32 @@
   "dependencies": {
     "@blocks/core": "workspace:*",
     "@blocks/ui": "workspace:*",
-    "@dnd-kit/core": "^6.1.0",
-    "dexie": "^3.2.4",
-    "electron-log": "^5.1.1",
-    "electron-updater": "^6.1.7",
-    "lucide-react": "^0.294.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "uuid": "^9.0.1",
-    "zustand": "^4.4.0"
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "dexie": "^4.4.4",
+    "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.9",
+    "lucide-react": "^0.511.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "uuid": "^11.1.0",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@types/uuid": "^9.0.7",
-    "@vitejs/plugin-react": "^4.2.0",
-    "autoprefixer": "^10.4.16",
-    "electron": "^28.1.0",
-    "electron-builder": "^24.9.1",
-    "postcss": "^8.4.32",
-    "tailwindcss": "^3.4.0",
-    "typescript": "^5.3.0",
-    "vite": "^5.0.10",
-    "vite-plugin-electron": "^0.15.5",
-    "vite-plugin-electron-renderer": "^0.14.5"
+    "@tailwindcss/postcss": "^4.3.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-react": "^6.0.2",
+    "electron": "^42.4.1",
+    "electron-builder": "^26.15.3",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.16",
+    "vite-plugin-electron": "^1.0.4",
+    "vite-plugin-electron-renderer": "^1.0.0"
   },
   "build": {
     "extends": "electron-builder.yml"

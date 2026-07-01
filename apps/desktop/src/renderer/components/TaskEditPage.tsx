@@ -24,7 +24,8 @@ import type {
   TaskPriority, 
   BlockSize, 
   AccessContext, 
-  RecurrenceType 
+  RecurrenceType,
+  QuickAddBlock
 } from "@blocks/core";
 import { KANBAN_COLUMNS, calculateDuration, formatBlockSize, parseLocalDateInput } from "@blocks/core";
 import {
@@ -102,10 +103,19 @@ interface TaskEditPageProps {
   initialStatus?: TaskStatus;
   /** Initial scheduled time for new tasks (from Blocks placement picker) */
   initialScheduledAt?: Date;
+  /** N-0045: prefill a new task from a Quick Block on first use */
+  prefillBlock?: QuickAddBlock;
   /** Callback when save/create completes or user cancels */
   onBack: () => void;
   /** Callback when task is saved (for refreshing task list) */
   onTaskSaved?: (task: Task) => void;
+}
+
+function blockToBlocks(minutes: number): { blockSize: BlockSize; blockCount: number } {
+  if (minutes <= 15) return { blockSize: "15min", blockCount: 1 };
+  if (minutes <= 30) return { blockSize: "15min", blockCount: Math.ceil(minutes / 15) };
+  if (minutes <= 60) return { blockSize: "30min", blockCount: Math.ceil(minutes / 30) };
+  return { blockSize: "1hour", blockCount: Math.ceil(minutes / 60) };
 }
 
 // ============================================================================
@@ -116,6 +126,7 @@ export function TaskEditPage({
   task, 
   initialStatus, 
   initialScheduledAt,
+  prefillBlock,
   onBack,
   onTaskSaved,
 }: TaskEditPageProps) {
@@ -124,13 +135,14 @@ export function TaskEditPage({
   const deleteTask = useTaskStore((state) => state.deleteTask);
   
   const isEditMode = !!task;
+  const prefillBlocks = prefillBlock ? blockToBlocks(prefillBlock.defaultDuration) : null;
   
   // Form state
-  const [name, setName] = useState(task?.name || "");
+  const [name, setName] = useState(task?.name || prefillBlock?.name || "");
   const [priority, setPriority] = useState<TaskPriority>(task?.priority || "3");
   const [status, setStatus] = useState<TaskStatus>(task?.status || initialStatus || "backlog");
-  const [blockSize, setBlockSize] = useState<BlockSize>(task?.blockSize || "30min");
-  const [blockCount, setBlockCount] = useState(task?.blockCount || 1);
+  const [blockSize, setBlockSize] = useState<BlockSize>(task?.blockSize || prefillBlocks?.blockSize || "30min");
+  const [blockCount, setBlockCount] = useState(task?.blockCount || prefillBlocks?.blockCount || 1);
   const [accessContexts, setAccessContexts] = useState<AccessContext[]>(task?.accessContexts || []);
   const [tags, setTags] = useState<string[]>(task?.tags || []);
   const [tagInput, setTagInput] = useState("");
@@ -142,7 +154,7 @@ export function TaskEditPage({
     task?.scheduledAt || initialScheduledAt
   );
   const [notes, setNotes] = useState(task?.notes || "");
-  const [color, setColor] = useState(task?.color || COLOR_OPTIONS[0]);
+  const [color, setColor] = useState(task?.color || prefillBlock?.color || COLOR_OPTIONS[0]);
   const [subtasks, setSubtasks] = useState(task?.subtasks || []);
   const [subtaskInput, setSubtaskInput] = useState("");
   const [isEvent, setIsEvent] = useState(task?.isEvent ?? false);
@@ -258,8 +270,8 @@ export function TaskEditPage({
         notes: notes.trim() || undefined,
         subtasks,
         reminders: [],
-        isQuickAdd: false,
-        isPutzing: false,
+        isQuickAdd: prefillBlock ? true : false,
+        isPutzing: prefillBlock ? prefillBlock.isPutzing : false,
         isEvent,
         ...eventFields,
       };
@@ -352,6 +364,24 @@ export function TaskEditPage({
           autoFocus 
         />
 
+        {/* N-0046: Event section sits directly under Task Name */}
+        <TaskEventFields
+          isEvent={isEvent}
+          onIsEventChange={setIsEvent}
+          eventAllDay={eventAllDay}
+          onEventAllDayChange={setEventAllDay}
+          eventStartTime={eventStartTime}
+          eventEndTime={eventEndTime}
+          onEventStartTimeChange={(t) => {
+            setEventStartTime(t);
+            if (t) setEventAllDay(false);
+          }}
+          onEventEndTimeChange={(t) => {
+            setEventEndTime(t);
+            if (t) setEventAllDay(false);
+          }}
+        />
+
         {/* Duration / blocks — hidden for events (B-0019) */}
         {!isEvent && (
           <div className="space-y-2">
@@ -394,23 +424,6 @@ export function TaskEditPage({
             />
           </div>
         )}
-
-        <TaskEventFields
-          isEvent={isEvent}
-          onIsEventChange={setIsEvent}
-          eventAllDay={eventAllDay}
-          onEventAllDayChange={setEventAllDay}
-          eventStartTime={eventStartTime}
-          eventEndTime={eventEndTime}
-          onEventStartTimeChange={(t) => {
-            setEventStartTime(t);
-            if (t) setEventAllDay(false);
-          }}
-          onEventEndTimeChange={(t) => {
-            setEventEndTime(t);
-            if (t) setEventAllDay(false);
-          }}
-        />
 
         {/* Access Context */}
         <div>

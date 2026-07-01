@@ -31,6 +31,7 @@ function makeTask(overrides: Partial<Task> & Pick<Task, "id" | "name">): Task {
     isQuickAdd: false,
     isPutzing: false,
     isRecurringInstance: false,
+    kanbanOrder: 0,
     createdAt: now,
     updatedAt: now,
     ...overrides,
@@ -153,5 +154,63 @@ test.describe("Single-focus timeline scheduling @N-0021 @core", () => {
     const style = overlapLayoutToStyle(layout.get("task-1"));
     expect(style.width).toContain("50%");
     expect(style.right).toBe("auto");
+  });
+
+  test("user event keeps the right column even when it starts first @N-0047", () => {
+    const blocks: TimeBlock[] = [
+      {
+        id: "event-1",
+        type: "task",
+        startTime: new Date("2026-06-10T14:00:00"),
+        endTime: new Date("2026-06-10T15:00:00"),
+        task: makeTask({
+          id: "event-1",
+          name: "Dentist",
+          status: "doing",
+          isEvent: true,
+          eventAllDay: false,
+          eventStartAt: new Date("2026-06-10T14:00:00"),
+          eventEndAt: new Date("2026-06-10T15:00:00"),
+          scheduledAt: new Date("2026-06-10T14:00:00"),
+        }),
+      },
+      {
+        id: "task-1",
+        type: "task",
+        startTime: new Date("2026-06-10T14:15:00"),
+        endTime: new Date("2026-06-10T14:45:00"),
+        task: makeTask({
+          id: "task-1",
+          name: "Focus",
+          status: "doing",
+          scheduledAt: new Date("2026-06-10T14:15:00"),
+        }),
+      },
+    ];
+    const layout = computeTimelineOverlapLayout(blocks);
+    // Regular task takes the left lane; the event is pushed right despite its
+    // earlier start time.
+    expect(layout.get("task-1")).toEqual({ column: 0, totalColumns: 2 });
+    expect(layout.get("event-1")).toEqual({ column: 1, totalColumns: 2 });
+  });
+
+  test("non-overlapping event stays full width @N-0047", () => {
+    const blocks: TimeBlock[] = [
+      {
+        id: "event-solo",
+        type: "task",
+        startTime: new Date("2026-06-10T09:00:00"),
+        endTime: new Date("2026-06-10T10:00:00"),
+        task: makeTask({
+          id: "event-solo",
+          name: "Solo event",
+          status: "doing",
+          isEvent: true,
+          eventAllDay: false,
+        }),
+      },
+    ];
+    const layout = computeTimelineOverlapLayout(blocks);
+    expect(layout.get("event-solo")).toEqual({ column: 0, totalColumns: 1 });
   });
 });

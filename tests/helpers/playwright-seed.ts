@@ -3,6 +3,11 @@ import type { Page } from "@playwright/test";
 
 export async function waitForPlaywrightSeed(page: Page) {
   await page.waitForFunction(() => window.blocksPlaywright != null);
+  await page.waitForFunction(
+    () => window.blocksPlaywright?.isSettingsHydrated?.() === true,
+    undefined,
+    { timeout: 15000 },
+  );
 }
 
 export async function seedGoogleConnectedUser(

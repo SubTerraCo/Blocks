@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@blocks/core", "@blocks/ui"],
   experimental: {
     optimizePackageImports: ["@blocks/ui", "lucide-react"],
   },
+  transpilePackages: ["@blocks/core", "@blocks/ui"],
 };
 
 module.exports = nextConfig;

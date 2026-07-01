@@ -47,7 +47,12 @@ const CUSTOM_COLORS = [
 export interface CreateBlockModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (block: Omit<QuickAddBlock, "id" | "createdAt" | "usageCount">) => void;
+  onSave: (
+    block: Omit<
+      QuickAddBlock,
+      "id" | "createdAt" | "usageCount" | "configured" | "linkedTaskId"
+    >,
+  ) => void;
   editingBlock?: QuickAddBlock | null;
   nextSortOrder: number;
 }

@@ -37,7 +37,10 @@ export default defineConfig({
   ],
 
   // Global timeout for each test
-  timeout: 30000,
+  timeout: 30_000,
+
+  // Entire run cap (suite + teardown)
+  globalTimeout: process.env.PLAYWRIGHT_ALL_BROWSERS === "1" ? 90 * 60_000 : 45 * 60_000,
 
   // Expect timeout
   expect: {
@@ -102,14 +105,18 @@ export default defineConfig({
     },
   ],
 
-  // Web server configuration - disabled when server already running
-  // webServer: {
-  //   command: "pnpm dev --filter web",
-  //   url: "http://localhost:3002",
-  //   reuseExistingServer: true,
-  //   timeout: 120000,
-  //   cwd: "..",
-  // },
+  // Auto-start web app when running E2E / a11y / visual / perf suites
+  webServer: {
+    command: "pnpm --filter web exec next dev --port 3004",
+    url: "http://localhost:3004",
+    reuseExistingServer: !process.env.CI,
+    timeout: 180000,
+    cwd: "..",
+    env: {
+      ...process.env,
+      NEXT_DISABLE_DEV_OVERLAY: "1",
+    },
+  },
 
   // Output directory for test artifacts
   outputDir: "../test-results",

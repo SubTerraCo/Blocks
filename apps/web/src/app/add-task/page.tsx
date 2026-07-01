@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { Suspense, useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTaskStore, Button, Input, Textarea, Select, cn, TaskEventFields, buildEventTimestamps } from "@blocks/ui";
+import { useTaskStore, useQuickBlocksStore, durationToBlocks, Button, Input, Textarea, Select, cn, TaskEventFields, buildEventTimestamps } from "@blocks/ui";
 import type { TaskPriority, TaskStatus, RecurrenceType, BlockSize, AccessContext } from "@blocks/core";
-import { KANBAN_COLUMNS, calculateDuration, formatBlockSize } from "@blocks/core";
+import { KANBAN_COLUMNS, calculateDuration, formatBlockSize, parseLocalDateInput } from "@blocks/core";
 import { Plus, X, Tag, Calendar, Palette, Timer, MapPin, Home, Car, Monitor, Smartphone } from "lucide-react";
 
 const PRIORITY_OPTIONS = [
@@ -61,10 +61,24 @@ const COLOR_OPTIONS = [
 ];
 
 export default function AddTaskPage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-text-secondary">Loading…</div>}>
+      <AddTaskPageContent />
+    </Suspense>
+  );
+}
+
+function AddTaskPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const createTask = useTaskStore((state) => state.createTask);
+  const blocks = useQuickBlocksStore((state) => state.blocks);
+  const loadBlocks = useQuickBlocksStore((state) => state.loadBlocks);
+  const linkBlockToTask = useQuickBlocksStore((state) => state.linkBlockToTask);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // N-0045: first-use of a Quick Block opens this editor prefilled from the block.
+  const blockId = searchParams?.get("blockId") || null;
 
   // Get pre-selected status from URL query param (from Kanban column add button)
   const initialStatus = (searchParams?.get("status") as TaskStatus) || "backlog";
@@ -116,6 +130,25 @@ export default function AddTaskPage() {
     }
   }, [searchParams]);
 
+  // N-0045: prefill the form from a Quick Block on first use.
+  useEffect(() => {
+    if (!blockId) return;
+    void loadBlocks();
+  }, [blockId, loadBlocks]);
+
+  useEffect(() => {
+    if (!blockId) return;
+    const block = blocks.find((b) => b.id === blockId);
+    if (!block) return;
+    const { blockSize: bs, blockCount: bc } = durationToBlocks(block.defaultDuration);
+    setName((prev) => (prev ? prev : block.name));
+    setBlockSize(bs);
+    setBlockCount(bc);
+    setColor(block.color);
+    setCategory((prev) => (prev ? prev : block.category));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blockId, blocks]);
+
   const handleToggleAccess = (context: AccessContext) => {
     if (accessContexts.includes(context)) {
       setAccessContexts(accessContexts.filter((c) => c !== context));
@@ -160,7 +193,7 @@ export default function AddTaskPage() {
         eventEndTime,
       );
 
-      await createTask({
+      const created = await createTask({
         name: name.trim(),
         description: notes.trim() || undefined,
         duration: computedDuration,
@@ -175,7 +208,7 @@ export default function AddTaskPage() {
         tags,
         color,
         recurrence,
-        dueDate: dueDate ? new Date(dueDate) : undefined,
+        dueDate: dueDate ? parseLocalDateInput(dueDate) : undefined,
         isEvent,
         ...eventFields,
         notes: notes.trim() || undefined,
@@ -185,11 +218,17 @@ export default function AddTaskPage() {
           completed: false,
         })),
         reminders: [],
-        isQuickAdd: false,
+        isQuickAdd: Boolean(blockId),
         isPutzing: false,
       });
 
-      router.push("/kanban");
+      // N-0045: link the block to its permanent task and go schedule it.
+      if (blockId) {
+        await linkBlockToTask(blockId, created.id);
+        router.push(`/blocks?place=${blockId}`);
+      } else {
+        router.push("/kanban");
+      }
     } catch (error) {
       console.error("Failed to create task:", error);
     } finally {
@@ -208,6 +247,24 @@ export default function AddTaskPage() {
           onChange={(e) => setName(e.target.value)}
           required
           autoFocus
+        />
+
+        {/* N-0046: Event section sits directly under Task Name */}
+        <TaskEventFields
+          isEvent={isEvent}
+          onIsEventChange={setIsEvent}
+          eventAllDay={eventAllDay}
+          onEventAllDayChange={setEventAllDay}
+          eventStartTime={eventStartTime}
+          eventEndTime={eventEndTime}
+          onEventStartTimeChange={(t) => {
+            setEventStartTime(t);
+            if (t) setEventAllDay(false);
+          }}
+          onEventEndTimeChange={(t) => {
+            setEventEndTime(t);
+            if (t) setEventAllDay(false);
+          }}
         />
 
         {/* Block Size & Block Count (Anytype-aligned) */}
@@ -250,23 +307,6 @@ export default function AddTaskPage() {
             />
           </div>
         )}
-
-        <TaskEventFields
-          isEvent={isEvent}
-          onIsEventChange={setIsEvent}
-          eventAllDay={eventAllDay}
-          onEventAllDayChange={setEventAllDay}
-          eventStartTime={eventStartTime}
-          eventEndTime={eventEndTime}
-          onEventStartTimeChange={(t) => {
-            setEventStartTime(t);
-            if (t) setEventAllDay(false);
-          }}
-          onEventEndTimeChange={(t) => {
-            setEventEndTime(t);
-            if (t) setEventAllDay(false);
-          }}
-        />
 
         {/* Access Contexts (Anytype-aligned) */}
         <div>

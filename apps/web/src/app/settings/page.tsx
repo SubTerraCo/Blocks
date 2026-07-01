@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSettingsStore, Button, Input, Select, cn, TaskScheduleBehaviorField, SlideToggle, HourFormat24Field, AccentColorFields } from "@blocks/ui";
+import { useSettingsStore, Button, Input, Select, cn, TaskScheduleBehaviorField, SlideToggle, HourFormat24Field, AccentColorFields, WorkScheduleFields, TimelineSnapDelayField, TimelineNowBarOffsetField, TimelineTimerDisplayField, CalendarWeekLookbackField, GoogleCalendarSettings, SyncSettingsPanel } from "@blocks/ui";
 import type { Theme, AIProvider } from "@blocks/core";
 import {
   Moon,
@@ -9,7 +9,6 @@ import {
   Monitor,
   Bot,
   Bell,
-  Calendar,
   Download,
   Trash2,
   Info,
@@ -102,11 +101,6 @@ export default function SettingsPage() {
 
   const handleThemeChange = async (theme: Theme) => {
     await updateSettings({ theme });
-    // Apply theme to document
-    document.documentElement.classList.remove("dark", "light");
-    if (theme !== "system") {
-      document.documentElement.classList.add(theme);
-    }
   };
 
   const handleSaveApiKey = async () => {
@@ -156,29 +150,38 @@ export default function SettingsPage() {
     <div className="px-4 py-6 pb-24">
       {/* Theme */}
       <SettingsSection title="Appearance">
-        <div className="p-4">
-          <p className="mb-3 text-sm text-text-secondary">Theme</p>
-          <div className="flex gap-2">
-            {THEME_OPTIONS.map((option) => {
-              const Icon = option.icon;
-              const isActive = settings.theme === option.value;
-              return (
-                <button
-                  key={option.value}
-                  onClick={() => handleThemeChange(option.value)}
-                  className={cn(
-                    "flex flex-1 flex-col items-center gap-2 rounded-lg p-3 transition-colors",
-                    isActive
-                      ? "bg-accent-magenta text-white"
-                      : "bg-bg-tertiary text-text-secondary hover:bg-border-hover"
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="text-xs font-medium">{option.label}</span>
-                </button>
-              );
-            })}
+        <div className="space-y-4 p-4">
+          <div>
+            <p className="mb-3 text-sm text-text-secondary">Theme</p>
+            <div className="flex gap-2">
+              {THEME_OPTIONS.map((option) => {
+                const Icon = option.icon;
+                const isActive = settings.theme === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    data-testid={`theme-${option.value}`}
+                    onClick={() => void handleThemeChange(option.value)}
+                    className={cn(
+                      "flex flex-1 flex-col items-center gap-2 rounded-lg p-3 transition-colors",
+                      isActive
+                        ? "bg-accent-magenta text-white"
+                        : "bg-bg-tertiary text-text-secondary hover:bg-border-hover"
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span className="text-xs font-medium">{option.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
+          <AccentColorFields
+            accentPrimary={settings.accentPrimary ?? "#9b4dca"}
+            accentSecondary={settings.accentSecondary ?? "#00bcd4"}
+            onAccentPrimaryChange={(accentPrimary) => void updateSettings({ accentPrimary })}
+            onAccentSecondaryChange={(accentSecondary) => void updateSettings({ accentSecondary })}
+          />
         </div>
       </SettingsSection>
 
@@ -264,9 +267,37 @@ export default function SettingsPage() {
         </SettingsItem>
       </SettingsSection>
 
+      {/* Work Schedule */}
+      <SettingsSection title="Work Schedule">
+        <div className="p-4">
+          <WorkScheduleFields
+            workDays={settings.workDays}
+            weekStartsOn={settings.weekStartsOn}
+            onWorkDaysChange={async (workDays) => {
+              await updateSettings({ workDays });
+            }}
+            onWeekStartsOnChange={async (weekStartsOn) => {
+              await updateSettings({ weekStartsOn });
+            }}
+          />
+        </div>
+      </SettingsSection>
+
       {/* Timeline */}
       <SettingsSection title="Timeline">
         <div className="space-y-4 p-4">
+          <TimelineSnapDelayField
+            value={settings.timelineSnapDelaySec}
+            onChange={(timelineSnapDelaySec) =>
+              void updateSettings({ timelineSnapDelaySec })
+            }
+          />
+          <TimelineNowBarOffsetField
+            value={settings.timelineNowBarViewportRatio}
+            onChange={(timelineNowBarViewportRatio) =>
+              void updateSettings({ timelineNowBarViewportRatio })
+            }
+          />
           <TaskScheduleBehaviorField
             value={settings.taskScheduleBehavior}
             onChange={(value) => void updateSettings({ taskScheduleBehavior: value })}
@@ -275,33 +306,33 @@ export default function SettingsPage() {
             value={settings.use24HourTime ?? false}
             onChange={(use24HourTime) => void updateSettings({ use24HourTime })}
           />
-        </div>
-      </SettingsSection>
-
-      {/* Appearance */}
-      <SettingsSection title="Appearance">
-        <div className="p-4">
-          <AccentColorFields
-            accentPrimary={settings.accentPrimary ?? "#9b4dca"}
-            accentSecondary={settings.accentSecondary ?? "#00bcd4"}
-            onAccentPrimaryChange={(accentPrimary) => void updateSettings({ accentPrimary })}
-            onAccentSecondaryChange={(accentSecondary) => void updateSettings({ accentSecondary })}
+          <TimelineTimerDisplayField
+            value={settings.timelineTimerDisplayMode}
+            onChange={(timelineTimerDisplayMode) =>
+              void updateSettings({ timelineTimerDisplayMode })
+            }
+          />
+          <CalendarWeekLookbackField
+            value={settings.calendarWeekLookback}
+            onChange={(calendarWeekLookback) =>
+              void updateSettings({ calendarWeekLookback })
+            }
           />
         </div>
       </SettingsSection>
 
       {/* Calendar */}
       <SettingsSection title="Calendar Sync">
-        <SettingsItem
-          icon={Calendar}
-          label="Google Calendar"
-          description={settings.googleCalendarEnabled ? "Connected" : "Not connected"}
-        >
-          <Toggle
-            checked={settings.googleCalendarEnabled}
-            onChange={(checked) => updateSettings({ googleCalendarEnabled: checked })}
-          />
-        </SettingsItem>
+        <div className="p-4">
+          <GoogleCalendarSettings oauthReturnUrl="/settings" />
+        </div>
+      </SettingsSection>
+
+      {/* P2P Sync */}
+      <SettingsSection title="Device Sync">
+        <div className="p-4">
+          <SyncSettingsPanel />
+        </div>
       </SettingsSection>
 
       {/* Data */}

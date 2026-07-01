@@ -54,7 +54,11 @@ test.describe("WB.UI.06.001 · Appearance @core", () => {
   test("theme persists after reload @B-0003", async ({ page }) => {
     await openSettings(page);
     await page.getByTestId("theme-light").click();
-    await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await page.reload();
+    await expect(page.getByText("Appearance")).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light", {
+      timeout: 15000,
+    });
   });
 });

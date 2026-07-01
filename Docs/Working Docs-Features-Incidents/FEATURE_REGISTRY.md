@@ -216,7 +216,16 @@ Migrated from spec § Phase 2 Required Features.
 | DT.UI.01.012.010 | Task card display      |   ✅    | `task-card.spec.ts`  |
 | DT.UI.01.013.010 | Per-column quick add   |   ✅    | `kanban.spec.ts`     |
 | DT.UI.01.040.010 | Bulk actions           |   ✅    | `bulk-actions.spec.ts` |
+| DT.UI.01.020.010 | Kanban sort (field + dir) |  🔄  | N-0048 · `kanban-sort.spec.ts` |
+| DT.UI.01.020.020 | Manual drag order (kanbanOrder) | 🔄 | N-0048 · `kanban-sort.spec.ts` |
+| DT.UI.01.020.030 | Per-column refresh sort |   🔄    | N-0048 · `kanban-sort.spec.ts` |
+| DT.UI.01.030.010 | Kanban property filters | 🔄 | N-0049 · `kanban-filter.spec.ts` |
+| DT.UI.01.030.020 | Named saved views + Default | 🔄 | N-0049 · `kanban-filter.spec.ts` |
 | WB.UI.01.010.010 | Kanban drag-drop (web) |   ✅    | `kanban.spec.ts`     |
+| WB.UI.01.020.010 | Kanban sort + manual order (web) | 🔄 | N-0048 · `kanban-sort.spec.ts` |
+| WB.UI.01.030.010 | Kanban filter + views (web) | 🔄 | N-0049 · `kanban-filter.spec.ts` |
+| SB.EN.01.020.010 | buildKanbanBoard sort/filter core | 🔄 | N-0048 · N-0049 · `kanban-sort-filter.spec.ts` |
+| SB.EN.01.030.010 | KanbanView persistence (Dexie)   | 🔄 | N-0049 · `kanban-views-store.spec.ts` |
 
 ---
 
@@ -240,6 +249,8 @@ Migrated from spec § Phase 2 Required Features.
 | DT.UI.02.035.010 | Schedule doing tasks button      |   ✅    | B-0008 · -001 · `timeline-schedule-fab.spec.ts` |
 | DT.UI.02.035.020 | Lock current on Schedule Task    |   🔄    | N-0025 · `schedule-doing.spec.ts` |
 | DT.UI.02.037.010 | User events on timeline          |   🔄    | N-0026 |
+| DT.UI.02.037.020 | Events → right column on conflict |   🔄    | N-0047 · `timeline-scheduling.spec.ts` |
+| SB.EN.02.037.020 | Overlap column rank (events right) | 🔄 | N-0047 · `timeline-scheduling.spec.ts` |
 | DT.UI.02.040.070 | Pause snap during drag           |   🔄    | N-0024 |
 | DT.UI.02.050.020 | Continuous scroll calendar       |   🔄    | N-0027 (replaces N-0005) |
 | DT.UI.02.036.010 | Google Calendar timeline events  |   🔄    | N-0017 · `timeline-calendar-events.spec.ts` |
@@ -270,9 +281,13 @@ Migrated from spec § Phase 2 Required Features.
 | ---------------- | -------------------------------- | :----: | -------------- |
 | DT.UI.03.010.010 | Quick block grid                 |   ✅    | `blocks.spec.ts` |
 | DT.UI.03.020.010 | Tap-to-create + placement picker |   ✅    | `blocks.spec.ts` |
-| DT.UI.03.020.020 | Schedule immediately (web tap)   |   🐛    | N-0011 · B-0015 · `blocks-schedule-immediately.spec.ts` |
+| DT.UI.03.020.020 | Schedule immediately (web tap)   |   ↪️    | N-0011 superseded by N-0045 |
+| DT.UI.03.020.030 | Block ↔ single reusable task     |   🔄    | N-0045 · `blocks-reusable-task.spec.ts` |
+| DT.UI.03.020.040 | First-use editor → placement     |   🔄    | N-0045 · `blocks-reusable-task.spec.ts` |
+| DT.UI.03.020.050 | Long-press edit linked task      |   🔄    | N-0045 · `blocks-reusable-task.spec.ts` |
 | DT.UI.03.030.010 | Edit / reorder blocks            |   ✅    | `blocks.spec.ts` |
 | DT.UI.03.040.010 | Stats bar (duration totals)      |   ✅    | `blocks.spec.ts` |
+| SH.UI.03.020.030 | PlacementPickerModal (shared)    |   🔄    | N-0045 · `blocks-reusable-task.spec.ts` |
 
 ---
 
@@ -283,6 +298,8 @@ Migrated from spec § Phase 2 Required Features.
 | Code             | Feature                          | Health | Playwright        |
 | ---------------- | -------------------------------- | :----: | ----------------- |
 | DT.UI.04.001.010 | Unified create/edit page         |   ✅    | `task-edit.spec.ts` |
+| DT.UI.04.002.010 | Event section below Task Name     |   🔄    | N-0046 · `task-event-section.spec.ts` |
+| WB.UI.04.002.010 | Event section below Task Name (web) | 🔄  | N-0046 · `task-event-section.spec.ts` |
 | DT.UI.04.010.010 | Required fields (name, duration) |   ✅    | `task-crud.spec.ts` |
 | DT.UI.04.020.010 | Subtasks (SubtaskEditor)         |   ✅    | `subtasks.spec.ts` |
 | DT.UI.04.030.010 | Recurrence selector              |   ✅    | `recurring.spec.ts` |

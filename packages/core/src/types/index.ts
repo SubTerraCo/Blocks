@@ -169,7 +169,11 @@ export const TaskSchema = z.object({
   isQuickAdd: z.boolean().default(false), // Is this a quick-add block?
   isPutzing: z.boolean().default(false), // Is this unproductive time?
   calendarEventId: z.string().optional(), // Linked Google Calendar event
-  
+
+  // N-0048: manual Kanban order within a status column (drag override).
+  // Lower values sort first. 0 = unset (falls back to active sort).
+  kanbanOrder: z.number().default(0),
+
   // Timestamps
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -188,9 +192,11 @@ export type CreateTaskInput = Omit<
   | "parentTaskId"
   | "isEvent"
   | "eventAllDay"
+  | "kanbanOrder"
 > & {
   isEvent?: boolean;
   eventAllDay?: boolean;
+  kanbanOrder?: number;
 };
 export type UpdateTaskInput = Partial<Omit<Task, "id" | "createdAt">>;
 
@@ -298,6 +304,80 @@ export const KANBAN_COLUMNS: KanbanColumn[] = [
 ];
 
 // ----------------------------------------------------------------------------
+// N-0048 · Kanban sort  ·  N-0049 · Kanban filters + saved views (Anytype-style)
+// ----------------------------------------------------------------------------
+
+/** Sortable Task properties for the Kanban board (N-0048). */
+export const KanbanSortField = z.enum([
+  "priority", // P1 → P5
+  "dueDate", // "time" — earliest due first
+  "createdAt",
+  "name",
+  "tags", // first tag alphabetically
+  "accessContexts", // first access context alphabetically
+  "category",
+  "manual", // honor Task.kanbanOrder only
+]);
+export type KanbanSortField = z.infer<typeof KanbanSortField>;
+
+export const KanbanSortDirection = z.enum(["asc", "desc"]);
+export type KanbanSortDirection = z.infer<typeof KanbanSortDirection>;
+
+export const KanbanSortSchema = z.object({
+  field: KanbanSortField.default("priority"),
+  direction: KanbanSortDirection.default("asc"),
+});
+export type KanbanSort = z.infer<typeof KanbanSortSchema>;
+
+/** Property-based filter for the Kanban board (N-0049, Anytype-aligned). */
+export const KanbanFilterSchema = z.object({
+  priority: z.array(TaskPriority).default([]),
+  tags: z.array(z.string()).default([]),
+  category: z.array(z.string()).default([]),
+  accessContexts: z.array(AccessContext).default([]),
+  dueFrom: z.date().optional(),
+  dueTo: z.date().optional(),
+  /** "event" = isEvent only · "task" = non-event only · undefined = both */
+  kind: z.enum(["event", "task"]).optional(),
+  /** "scheduled" = has scheduledAt · "unscheduled" = none · undefined = both */
+  scheduled: z.enum(["scheduled", "unscheduled"]).optional(),
+  /** "with" = has subtasks · "without" = none · undefined = both */
+  subtasks: z.enum(["with", "without"]).optional(),
+});
+export type KanbanFilter = z.infer<typeof KanbanFilterSchema>;
+
+/** Named saved view bundling filter + sort, synced via Dexie (N-0049). */
+export const KanbanViewSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(60),
+  filter: KanbanFilterSchema.default({
+    priority: [],
+    tags: [],
+    category: [],
+    accessContexts: [],
+  }),
+  sort: KanbanSortSchema.default({ field: "priority", direction: "asc" }),
+  /** Built-in default view cannot be deleted. */
+  isDefault: z.boolean().default(false),
+  sortOrder: z.number().default(0),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+export type KanbanView = z.infer<typeof KanbanViewSchema>;
+export type CreateKanbanViewInput = Omit<
+  KanbanView,
+  "id" | "createdAt" | "updatedAt"
+>;
+
+export const DEFAULT_KANBAN_SORT: KanbanSort = { field: "priority", direction: "asc" };
+export const DEFAULT_KANBAN_FILTER: KanbanFilter = {
+  priority: [],
+  tags: [],
+  category: [],
+  accessContexts: [],
+};
+
+// ----------------------------------------------------------------------------
 // Quick Add Block Types
 // ----------------------------------------------------------------------------
 
@@ -323,6 +403,14 @@ export const QuickAddBlockSchema = z.object({
   icon: z.string().max(50).optional(), // Emoji or icon name
   sortOrder: z.number().default(0),
   usageCount: z.number().default(0),
+
+  // N-0045: a block manages exactly one permanent, reusable Task.
+  // `linkedTaskId` points at that Task once the block has been configured.
+  // First use (configured === false) opens the task editor to fill details;
+  // later uses go straight to the placement picker and reschedule that task.
+  linkedTaskId: z.string().uuid().optional(),
+  configured: z.boolean().default(false),
+
   createdAt: z.date(),
 });
 
@@ -399,7 +487,16 @@ export const UserSchema = z.object({
     currentStreak: z.number().default(0), // Days
     longestStreak: z.number().default(0),
     lastActiveDate: z.date().optional(),
-  }).default({}),
+  }).default({
+    tasksCompletedTotal: 0,
+    tasksCompletedToday: 0,
+    tasksCompletedThisWeek: 0,
+    tasksCompletedThisMonth: 0,
+    totalTimeTracked: 0,
+    putzingTime: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+  }),
   
   createdAt: z.date(),
   updatedAt: z.date(),

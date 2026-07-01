@@ -2,7 +2,7 @@
 // BLOCKS - QuickAddTile Component
 // ============================================================================
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { QuickAddBlock } from "@blocks/core";
 import { cn } from "../lib/utils";
 import { X, Plus, GripVertical } from "lucide-react";
@@ -27,6 +27,8 @@ export interface QuickAddTileProps {
   block: QuickAddBlock;
   timeLogged?: number; // Minutes logged today for this block
   onPress?: (block: QuickAddBlock) => void;
+  /** N-0045: long-press (or right-click) opens the block's task for editing. */
+  onLongPress?: (block: QuickAddBlock) => void;
   className?: string;
   isEditMode?: boolean;
   onDelete?: (block: QuickAddBlock) => void;
@@ -36,6 +38,7 @@ export function QuickAddTile({
   block,
   timeLogged = 0,
   onPress,
+  onLongPress,
   className,
   isEditMode = false,
   onDelete,
@@ -43,13 +46,35 @@ export function QuickAddTile({
   const displayTime = timeLogged > 0 ? `+${timeLogged}` : `+${block.defaultDuration}`;
   const isPutzing = block.isPutzing;
   const [isPressed, setIsPressed] = useState(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressFired = useRef(false);
 
   const handlePress = () => {
     if (isEditMode) return; // Don't trigger in edit mode
+    if (longPressFired.current) {
+      longPressFired.current = false;
+      return; // suppress click that follows a long-press
+    }
     setIsPressed(true);
     onPress?.(block);
     // Reset animation after a short delay
     setTimeout(() => setIsPressed(false), 200);
+  };
+
+  const startLongPress = () => {
+    if (isEditMode || !onLongPress) return;
+    longPressFired.current = false;
+    longPressTimer.current = setTimeout(() => {
+      longPressFired.current = true;
+      onLongPress(block);
+    }, 500);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
   };
 
   return (
@@ -68,6 +93,9 @@ export function QuickAddTile({
       )}
       
       <button
+        data-testid="quick-add-tile"
+        data-block-id={block.id}
+        data-configured={block.configured ? "true" : "false"}
         className={cn(
           "quick-block flex flex-col items-center justify-center rounded-xl p-4 text-center transition-all",
           "min-h-[100px] w-full",
@@ -81,6 +109,16 @@ export function QuickAddTile({
           opacity: isPutzing ? 0.7 : 1,
         }}
         onClick={handlePress}
+        onPointerDown={startLongPress}
+        onPointerUp={cancelLongPress}
+        onPointerLeave={cancelLongPress}
+        onContextMenu={(e) => {
+          if (onLongPress && !isEditMode) {
+            e.preventDefault();
+            longPressFired.current = true;
+            onLongPress(block);
+          }
+        }}
         disabled={isEditMode}
       >
         {/* Drag handle in edit mode */}
@@ -219,6 +257,7 @@ export interface EditableQuickAddGridProps {
   timeLoggedMap?: Record<string, number>;
   isEditMode: boolean;
   onBlockPress?: (block: QuickAddBlock) => void;
+  onBlockLongPress?: (block: QuickAddBlock) => void;
   onBlockDelete?: (block: QuickAddBlock) => void;
   onBlockReorder?: (orderedIds: string[]) => void;
   onCreateBlock?: () => void;
@@ -231,6 +270,7 @@ export function EditableQuickAddGrid({
   timeLoggedMap = {},
   isEditMode,
   onBlockPress,
+  onBlockLongPress,
   onBlockDelete,
   onBlockReorder,
   onCreateBlock,
@@ -288,6 +328,7 @@ export function EditableQuickAddGrid({
             block={block}
             timeLogged={timeLoggedMap[block.id]}
             onPress={onBlockPress}
+            onLongPress={onBlockLongPress}
             isEditMode={false}
           />
         ))}

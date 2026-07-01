@@ -21,6 +21,12 @@ export { TopBar, type TopBarProps } from "./top-bar";
 
 // Modal components
 export { CreateBlockModal, type CreateBlockModalProps } from "./create-block-modal";
+export {
+  PlacementPickerModal,
+  type PlacementPickerModalProps,
+  type PlacementOption,
+} from "./placement-picker-modal";
+export { KanbanToolbar, type KanbanToolbarProps } from "./kanban-toolbar";
 
 // Form components
 export { Button, type ButtonProps } from "./button";

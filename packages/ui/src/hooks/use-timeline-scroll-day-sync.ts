@@ -27,10 +27,15 @@ export function useTimelineScrollDaySync(
   active = true,
 ): TimelineScrollDaySyncState {
   const skipSyncRef = useRef(false);
-  const rafRef = useRef<number>();
+  const pinnedSelectionIndexRef = useRef<number | null>(null);
+  const rafRef = useRef<number | undefined>(undefined);
   const lastLockedDayRef = useRef(formatDayKey(selectedDay));
 
-  const [selectionOffset, setSelectionOffset] = useState(0);
+  const [selectionOffset, setSelectionOffset] = useState(() => {
+    const days = getWeekStripDays(selectedDay, weekStartsOn);
+    const index = days.findIndex((d) => formatDayKey(d) === formatDayKey(selectedDay));
+    return index >= 0 ? index : 0;
+  });
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [stripDays, setStripDays] = useState(() =>
     getWeekStripDays(selectedDay, weekStartsOn),
@@ -52,6 +57,7 @@ export function useTimelineScrollDaySync(
         setSelectionOffset(index);
         setIsTransitioning(false);
         lastLockedDayRef.current = formatDayKey(day);
+        pinnedSelectionIndexRef.current = index;
       }
     },
     [weekStartsOn],
@@ -76,6 +82,8 @@ export function useTimelineScrollDaySync(
     const progress = computeMidnightBoundaryProgress(viewportHeight, boundaries);
     if (!progress) return;
 
+    if (skipSyncRef.current) return;
+
     const anchorDay = dayKeyToDate(
       progress.isTransitioning
         ? progress.fromDayKey
@@ -89,10 +97,18 @@ export function useTimelineScrollDaySync(
     setStripDays(days);
     setIsTransitioning(progress.isTransitioning);
     if (offset !== null) {
-      setSelectionOffset(offset);
+      const pinned = pinnedSelectionIndexRef.current;
+      if (pinned !== null) {
+        if (Math.abs(offset - pinned) < 0.15) {
+          pinnedSelectionIndexRef.current = null;
+          setSelectionOffset(offset);
+        } else {
+          setSelectionOffset(pinned);
+        }
+      } else {
+        setSelectionOffset(offset);
+      }
     }
-
-    if (skipSyncRef.current) return;
 
     if (!progress.isTransitioning && progress.progress >= 1) {
       if (lastLockedDayRef.current !== progress.toDayKey) {

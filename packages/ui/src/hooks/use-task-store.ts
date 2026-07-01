@@ -44,7 +44,11 @@ interface TaskState {
     scheduledAt: Date,
     durationMinutes: number,
   ) => Promise<void>;
-  
+  /** N-0048 · Persist manual drag order for a Kanban column (1..n). */
+  reorderKanbanColumn: (orderedIds: string[]) => Promise<void>;
+  /** N-0048 · Clear manual order for the given tasks (refresh sort). */
+  clearKanbanOrder: (taskIds: string[]) => Promise<void>;
+
   // Filtered getters
   getTasksByStatus: (status: TaskStatus) => Task[];
   getBacklogTasks: () => Task[];
@@ -329,6 +333,47 @@ export const useTaskStore = create<TaskState>()(
         );
         if (pushUpdates.length > 0) {
           await get().shiftTimelineSchedules(pushUpdates);
+        }
+      },
+
+      // N-0048: assign kanbanOrder 1..n to reflect a manual drag order.
+      reorderKanbanColumn: async (orderedIds: string[]) => {
+        if (orderedIds.length === 0) return;
+        const db = await getStorage();
+        const updates = new Map<string, number>();
+        orderedIds.forEach((id, index) => updates.set(id, index + 1));
+        const now = new Date();
+        const patched: Task[] = [];
+        for (const [id, kanbanOrder] of updates) {
+          const existing = get().tasks.find((t) => t.id === id);
+          if (!existing) continue;
+          const next = { ...existing, kanbanOrder, updatedAt: now };
+          await db.updateTask(next);
+          patched.push(next);
+        }
+        set((state) => ({
+          tasks: state.tasks.map((t) => patched.find((p) => p.id === t.id) ?? t),
+        }));
+      },
+
+      // N-0048: refresh sort — drop manual overrides so the active sort applies.
+      clearKanbanOrder: async (taskIds: string[]) => {
+        if (taskIds.length === 0) return;
+        const db = await getStorage();
+        const ids = new Set(taskIds);
+        const now = new Date();
+        const patched: Task[] = [];
+        for (const task of get().tasks) {
+          if (ids.has(task.id) && task.kanbanOrder !== 0) {
+            const next = { ...task, kanbanOrder: 0, updatedAt: now };
+            await db.updateTask(next);
+            patched.push(next);
+          }
+        }
+        if (patched.length > 0) {
+          set((state) => ({
+            tasks: state.tasks.map((t) => patched.find((p) => p.id === t.id) ?? t),
+          }));
         }
       },
 

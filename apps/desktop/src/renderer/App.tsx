@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { UpdateNotification } from "./components/UpdateNotification";
 import { TaskEditPage } from "./components/TaskEditPage";
-import { PlacementPickerModal } from "./components/PlacementPickerModal";
 import { SettingsPage } from "./components/SettingsPage";
 import { ProfilePage } from "./components/ProfilePage";
 import { TimelinePage } from "./components/TimelinePage";
@@ -12,19 +11,22 @@ import { notificationService } from "./hooks/useNotifications";
 import { 
   useTaskStore, 
   useQuickBlocksStore,
+  useKanbanViewStore,
+  useSettingsStore,
   useOnlineStatus,
   BottomNav,
   exitToTimelineView,
   TaskCard,
   EditableQuickAddGrid,
   CreateBlockModal,
+  PlacementPickerModal,
+  KanbanToolbar,
   AccentSync,
   cn,
 } from "@blocks/ui";
 import type { 
   Task, 
   TaskStatus, 
-  TimeBlock as TimeBlockType,
   QuickAddBlock
 } from "@blocks/core";
 import { 
@@ -47,12 +49,12 @@ import {
   Check,
   Menu,
   ChevronLeft,
+  RefreshCw,
   User
 } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
-  useDraggable,
   useDroppable,
   DragStartEvent,
   DragEndEvent,
@@ -62,6 +64,12 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 // ============================================================================
 // Desktop Title Bar
@@ -133,38 +141,37 @@ function TitleBar() {
 // Kanban Page with Drag & Drop
 // ============================================================================
 
-// Draggable task card wrapper
-function DraggableTaskCard({ 
-  task, 
-  onTaskToggle, 
-  onTaskPress 
-}: { 
-  task: Task; 
-  onTaskToggle: (task: Task) => void; 
+const KANBAN_COLUMN_IDS = new Set<string>(KANBAN_COLUMNS.map((c) => c.id));
+
+// Sortable task card (within-column reorder + cross-column move) — N-0048
+function SortableTaskCard({
+  task,
+  onTaskToggle,
+  onTaskPress,
+}: {
+  task: Task;
+  onTaskToggle: (task: Task) => void;
   onTaskPress: (task: Task) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: task.id,
-    data: { task },
-  });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: task.id, data: { task } });
 
-  const style = transform
-    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
-    : undefined;
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...listeners}
-      {...attributes}
-      className={cn("touch-none", isDragging && "opacity-50")}
-    >
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className="touch-none">
       <TaskCard
         task={task}
         onToggleComplete={onTaskToggle}
         onPress={onTaskPress}
-        className={cn("animate-fade-in cursor-grab active:cursor-grabbing", isDragging && "ring-2 ring-accent-magenta")}
+        className={cn(
+          "animate-fade-in cursor-grab active:cursor-grabbing",
+          isDragging && "ring-2 ring-accent-magenta",
+        )}
       />
     </div>
   );
@@ -179,6 +186,7 @@ function DroppableColumn({
   onTaskToggle,
   onTaskPress,
   onAddTask,
+  onRefreshColumn,
   isOver,
 }: {
   id: TaskStatus;
@@ -188,9 +196,11 @@ function DroppableColumn({
   onTaskToggle: (task: Task) => void;
   onTaskPress: (task: Task) => void;
   onAddTask: (status: TaskStatus) => void;
+  onRefreshColumn: (status: TaskStatus) => void;
   isOver: boolean;
 }) {
   const { setNodeRef } = useDroppable({ id });
+  const hasManual = tasks.some((t) => t.kanbanOrder > 0);
 
   return (
     <div
@@ -213,34 +223,49 @@ function DroppableColumn({
             {title}
           </h2>
         </div>
-        <span
-          className="rounded-full px-2 py-0.5 text-xs font-medium"
-          style={{ backgroundColor: accentColor, color: "#fff" }}
-        >
-          {tasks.length}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {hasManual && (
+            <button
+              onClick={() => onRefreshColumn(id)}
+              title="Refresh sort for this column"
+              aria-label={`Refresh sort for ${title}`}
+              data-testid={`kanban-refresh-${id}`}
+              className="rounded p-1 text-text-muted hover:text-accent-magenta"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <span
+            className="rounded-full px-2 py-0.5 text-xs font-medium"
+            style={{ backgroundColor: accentColor, color: "#fff" }}
+          >
+            {tasks.length}
+          </span>
+        </div>
       </div>
       <div className="flex-1 overflow-y-auto p-3">
-        <div className="space-y-3">
-          {tasks.map((task) => (
-            <DraggableTaskCard
-              key={task.id}
-              task={task}
-              onTaskToggle={onTaskToggle}
-              onTaskPress={onTaskPress}
-            />
-          ))}
-          {tasks.length === 0 && (
-            <div
-              className={cn(
-                "rounded-lg border-2 border-dashed py-8 text-center transition-colors",
-                isOver ? "border-accent-magenta bg-accent-magenta/5" : "border-border-default"
-              )}
-            >
-              <p className="text-sm text-text-muted">{isOver ? "Drop here" : "No tasks"}</p>
-            </div>
-          )}
-        </div>
+        <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-3">
+            {tasks.map((task) => (
+              <SortableTaskCard
+                key={task.id}
+                task={task}
+                onTaskToggle={onTaskToggle}
+                onTaskPress={onTaskPress}
+              />
+            ))}
+            {tasks.length === 0 && (
+              <div
+                className={cn(
+                  "rounded-lg border-2 border-dashed py-8 text-center transition-colors",
+                  isOver ? "border-accent-magenta bg-accent-magenta/5" : "border-border-default"
+                )}
+              >
+                <p className="text-sm text-text-muted">{isOver ? "Drop here" : "No tasks"}</p>
+              </div>
+            )}
+          </div>
+        </SortableContext>
       </div>
       <div className="border-t border-border-default p-3 pb-10">
         <button
@@ -259,47 +284,50 @@ function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => voi
   const tasks = useTaskStore((state) => state.tasks);
   const completeTask = useTaskStore((state) => state.completeTask);
   const updateTask = useTaskStore((state) => state.updateTask);
-  
+  const reorderKanbanColumn = useTaskStore((state) => state.reorderKanbanColumn);
+  const clearKanbanOrder = useTaskStore((state) => state.clearKanbanOrder);
+
+  const loadViews = useKanbanViewStore((state) => state.loadViews);
+  const getBoard = useKanbanViewStore((state) => state.getBoard);
+  const filter = useKanbanViewStore((state) => state.filter);
+  const sort = useKanbanViewStore((state) => state.sort);
+
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
 
-  // Configure sensors for drag detection
+  useEffect(() => {
+    void loadViews();
+  }, [loadViews]);
+
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // 8px movement required before drag starts
-      },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
-  // Group tasks by status
-  const groupedTasks = useMemo(() => {
-    const groups: Record<TaskStatus, Task[]> = {
-      backlog: [],
-      design: [],
-      todo: [],
-      doing: [],
-      review: [],
-      done: [],
-    };
+  const board = useMemo(
+    () => getBoard(tasks),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tasks, filter, sort, getBoard],
+  );
 
-    tasks.forEach((task) => {
-      const status = task.status as TaskStatus;
-      if (groups[status]) {
-        groups[status].push(task);
-      } else {
-        groups.backlog.push(task);
-      }
-    });
+  const availableTags = useMemo(
+    () => Array.from(new Set(tasks.flatMap((t) => t.tags))).sort(),
+    [tasks],
+  );
+  const availableCategories = useMemo(
+    () =>
+      Array.from(
+        new Set(tasks.map((t) => t.category).filter((c): c is string => Boolean(c))),
+      ).sort(),
+    [tasks],
+  );
+  const allTaskIds = useMemo(() => tasks.map((t) => t.id), [tasks]);
 
-    // Sort done tasks by completion date
-    groups.done = groups.done.sort((a, b) => {
-      if (!a.completedAt || !b.completedAt) return 0;
-      return b.completedAt.getTime() - a.completedAt.getTime();
-    });
-
-    return groups;
-  }, [tasks]);
+  const overColumn: TaskStatus | null = (() => {
+    if (!overId) return null;
+    if (KANBAN_COLUMN_IDS.has(overId)) return overId as TaskStatus;
+    const overTask = tasks.find((t) => t.id === overId);
+    return overTask?.status ?? null;
+  })();
 
   const handleTaskToggle = async (task: Task) => {
     if (task.status === "done") {
@@ -307,6 +335,10 @@ function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => voi
     } else {
       await completeTask(task.id);
     }
+  };
+
+  const handleRefreshColumn = (status: TaskStatus) => {
+    void clearKanbanOrder(board[status].map((t) => t.id));
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -322,118 +354,151 @@ function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => voi
     const { active, over } = event;
     setActiveTask(null);
     setOverId(null);
-
     if (!over) return;
 
     const taskId = active.id as string;
-    const newStatus = over.id as TaskStatus;
     const task = tasks.find((t) => t.id === taskId);
-    
-    if (!task || task.status === newStatus) return;
+    if (!task) return;
 
-    const updates: { status: TaskStatus; completedAt?: Date | undefined } = { status: newStatus };
-    
-    if (newStatus === "done") {
-      updates.completedAt = new Date();
-    } else if (task.status === "done") {
-      updates.completedAt = undefined;
+    const overIdStr = over.id.toString();
+    const droppedOnColumn = KANBAN_COLUMN_IDS.has(overIdStr);
+    const overTask = droppedOnColumn ? null : tasks.find((t) => t.id === overIdStr);
+    const targetStatus: TaskStatus = droppedOnColumn
+      ? (overIdStr as TaskStatus)
+      : overTask?.status ?? task.status;
+
+    if (targetStatus !== task.status) {
+      const updates: { status: TaskStatus; completedAt?: Date | undefined } = { status: targetStatus };
+      if (targetStatus === "done") updates.completedAt = new Date();
+      else if (task.status === "done") updates.completedAt = undefined;
+      await updateTask(taskId, updates);
+
+      const targetIds = board[targetStatus].map((t) => t.id).filter((id) => id !== taskId);
+      const insertAt = overTask ? targetIds.indexOf(overTask.id) : targetIds.length;
+      targetIds.splice(insertAt < 0 ? targetIds.length : insertAt, 0, taskId);
+      await reorderKanbanColumn(targetIds);
+      return;
     }
 
-    await updateTask(taskId, updates);
+    if (overTask && overTask.id !== taskId) {
+      const ids = board[task.status].map((t) => t.id);
+      const from = ids.indexOf(taskId);
+      const to = ids.indexOf(overTask.id);
+      if (from !== -1 && to !== -1) {
+        ids.splice(from, 1);
+        ids.splice(to, 0, taskId);
+        await reorderKanbanColumn(ids);
+      }
+    }
   };
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      {/* h-full with parent pb-20 ensures columns don't go behind nav bar */}
-      <div className="flex h-full gap-4 overflow-x-auto p-4">
-        {KANBAN_COLUMNS.map((column) => (
-          <DroppableColumn
-            key={column.id}
-            id={column.id}
-            title={column.title}
-            tasks={groupedTasks[column.id]}
-            accentColor={column.color}
-            onTaskToggle={handleTaskToggle}
-            onTaskPress={onEditTask}
-            onAddTask={onAddTask}
-            isOver={overId === column.id}
-          />
-        ))}
+    <div className="flex h-full flex-col">
+      <div className="px-4 pt-3">
+        <KanbanToolbar
+          availableTags={availableTags}
+          availableCategories={availableCategories}
+          allTaskIds={allTaskIds}
+        />
       </div>
-
-      {/* Drag overlay - shows the dragged item */}
-      <DragOverlay>
-        {activeTask && (
-          <div className="w-72 rotate-3 opacity-90">
-            <TaskCard
-              task={activeTask}
-              showCheckbox={false}
-              className="shadow-2xl ring-2 ring-accent-magenta"
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex flex-1 gap-4 overflow-x-auto p-4">
+          {KANBAN_COLUMNS.map((column) => (
+            <DroppableColumn
+              key={column.id}
+              id={column.id}
+              title={column.title}
+              tasks={board[column.id]}
+              accentColor={column.color}
+              onTaskToggle={handleTaskToggle}
+              onTaskPress={onEditTask}
+              onAddTask={onAddTask}
+              onRefreshColumn={handleRefreshColumn}
+              isOver={overColumn === column.id}
             />
-          </div>
-        )}
-      </DragOverlay>
-    </DndContext>
+          ))}
+        </div>
+
+        <DragOverlay>
+          {activeTask && (
+            <div className="w-72 rotate-3 opacity-90">
+              <TaskCard
+                task={activeTask}
+                showCheckbox={false}
+                className="shadow-2xl ring-2 ring-accent-magenta"
+              />
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
+    </div>
   );
 }
 
-// Helper to convert duration in minutes to blockSize + blockCount
-function durationToBlocks(minutes: number): { blockSize: "15min" | "30min" | "1hour" | "1week"; blockCount: number } {
-  if (minutes <= 15) return { blockSize: "15min", blockCount: 1 };
-  if (minutes <= 30) return { blockSize: "15min", blockCount: Math.ceil(minutes / 15) };
-  if (minutes <= 60) return { blockSize: "30min", blockCount: Math.ceil(minutes / 30) };
-  return { blockSize: "1hour", blockCount: Math.ceil(minutes / 60) };
-}
-
-function tasksToTimeBlocksLocal(tasks: Task[]): TimeBlockType[] {
-  return tasksToTimeBlocks(tasks);
-}
-
 // ============================================================================
-// Blocks Page
+// Blocks Page — N-0045 (reusable single-task blocks)
 // ============================================================================
-function BlocksPage() {
+function BlocksPage({
+  onFirstUseBlock,
+  onEditLinkedTask,
+  pendingPlacementBlockId,
+  onConsumePendingPlacement,
+}: {
+  onFirstUseBlock: (block: QuickAddBlock) => void;
+  onEditLinkedTask: (taskId: string) => void;
+  pendingPlacementBlockId: string | null;
+  onConsumePendingPlacement: () => void;
+}) {
   const blocks = useQuickBlocksStore((state) => state.blocks);
   const timeLoggedToday = useQuickBlocksStore((state) => state.timeLoggedToday);
   const isLoading = useQuickBlocksStore((state) => state.isLoading);
   const deleteBlock = useQuickBlocksStore((state) => state.deleteBlock);
   const reorderBlocks = useQuickBlocksStore((state) => state.reorderBlocks);
   const createBlock = useQuickBlocksStore((state) => state.createBlock);
+  const scheduleBlock = useQuickBlocksStore((state) => state.scheduleBlock);
   const loadTasks = useTaskStore((state) => state.loadTasks);
   const tasks = useTaskStore((state) => state.tasks);
-  const createTask = useTaskStore((state) => state.createTask);
-  const applyTimelinePushBackForInsert = useTaskStore(
-    (state) => state.applyTimelinePushBackForInsert,
-  );
-  
+  const currentTask = useTaskStore((state) => state.currentTask);
+  const workEndTime = useSettingsStore((state) => state.settings.workEndTime);
+
   const [isEditMode, setIsEditMode] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showPlacementPicker, setShowPlacementPicker] = useState(false);
-  const [selectedBlock, setSelectedBlock] = useState<QuickAddBlock | null>(null);
+  const [placementBlock, setPlacementBlock] = useState<QuickAddBlock | null>(null);
   const [lastAddedTask, setLastAddedTask] = useState<string | null>(null);
 
-  // Get the currently active task (the one scheduled at current time)
+  // Active task for the "after current task" placement option.
   const activeTask = useMemo(() => {
+    if (currentTask) return currentTask;
     const now = new Date();
-    return tasks.find((task) => {
-      if (!task.scheduledAt) return false;
-      const duration = task.duration || calculateDuration(task.blockSize || "30min", task.blockCount || 1);
-      const endTime = new Date(task.scheduledAt);
-      endTime.setMinutes(endTime.getMinutes() + duration);
-      return task.scheduledAt <= now && endTime > now;
-    }) || null;
-  }, [tasks]);
+    return (
+      tasks.find((task) => {
+        if (!task.scheduledAt) return false;
+        const duration = task.duration || calculateDuration(task.blockSize || "30min", task.blockCount || 1);
+        const endTime = new Date(task.scheduledAt);
+        endTime.setMinutes(endTime.getMinutes() + duration);
+        return task.scheduledAt <= now && endTime > now;
+      }) || null
+    );
+  }, [tasks, currentTask]);
 
-  // Get scheduled tasks as TimeBlocks for the placement picker
-  const scheduledTimeBlocks = useMemo(() => tasksToTimeBlocksLocal(tasks), [tasks]);
+  const scheduledTimeBlocks = useMemo(() => tasksToTimeBlocks(tasks), [tasks]);
 
-  // Clear toast after delay
+  // Open the placement picker after returning from the first-use editor.
+  useEffect(() => {
+    if (!pendingPlacementBlockId) return;
+    const block = blocks.find((b) => b.id === pendingPlacementBlockId);
+    if (block?.configured) {
+      setPlacementBlock(block);
+      onConsumePendingPlacement();
+    }
+  }, [pendingPlacementBlockId, blocks, onConsumePendingPlacement]);
+
   useEffect(() => {
     if (lastAddedTask) {
       loadTasks();
@@ -444,43 +509,27 @@ function BlocksPage() {
 
   const handleBlockPress = (block: QuickAddBlock) => {
     if (isEditMode) return;
-    // Show placement picker instead of immediately scheduling
-    setSelectedBlock(block);
-    setShowPlacementPicker(true);
+    const linked = block.linkedTaskId && tasks.find((t) => t.id === block.linkedTaskId);
+    if (!block.configured || !linked) {
+      onFirstUseBlock(block);
+      return;
+    }
+    setPlacementBlock(block);
   };
 
-  const handleScheduleFromPicker = async (block: QuickAddBlock, scheduledAt: Date) => {
-    const { blockSize, blockCount } = durationToBlocks(block.defaultDuration);
-    const duration = calculateDuration(blockSize, blockCount);
+  const handleBlockLongPress = (block: QuickAddBlock) => {
+    if (block.configured && block.linkedTaskId) onEditLinkedTask(block.linkedTaskId);
+    else onFirstUseBlock(block);
+  };
 
-    // B-0021 · Flush push-back for schedule immediately (exact now, no grid snap)
-    await applyTimelinePushBackForInsert("__new__", scheduledAt, duration);
-
-    const newTask = await createTask({
-      name: block.name,
-      status: "doing",
-      blockSize,
-      blockCount,
-      scheduledAt,
-      duration,
-      isPutzing: block.isPutzing,
-      isQuickAdd: true,
-      priority: "3",
-      assigneeId: "me",
-      accessContexts: [],
-      tags: [],
-      subtasks: [],
-      reminders: [],
-      recurrence: "none",
-    });
-    
-    if (newTask) {
-      setLastAddedTask(newTask.name);
+  const handleSchedule = async (scheduledAt: Date) => {
+    if (!placementBlock) return;
+    const task = await scheduleBlock(placementBlock.id, scheduledAt);
+    if (task) {
+      setLastAddedTask(task.name);
       await loadTasks();
     }
-    
-    setShowPlacementPicker(false);
-    setSelectedBlock(null);
+    setPlacementBlock(null);
   };
 
   const handleBlockDelete = async (block: QuickAddBlock) => {
@@ -493,9 +542,20 @@ function BlocksPage() {
     await reorderBlocks(orderedIds);
   };
 
-  const handleCreateBlock = async (blockData: Omit<QuickAddBlock, "id" | "createdAt" | "usageCount">) => {
+  const handleCreateBlock = async (blockData: Parameters<typeof createBlock>[0]) => {
     await createBlock(blockData);
   };
+
+  const placementDuration = placementBlock
+    ? (() => {
+        const linked = placementBlock.linkedTaskId
+          ? tasks.find((t) => t.id === placementBlock.linkedTaskId)
+          : null;
+        return linked
+          ? calculateDuration(linked.blockSize, linked.blockCount)
+          : placementBlock.defaultDuration;
+      })()
+    : 30;
 
   if (isLoading) {
     return (
@@ -579,6 +639,7 @@ function BlocksPage() {
         timeLoggedMap={timeLoggedToday}
         isEditMode={isEditMode}
         onBlockPress={handleBlockPress}
+        onBlockLongPress={handleBlockLongPress}
         onBlockDelete={handleBlockDelete}
         onBlockReorder={handleBlockReorder}
         onCreateBlock={() => setShowCreateModal(true)}
@@ -587,7 +648,9 @@ function BlocksPage() {
 
       {/* Tip (hide in edit mode) */}
       {!isEditMode && (
-        <p className="mt-6 text-center text-xs text-text-muted">Tap a block to choose where to schedule it on the timeline.</p>
+        <p className="mt-6 text-center text-xs text-text-muted">
+          Tap a block to schedule it. First use fills out the task; long-press to edit.
+        </p>
       )}
 
       {/* Create Block Modal */}
@@ -598,18 +661,16 @@ function BlocksPage() {
         nextSortOrder={nextSortOrder}
       />
 
-      {/* Placement Picker Modal */}
+      {/* Placement Picker Modal (shared) */}
       <PlacementPickerModal
-        isOpen={showPlacementPicker}
-        block={selectedBlock}
+        isOpen={placementBlock !== null}
+        title={placementBlock?.name ?? ""}
+        durationMinutes={placementDuration}
         activeTask={activeTask}
         scheduledTasks={scheduledTimeBlocks}
-        workEndTime="17:00"
-        onClose={() => {
-          setShowPlacementPicker(false);
-          setSelectedBlock(null);
-        }}
-        onSchedule={handleScheduleFromPicker}
+        workEndTime={workEndTime}
+        onClose={() => setPlacementBlock(null)}
+        onSchedule={handleSchedule}
       />
     </div>
   );
@@ -759,8 +820,12 @@ export default function App() {
   const [returnPage, setReturnPage] = useState<Page>("kanban");
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [addTaskInitialStatus, setAddTaskInitialStatus] = useState<TaskStatus>("backlog");
+  // N-0045: first-use block editor + follow-up placement picker.
+  const [prefillBlock, setPrefillBlock] = useState<QuickAddBlock | null>(null);
+  const [pendingPlacementBlockId, setPendingPlacementBlockId] = useState<string | null>(null);
   const loadTasks = useTaskStore((state) => state.loadTasks);
   const loadBlocks = useQuickBlocksStore((state) => state.loadBlocks);
+  const linkBlockToTask = useQuickBlocksStore((state) => state.linkBlockToTask);
   const initializeDefaultBlocks = useQuickBlocksStore((state) => state.initializeDefaultBlocks);
   
   // Initialize theme on app load
@@ -814,6 +879,7 @@ export default function App() {
         setReturnPage(currentPage);
       }
       setEditingTask(null);
+      setPrefillBlock(null);
       setAddTaskInitialStatus(currentPage === "timeline" ? "doing" : "backlog");
       setCurrentPage("add-task");
       return;
@@ -829,6 +895,7 @@ export default function App() {
   }, [currentPage]);
 
   const handleAddTask = useCallback((status: TaskStatus) => {
+    setPrefillBlock(null);
     setReturnPage(currentPage);
     setEditingTask(null);
     setAddTaskInitialStatus(status);
@@ -837,16 +904,61 @@ export default function App() {
 
   const handleBack = useCallback(() => {
     setEditingTask(null);
+    setPrefillBlock(null);
     setCurrentPage(returnPage);
   }, [returnPage]);
+
+  // N-0045: first use of a Quick Block opens the editor prefilled from it.
+  const handleFirstUseBlock = useCallback((block: QuickAddBlock) => {
+    setReturnPage("blocks");
+    setEditingTask(null);
+    setPrefillBlock(block);
+    setAddTaskInitialStatus("backlog");
+    setCurrentPage("add-task");
+  }, []);
+
+  const handleEditLinkedTask = useCallback((taskId: string) => {
+    const task = useTaskStore.getState().tasks.find((t) => t.id === taskId);
+    if (task) {
+      setReturnPage("blocks");
+      setEditingTask(task);
+      setCurrentPage("edit-task");
+    }
+  }, []);
+
+  // After the first-use editor saves, link the block and open the placement picker.
+  const handleBlockTaskSaved = useCallback(
+    async (savedTask: Task) => {
+      if (!prefillBlock) return;
+      await linkBlockToTask(prefillBlock.id, savedTask.id);
+      setPendingPlacementBlockId(prefillBlock.id);
+      setPrefillBlock(null);
+      setCurrentPage("blocks");
+    },
+    [prefillBlock, linkBlockToTask],
+  );
 
   const renderPage = () => {
     switch (currentPage) {
       case "kanban": return <KanbanPage onEditTask={handleEditTask} onAddTask={handleAddTask} />;
       case "timeline": return <TimelinePage onEditTask={handleEditTask} />;
-      case "blocks": return <BlocksPage />;
+      case "blocks": return (
+        <BlocksPage
+          onFirstUseBlock={handleFirstUseBlock}
+          onEditLinkedTask={handleEditLinkedTask}
+          pendingPlacementBlockId={pendingPlacementBlockId}
+          onConsumePendingPlacement={() => setPendingPlacementBlockId(null)}
+        />
+      );
       case "ai": return <AIPage onEditTask={handleEditTask} />;
-      case "add-task": return <TaskEditPage onBack={handleBack} initialStatus={addTaskInitialStatus} />;
+      case "add-task": return (
+        <TaskEditPage
+          onBack={handleBack}
+          initialStatus={addTaskInitialStatus}
+          prefillBlock={prefillBlock ?? undefined}
+          onTaskSaved={prefillBlock ? handleBlockTaskSaved : undefined}
+        />
+      );
       case "edit-task": return editingTask ? <TaskEditPage task={editingTask} onBack={handleBack} /> : <KanbanPage onEditTask={handleEditTask} onAddTask={handleAddTask} />;
       case "settings": return <SettingsPage />;
       case "profile": return <ProfilePage onBack={() => setCurrentPage("kanban")} />;

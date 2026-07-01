@@ -36,6 +36,8 @@ export interface UseTimelineNowFollowOptions {
   entryKey?: string;
   /** Wait until sessionStorage day selection is restored before entry snap */
   entryReady?: boolean;
+  /** Skip scroll-to-now on entry when restoring a persisted week-strip day */
+  suppressEntryScroll?: boolean;
 }
 
 export interface TimelineNowFollowState {
@@ -60,6 +62,7 @@ export function useTimelineNowFollow({
   onNowChange,
   entryKey,
   entryReady = true,
+  suppressEntryScroll = false,
 }: UseTimelineNowFollowOptions): TimelineNowFollowState {
   const [now, setNow] = useState(() => new Date());
 
@@ -73,7 +76,7 @@ export function useTimelineNowFollow({
   const userPausedRef = useRef(false);
   const hasUserScrolledRef = useRef(false);
   const programmaticRef = useRef(false);
-  const snapTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const snapTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const wasActiveRef = useRef(false);
   const prevActiveRef = useRef(false);
   const prevEntryReadyRef = useRef(false);
@@ -86,7 +89,7 @@ export function useTimelineNowFollow({
       if (!el) return;
 
       programmaticRef.current = true;
-      pauseScrollSync?.(behavior === "smooth" ? 900 : 500);
+      pauseScrollSync?.(behavior === "smooth" ? 1500 : 500);
 
       if (behavior === "smooth") {
         el.scrollTo({ top, behavior: "smooth" });
@@ -110,7 +113,7 @@ export function useTimelineNowFollow({
 
       if (scrollTimelineContainerToNow(el, time, behavior, nowBarViewportRatio)) {
         programmaticRef.current = true;
-        pauseScrollSync?.(behavior === "smooth" ? 900 : 500);
+        pauseScrollSync?.(behavior === "smooth" ? 1500 : 500);
         window.setTimeout(
           () => {
             programmaticRef.current = false;
@@ -139,7 +142,7 @@ export function useTimelineNowFollow({
 
       if (scrollTimelineContainerToDay(el, day, behavior)) {
         programmaticRef.current = true;
-        pauseScrollSync?.(behavior === "smooth" ? 900 : 500);
+        pauseScrollSync?.(behavior === "smooth" ? 1500 : 500);
         window.setTimeout(
           () => {
             programmaticRef.current = false;
@@ -213,6 +216,12 @@ export function useTimelineNowFollow({
 
     onEntrySnap?.(entryNow);
 
+    if (suppressEntryScroll) {
+      wasActiveRef.current = true;
+      lastEntryKeyRef.current = key;
+      return;
+    }
+
     const runSnap = (attempt = 0) => {
       const el = scrollRef.current;
       if (!el) {
@@ -242,6 +251,7 @@ export function useTimelineNowFollow({
     onEntrySnap,
     scrollToNow,
     publishNow,
+    suppressEntryScroll,
   ]);
 
   // N-0007: clock tick — update now-line only; do not fight user scroll every second

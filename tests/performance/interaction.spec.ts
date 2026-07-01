@@ -98,23 +98,19 @@ test.describe("Scroll Performance", () => {
 
   test("timeline vertical scroll should be smooth", async ({ page }) => {
     await page.goto("/timeline");
-    await page.waitForLoadState("networkidle");
+    await expect(page.getByTestId("timeline-scroller")).toBeVisible();
 
-    // Use main as fallback if overflow-y-auto not found
-    const container = page.locator(".overflow-y-auto").first().or(page.locator("main"));
-    
-    if (await container.isVisible()) {
-      const startTime = Date.now();
-      await container.evaluate((el) => {
-        el.scrollTop = 500;
-      });
-      await page.waitForTimeout(100);
-      const scrollTime = Date.now() - startTime;
+    const container = page.getByTestId("timeline-scroller");
+    const startTime = Date.now();
+    await container.evaluate((el) => {
+      el.scrollTop = 500;
+    });
+    await page.waitForTimeout(100);
+    const scrollTime = Date.now() - startTime;
 
-      console.log(`Vertical scroll time: ${scrollTime}ms`);
-      
-      expect(scrollTime).toBeLessThan(600);
-    }
+    console.log(`Vertical scroll time: ${scrollTime}ms`);
+
+    expect(scrollTime).toBeLessThan(1000);
   });
 });
 

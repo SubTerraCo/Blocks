@@ -5,11 +5,11 @@
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
 import type { QuickAddBlock, BlockSize, Task, BlockCategory } from "@blocks/core";
-import { DexieStorage } from "@blocks/core";
+import { DexieStorage, calculateDuration } from "@blocks/core";
 import { useTaskStore } from "./use-task-store";
 
 // Helper to map duration to blockSize + blockCount
-function durationToBlocks(minutes: number): { blockSize: BlockSize; blockCount: number } {
+export function durationToBlocks(minutes: number): { blockSize: BlockSize; blockCount: number } {
   if (minutes <= 15) return { blockSize: "15min", blockCount: 1 };
   if (minutes <= 30) return { blockSize: "15min", blockCount: Math.ceil(minutes / 15) };
   if (minutes <= 60) return { blockSize: "30min", blockCount: Math.ceil(minutes / 30) };
@@ -24,13 +24,26 @@ interface QuickBlocksState {
 
   // Actions
   loadBlocks: () => Promise<void>;
-  createBlock: (input: Omit<QuickAddBlock, "id" | "createdAt" | "usageCount">) => Promise<QuickAddBlock>;
+  createBlock: (
+    input: Omit<
+      QuickAddBlock,
+      "id" | "createdAt" | "usageCount" | "configured" | "linkedTaskId"
+    > & { configured?: boolean; linkedTaskId?: string },
+  ) => Promise<QuickAddBlock>;
   updateBlock: (block: QuickAddBlock) => Promise<QuickAddBlock>;
   deleteBlock: (id: string) => Promise<void>;
   logTime: (blockId: string, minutes?: number) => Promise<void>;
   resetDailyLogs: () => void;
-  
-  // NEW: Create task from block and schedule immediately
+
+  // N-0045: block ↔ single permanent Task
+  /** The permanent task a block manages, or null if not configured yet. */
+  getLinkedTask: (blockId: string) => Task | null;
+  /** Link a block to the task the user just created + mark it configured. */
+  linkBlockToTask: (blockId: string, taskId: string) => Promise<QuickAddBlock | null>;
+  /** Reschedule the block's linked task onto the timeline at `scheduledAt`. */
+  scheduleBlock: (blockId: string, scheduledAt: Date) => Promise<Task | null>;
+
+  // Deprecated (N-0011): create+schedule in one shot. Kept for compatibility.
   addTaskFromBlock: (blockId: string) => Promise<Task | null>;
   
   // NEW: Reorder blocks (for drag-and-drop)
@@ -41,7 +54,10 @@ interface QuickBlocksState {
 }
 
 // Default quick add blocks based on Figma mockups - with proper colors from screenshot
-const DEFAULT_BLOCKS: Omit<QuickAddBlock, "id" | "createdAt" | "usageCount">[] = [
+const DEFAULT_BLOCKS: Omit<
+  QuickAddBlock,
+  "id" | "createdAt" | "usageCount" | "configured" | "linkedTaskId"
+>[] = [
   // Row 1: Activities (brown/maroon tones)
   { name: "Get Ready", defaultDuration: 40, color: "#6B4423", category: "productive" as BlockCategory, isPutzing: false, sortOrder: 0 },
   { name: "Meeting", defaultDuration: 60, color: "#6B4423", category: "productive" as BlockCategory, isPutzing: false, sortOrder: 1 },
@@ -97,6 +113,7 @@ export const useQuickBlocksStore = create<QuickBlocksState>((set, get) => {
         const db = await getStorage();
         const block: QuickAddBlock = {
           ...input,
+          configured: input.configured ?? false,
           id: uuidv4(),
           usageCount: 0,
           createdAt: new Date(),
@@ -167,7 +184,92 @@ export const useQuickBlocksStore = create<QuickBlocksState>((set, get) => {
       set({ timeLoggedToday: {} });
     },
 
-    // NEW: Create task from block and schedule it immediately
+    // N-0045: resolve the permanent task a block manages.
+    getLinkedTask: (blockId: string) => {
+      const block = get().blocks.find((b) => b.id === blockId);
+      if (!block?.linkedTaskId) return null;
+      return (
+        useTaskStore.getState().tasks.find((t) => t.id === block.linkedTaskId) ?? null
+      );
+    },
+
+    // N-0045: after the first-use editor saves a task, link + configure block.
+    linkBlockToTask: async (blockId: string, taskId: string) => {
+      const block = get().blocks.find((b) => b.id === blockId);
+      if (!block) return null;
+      const updated: QuickAddBlock = {
+        ...block,
+        linkedTaskId: taskId,
+        configured: true,
+      };
+      try {
+        const db = await getStorage();
+        await db.updateQuickAddBlock(updated);
+        set((state) => ({
+          blocks: state.blocks.map((b) => (b.id === blockId ? updated : b)),
+        }));
+        return updated;
+      } catch (error) {
+        set({ error: (error as Error).message });
+        return null;
+      }
+    },
+
+    // N-0045: reschedule the block's single linked task (reschedule-one model).
+    scheduleBlock: async (blockId: string, scheduledAt: Date) => {
+      const block = get().blocks.find((b) => b.id === blockId);
+      if (!block?.linkedTaskId) return null;
+
+      try {
+        const db = await getStorage();
+        const taskStore = useTaskStore.getState();
+        if (taskStore.tasks.length === 0) await taskStore.loadTasks();
+
+        const linked = useTaskStore
+          .getState()
+          .tasks.find((t) => t.id === block.linkedTaskId);
+        if (!linked) return null;
+
+        const duration = calculateDuration(linked.blockSize, linked.blockCount);
+
+        // Honor single-focus push-back (N-0021) so the reused task never
+        // overlaps another scheduled task.
+        await taskStore.applyTimelinePushBackForInsert(
+          linked.id,
+          scheduledAt,
+          duration,
+        );
+
+        const updated = await taskStore.updateTask(linked.id, {
+          status: "doing",
+          scheduledAt,
+          duration,
+        });
+
+        set((state) => ({
+          timeLoggedToday: {
+            ...state.timeLoggedToday,
+            [blockId]: (state.timeLoggedToday[blockId] ?? 0) + block.defaultDuration,
+          },
+        }));
+
+        await db.updateQuickAddBlock({ ...block, usageCount: block.usageCount + 1 });
+        set((state) => ({
+          blocks: state.blocks.map((b) =>
+            b.id === blockId ? { ...b, usageCount: b.usageCount + 1 } : b,
+          ),
+        }));
+
+        return updated;
+      } catch (error) {
+        set({ error: (error as Error).message });
+        console.error("Failed to schedule block:", error);
+        return null;
+      }
+    },
+
+    // Deprecated (N-0011). Retained so any legacy caller keeps working: creates a
+    // fresh task from block basics and schedules it now.
     addTaskFromBlock: async (blockId: string) => {
       const block = get().blocks.find((b) => b.id === blockId);
       if (!block) return null;
@@ -175,10 +277,7 @@ export const useQuickBlocksStore = create<QuickBlocksState>((set, get) => {
       try {
         const db = await getStorage();
         const taskStore = useTaskStore.getState();
-
-        if (taskStore.tasks.length === 0) {
-          await taskStore.loadTasks();
-        }
+        if (taskStore.tasks.length === 0) await taskStore.loadTasks();
 
         const { blockSize, blockCount } = durationToBlocks(block.defaultDuration);
         const scheduledAt = new Date();
@@ -214,11 +313,7 @@ export const useQuickBlocksStore = create<QuickBlocksState>((set, get) => {
           },
         }));
 
-        await db.updateQuickAddBlock({
-          ...block,
-          usageCount: block.usageCount + 1,
-        });
-
+        await db.updateQuickAddBlock({ ...block, usageCount: block.usageCount + 1 });
         return task;
       } catch (error) {
         set({ error: (error as Error).message });
@@ -263,6 +358,7 @@ export const useQuickBlocksStore = create<QuickBlocksState>((set, get) => {
         for (const blockInput of DEFAULT_BLOCKS) {
           const block: QuickAddBlock = {
             ...blockInput,
+            configured: false,
             id: uuidv4(),
             usageCount: 0,
             createdAt: new Date(),
