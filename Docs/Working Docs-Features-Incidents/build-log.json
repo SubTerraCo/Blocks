@@ -60,6 +60,16 @@
       "gitSha": "516bf4f",
       "platform": "win32",
       "installer": "apps/desktop/release/Blocks-Setup-26.6.30-b1.exe"
+    },
+    {
+      "batch": "v26.06.30b2",
+      "release": "v26.06.30",
+      "displayVersion": "v26.06.30b2",
+      "npmVersion": "26.6.30-b2",
+      "builtAt": "2026-07-01T05:15:50.734Z",
+      "gitSha": "d625662",
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.6.30-b2.exe"
     }
   ]
 }

@@ -1181,6 +1181,7 @@ One `/NF` · `/NB` · `/RD` design session = one batch (`v26.06.12bX`). QA via `
 
 | v26.06.19b1 | Nightly dev push seal · v26.06.19 | — | 🧪 QA |
 | v26.06.30b1 | Reusable block tasks · event section · event columns · Kanban sort/filter/views | N-0045 · N-0046 · N-0047 · N-0048 · N-0049 | 🧪 QA |
+| v26.06.30b2 | Nightly dev push seal · v26.06.30 | N-0045 · N-0046 · N-0047 · N-0048 · N-0049 | 🧪 QA |
 ---
 
 ## Proposed
