@@ -12,7 +12,9 @@
       "args": ["packages/mcp-server/dist/index.js"],
       "env": {
         "BLOCKS_MCP_MODE": "file",
-        "BLOCKS_MCP_DATA_PATH": "<PATH_TO_HOME>/.blocks/mcp-data.json"
+        "BLOCKS_MCP_DATA_PATH": "<PATH_TO_HOME>/.blocks/mcp-data.json",
+        "ANYTYPE_API_KEY": "<YOUR_ANYTYPE_API_KEY>",
+        "ANYTYPE_SPACE_ID": "<YOUR_ANYTYPE_SPACE_ID>"
       }
     },
     "blocks-export": {
@@ -20,7 +22,9 @@
       "args": ["packages/mcp-server/dist/index.js"],
       "env": {
         "BLOCKS_MCP_MODE": "export",
-        "BLOCKS_MCP_EXPORT_PATH": "<PATH_TO_HOME>/.blocks/blocks-export.json"
+        "BLOCKS_MCP_EXPORT_PATH": "<PATH_TO_HOME>/.blocks/blocks-export.json",
+        "ANYTYPE_API_KEY": "<YOUR_ANYTYPE_API_KEY>",
+        "ANYTYPE_SPACE_ID": "<YOUR_ANYTYPE_SPACE_ID>"
       }
     }
   }

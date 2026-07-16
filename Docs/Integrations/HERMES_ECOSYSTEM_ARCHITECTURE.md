@@ -81,10 +81,11 @@ flowchart TB
 
 #### Plan my day (agent recipe)
 
-1. **Anytype MCP:** List today's tasks/notes from your daily space.
-2. **Blocks MCP:** `list_timeline_tasks` + `export_tasks_to_anytype_markdown` for context.
-3. **Google Calendar:** User timeline already shows cached events (read-only).
-4. **Agent:** Propose Blocks tasks in free slots; use `add_to_timeline` via Blocks MCP.
+1. **Blocks MCP:** `sync_linked_tasks` (N-0050) — reconcile Blocks and Anytype first.
+2. **Anytype MCP:** List today's tasks/notes from your daily space.
+3. **Blocks MCP:** `list_timeline_tasks` + `export_tasks_to_anytype_markdown` for context.
+4. **Google Calendar:** User timeline already shows cached events (read-only).
+5. **Agent:** Propose Blocks tasks in free slots; use `add_to_timeline` via Blocks MCP; `push_task_to_anytype` to mirror new tasks back.
 
 Use `BLOCKS_MCP_MODE=export` with a Desktop JSON export for agents to see real user data. See [INTEGRATIONS_BLOCKS_MCP.md](./INTEGRATIONS_BLOCKS_MCP.md).
 

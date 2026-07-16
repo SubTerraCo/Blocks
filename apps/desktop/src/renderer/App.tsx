@@ -7,6 +7,7 @@ import { TimelinePage } from "./components/TimelinePage";
 import { AppTrackingClock, TrackingControlBar } from "./components/TrackingBar";
 import { useTimerStore } from "./hooks/useTimerStore";
 import { useTheme } from "./hooks/useTheme";
+import { useAnytypeSyncRunner } from "./hooks/useAnytypeSync";
 import { notificationService } from "./hooks/useNotifications";
 import { 
   useTaskStore, 
@@ -829,6 +830,8 @@ export default function App() {
   const initializeDefaultBlocks = useQuickBlocksStore((state) => state.initializeDefaultBlocks);
   
   useTheme();
+  // N-0050: background Anytype sync while the app is open
+  useAnytypeSyncRunner();
 
   useEffect(() => {
     void loadSettings();

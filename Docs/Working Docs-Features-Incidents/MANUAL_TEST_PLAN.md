@@ -242,6 +242,11 @@ See [GOOGLE_OAUTH_ROLLOUT.md](../../Integrations/GOOGLE_OAUTH_ROLLOUT.md) for de
 | MC.EN.01.130.010 | spawn_routine | spawn_routine with id | Routine tasks created | Manual |
 | MC.EN.02.110.010 | export_tasks_to_anytype_markdown | Invoke export tool | Markdown with task headings | `@N-0019` |
 | MC.EN.02.120.010 | Dexie export mode | Set `BLOCKS_MCP_MODE=export` + export path from desktop JSON | MCP reads/writes live export file | Manual |
+| MC.EN.02.130.010 | push_task_to_anytype | Anytype Desktop running + env keys; invoke with taskId | Object created/updated in space; task gains link ids | `@N-0050` + Manual |
+| MC.EN.02.130.020 | pull_tasks_from_anytype | Edit linked object in Anytype; invoke pull | Blocks task updated (LWW); schedule overlaps reported, not applied | `@N-0050` + Manual |
+| MC.EN.02.130.030 | sync_linked_tasks | Change both sides; invoke sync | Newer side wins per task; missing tasks created both sides | `@N-0050` + Manual |
+| DT.UI.06.009.010 | Anytype settings (Desktop) | Settings → Anytype Sync: key, space, interval | Fields persist; Sync now disabled until key + space set | `settings.spec.ts @N-0050` |
+| DT.UI.06.009.020 | Desktop sync + conflict gate | Sync with overlapping incoming schedule | ScheduleConflictDialog before commit; confirm applies push-back | Manual |
 
 **MCP manual setup:**
 
@@ -294,6 +299,7 @@ Run after any timeline/settings/shell change:
 | B-0027 | Timeline Add nav opens add-task flow |
 | B-0028 | Shell “Now” task aligns with clock |
 | B-0029 | Spacing/margins match web baseline; `#ff3366` accent; Kanban toolbar header; desktop shell parity |
+| B-0029-002 | Desktop: Tailwind `p-*`/`px-*` not zeroed — cards, toolbar, shell buttons breathe (cascade fix in `@layer base`) |
 
 **Automated incident suite:** `PLAYWRIGHT_GREP=@B- pnpm test:e2e`  
 **B-0029 parity (optional):** `PLAYWRIGHT_PARITY=1 pnpm test:integration tests/visual/desktop-web-parity.spec.ts`

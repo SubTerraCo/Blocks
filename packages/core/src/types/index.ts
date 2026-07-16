@@ -174,6 +174,12 @@ export const TaskSchema = z.object({
   // Lower values sort first. 0 = unset (falls back to active sort).
   kanbanOrder: z.number().default(0),
 
+  // N-0050: Anytype two-way sync link metadata
+  anytypeObjectId: z.string().optional(),
+  anytypeSpaceId: z.string().optional(),
+  anytypeSyncedAt: z.date().optional(),
+  anytypeSyncVersion: z.number().optional(),
+
   // Timestamps
   createdAt: z.date(),
   updatedAt: z.date(),

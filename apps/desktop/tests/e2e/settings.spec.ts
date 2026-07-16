@@ -8,7 +8,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Settings Page", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
-    await page.click("[aria-label='Settings Menu'], [aria-label='Settings']");
+    await page.click("[aria-label='Open menu'], [aria-label='Settings Menu'], [aria-label='Settings']");
     await page.waitForLoadState("networkidle");
   });
 
@@ -164,6 +164,45 @@ test.describe("Settings Page", () => {
 
     test("should show last sync date", async ({ page }) => {
       await expect(page.locator("text=/Last Sync|Never/")).toBeVisible();
+    });
+  });
+
+  test.describe("Anytype Sync Settings @N-0050", () => {
+    test("should display Anytype sync section with enable toggle", async ({ page }) => {
+      const section = page.getByTestId("anytype-sync-settings");
+      await section.scrollIntoViewIfNeeded();
+      await expect(section).toBeVisible();
+      await expect(page.getByTestId("anytype-sync-toggle")).toBeVisible();
+    });
+
+    test("enabling sync reveals API key, space picker, and Sync now", async ({ page }) => {
+      const toggle = page.getByTestId("anytype-sync-toggle");
+      await toggle.scrollIntoViewIfNeeded();
+      if ((await toggle.getAttribute("aria-checked")) !== "true") {
+        await toggle.click();
+      }
+      await expect(page.getByTestId("anytype-api-key")).toBeVisible();
+      await expect(page.getByTestId("anytype-space-select")).toBeVisible();
+      await expect(page.getByTestId("anytype-sync-interval")).toBeVisible();
+      // Sync now disabled until API key + space are configured
+      await expect(page.getByTestId("anytype-sync-now")).toBeDisabled();
+    });
+
+    test("sync settings persist after reload", async ({ page }) => {
+      const toggle = page.getByTestId("anytype-sync-toggle");
+      await toggle.scrollIntoViewIfNeeded();
+      if ((await toggle.getAttribute("aria-checked")) !== "true") {
+        await toggle.click();
+      }
+      await page.getByTestId("anytype-api-key").fill("test-key-persist");
+      await page.reload();
+      await page.click("[aria-label='Open menu'], [aria-label='Settings Menu'], [aria-label='Settings']");
+      const reloadedToggle = page.getByTestId("anytype-sync-toggle");
+      await reloadedToggle.scrollIntoViewIfNeeded();
+      await expect(reloadedToggle).toHaveAttribute("aria-checked", "true");
+      await expect(page.getByTestId("anytype-api-key")).toHaveValue("test-key-persist");
+      // Cleanup: disable again
+      await reloadedToggle.click();
     });
   });
 

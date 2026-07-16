@@ -1,7 +1,7 @@
 {
   "name": "blocks-desktop",
-  "version": "26.7.16-b1",
-  "blocksVersion": "v26.07.16b1",
+  "version": "26.7.16-b3",
+  "blocksVersion": "v26.07.16b3",
   "description": "Blocks - Time Management Desktop App",
   "main": "dist/main/index.js",
   "author": "Blocks Team",
@@ -47,6 +47,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@tailwindcss/postcss": "^4.3.1",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",

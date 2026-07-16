@@ -90,6 +90,26 @@
       "gitSha": "bee142c",
       "platform": "win32",
       "installer": "apps/desktop/release/Blocks-Setup-26.7.2-b1.exe"
+    },
+    {
+      "batch": "v26.07.16b2",
+      "release": "v26.07.16",
+      "displayVersion": "v26.07.16b2",
+      "npmVersion": "26.7.16-b2",
+      "builtAt": "2026-07-16T11:18:53.255Z",
+      "gitSha": "04c01dd",
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.7.16-b2.exe"
+    },
+    {
+      "batch": "v26.07.16b3",
+      "release": "v26.07.16",
+      "displayVersion": "v26.07.16b3",
+      "npmVersion": "26.7.16-b3",
+      "builtAt": "2026-07-16T13:26:40.009Z",
+      "gitSha": "04c01dd",
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.7.16-b3.exe"
     }
   ]
 }

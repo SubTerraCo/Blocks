@@ -16,15 +16,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > Full batch detail: [ROADMAP.md](./ROADMAP.md) batch log
 
+### v26.07.16b3 (shipped)
+
+#### Fixed
+
+- **B-0029**: Desktop Tailwind padding cascade — move universal CSS reset into `@layer base` so `p-*`/`px-*`/`py-*` apply again (Kanban cards, toolbar, Timeline, Calendar)
+
+### v26.07.16b2 (ready for QA)
+
+- **N-0050**: Anytype two-way task sync — Phase A (core engine + MCP tools) + Phase B (Desktop Settings UI)
+
 ### v26.07.16b1 (ready for QA)
 
 - Open **v26.07.16** release branch; docs hub consolidated into root `README.md`
 
-### v26.07.02b1 (ready for QA)
+### v26.07.02b1 (shipped)
 
 - **B-0029**: Desktop–web shell parity — shared `TopBar`, web-aligned titles, settings/profile back nav, Playwright parity gate
 
-### v26.07.01b1 (ready for QA)
+### v26.07.01b1 (shipped)
 
 - **B-0029**: Global spacing restore · June 9 accent baseline (`#ff3366`) · compact Kanban toolbar as second header
 
@@ -224,9 +234,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Description |
 |---------|------|-------------|
-| v26.07.16 | 2026-07-16 | Release branch opened — **v26.07.16b1** QA |
-| v26.07.02 | 2026-07-02 | Desktop–web shell parity (B-0029) — **v26.07.02b1** QA |
-| v26.07.01 | 2026-07-01 | Spacing/accent restore (B-0029) — **v26.07.01b1** QA |
+| v26.07.16 | 2026-07-16 | B-0029 padding cascade fix (**b3** shipped) · Anytype sync (**b2** QA) |
+| v26.07.02 | 2026-07-02 | Desktop–web shell parity (B-0029) — **v26.07.02b1** shipped |
+| v26.07.01 | 2026-07-01 | Spacing/accent restore (B-0029) — **v26.07.01b1** shipped |
 | v26.06.30 | 2026-06-30 | Kanban sort/filter/views + reusable blocks (N-0045–N-0049) — **b1/b2** QA |
 | v26.06.19 | 2026-06-19 | Nightly seal — **v26.06.19b1** QA |
 | v26.06.14 | 2026-06-14 | Timeline add-task, shell Now alignment — **b1–b3** QA |

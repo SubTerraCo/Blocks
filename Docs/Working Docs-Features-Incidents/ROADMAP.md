@@ -102,6 +102,8 @@ This file now focuses on:
 | [N-0047](#n-0047-events-right-column-on-conflict) | Events right column on timeline conflict | DT · WB · SB | 🧪 QA | v26.06.30 |
 | [N-0048](#n-0048-kanban-sort--manual-order) | Kanban sort + manual drag order | DT · WB · SB | 🧪 QA | v26.06.30 |
 | [N-0049](#n-0049-kanban-filter--saved-views) | Kanban filter + saved views | DT · WB · SB | 🧪 QA | v26.06.30 |
+| [N-0050](#n-0050-anytype-two-way-task-sync) | Anytype two-way task sync (phased) | MC · SB · DT | 🔄 In progress | v26.07.16 |
+| [N-0051](#n-0051-anytype-in-app-sync-web) | Anytype in-app sync (Web) | WB · SB | 📋 Proposed | TBD |
 
 **Status:** 📋 Proposed · 🔄 In progress · 🧪 QA · ✅ Shipped · ⏸ On hold · ❌ Dropped
 
@@ -117,7 +119,8 @@ All items not yet ✅ Shipped belong to **Sprint 5** at release **v26.07.16**. *
 | Events & calendar | N-0024–N-0027 | Drag snap pause, schedule-doing lock, user events, scroll calendar |
 | Bulk reschedule | N-0028–N-0029 | Multi-select drag, passive column overlap |
 | Blocks & Kanban (v26.06.30) | N-0045–N-0049 | Reusable block tasks, event section, event columns, Kanban sort/filter/views |
-| Integrations (on hold) | N-0017–N-0019, N-0022–N-0023 | GCal, P2P, MCP, OAuth |
+| Integrations (on hold) | N-0017, N-0022–N-0023 | GCal, OAuth |
+| Anytype sync | N-0018 · N-0019 → N-0050 · N-0051 | P2P Yjs, MCP export absorbed into two-way sync (N-0050); Web in-app sync tracked as N-0051 |
 
 ### Batch log (Sprint 5)
 
@@ -136,9 +139,11 @@ One `/NF` · `/NB` · `/RD` design session = one batch (`v26.06.12bX`). QA via `
 | v26.06.19b1 | Nightly dev push seal · v26.06.19 | — | 🧪 QA |
 | v26.06.30b1 | Reusable block tasks · event section · event columns · Kanban sort/filter/views | N-0045 · N-0046 · N-0047 · N-0048 · N-0049 | 🧪 QA |
 | v26.06.30b2 | Nightly dev push seal · v26.06.30 | N-0045 · N-0046 · N-0047 · N-0048 · N-0049 | 🧪 QA |
-| v26.07.01b1 | Global spacing restore · June 9 accent baseline · Kanban toolbar header | B-0029 | 🧪 QA |
-| v26.07.02b1 | Desktop-web shell parity · shared TopBar · Playwright parity gate | B-0029 | 🧪 QA |
+| v26.07.01b1 | Global spacing restore · June 9 accent baseline · Kanban toolbar header | B-0029 | ✅ Shipped |
+| v26.07.02b1 | Desktop-web shell parity · shared TopBar · Playwright parity gate | B-0029 | ✅ Shipped |
 | v26.07.16b1 | Open release branch · docs hub in root README | — | 🧪 QA |
+| v26.07.16b2 | Anytype two-way sync — Phase A (core + MCP) + Phase B (Desktop Settings) | N-0050 · N-0051 | 🧪 QA |
+| v26.07.16b3 | Desktop padding cascade fix — unlayered CSS reset vs Tailwind utilities | B-0029 | ✅ Shipped |
 
 ---
 
@@ -828,6 +833,8 @@ timelineSnapDelaySec: z.number().int().min(0).max(120).default(15)
 
 **Description:** `@blocks/mcp-server` reads Desktop export JSON; `export_tasks_to_anytype_markdown` for Anytype MCP workflows.
 
+> **Absorbed by [N-0050](#n-0050-anytype-two-way-task-sync).** Export mode and the markdown tool stay; N-0050 Phase A adds link/push/pull/sync tools on the same shared engine. Mark these criteria complete when N-0050 Phase A ships.
+
 **Acceptance criteria**
 
 - [ ] `BLOCKS_MCP_MODE=export` documented in `.cursor/mcp.json.example`
@@ -1469,6 +1476,146 @@ timelineSnapDelaySec: z.number().int().min(0).max(120).default(15)
 - [ ] Default view always present and non-deletable
 - [ ] Views survive reload (Dexie)
 - [ ] Playwright: `@N-0049`
+
+---
+
+## Integrations
+
+### N-0050 · Anytype two-way task sync {#n-0050-anytype-two-way-task-sync}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🔄 In progress · v26.07.16b2 (Phase A + B implemented, QA pending) |
+| **Target release** | v26.07.16 (Phase A) · Phase B in a later batch |
+| **Platforms**  | MC · SB · DT (WB via [N-0051](#n-0051-anytype-in-app-sync-web)) |
+| **Related**    | [N-0019](#n-0019-mcp-dexie-export-mode) (absorbed) · [N-0020](#n-0020-schedule-conflict-alerts) · [N-0021](#n-0021-single-focus-task-scheduling) · [N-0018](#n-0018-p2p-yjs-sync) |
+
+**Description:** Bidirectional task sync between Blocks and a configured Anytype space. Phase A exposes sync through `@blocks/mcp-server` for Cursor/Hermes agents. Phase B adds Desktop Settings and background sync while Blocks is open. Conflicts resolve by last-write-wins on `updatedAt`; timeline schedule changes from Anytype that would overlap existing blocks require user confirmation via the existing schedule conflict dialog and single-focus push-back rules.
+
+**Architecture:** One shared engine in `@blocks/core` (`packages/core/src/integrations/anytype/`) talks to the local Anytype HTTP API (`http://127.0.0.1:31009`). Both `@blocks/mcp-server` (Phase A) and Desktop Settings (Phase B) call the same engine — no duplicate mapping logic. `@anyproto/anytype-mcp` remains the agent-side bridge for Anytype itself; Blocks never shells out to it.
+
+**Proposed registry codes**
+
+| Code | Layer |
+|------|-------|
+| `SB.EN.02.080.010` | Anytype HTTP client + health check |
+| `SB.EN.02.080.020` | Task ↔ Anytype object field mapper |
+| `SB.EN.02.080.030` | LWW merge + link table |
+| `SB.EN.02.080.040` | Schedule overlap gate → conflict dialog hook |
+| `MC.EN.02.130.010` | `push_task_to_anytype` |
+| `MC.EN.02.130.020` | `pull_tasks_from_anytype` |
+| `MC.EN.02.130.030` | `sync_linked_tasks` |
+| `DT.UI.06.009.010` | Settings: API key, space/collection picker |
+| `DT.UI.06.009.020` | Sync status, manual Sync now, interval |
+
+**Platform matrix**
+
+```text
+|            Feature             |    MC    |    SB    |    DT    |    WB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Field mapper + link IDs       | 🔄 N-0050 | 🔄 N-0050 |    —     |    —     |
+|  MCP push/pull/sync tools      | 🔄 N-0050 |    —     |    —     |    —     |
+|  LWW merge engine              |    —     | 🔄 N-0050 | 🔄 N-0050 |    —     |
+|  Schedule conflict gate        |    —     | 🔄 N-0050 | 🔄 N-0050 |    —     |
+|  In-app background sync        |    —     |    —     | 🔄 N-0050 |    —     |
+|  Agent/export workflows        | 🔄 N-0050 |    —     |    —     | 🔄 N-0050 |
+```
+
+**Schema (non-breaking additions to `Task`)**
+
+```typescript
+anytypeObjectId?: string;      // Anytype object id
+anytypeSpaceId?: string;       // Space containing the object
+anytypeSyncedAt?: Date;        // Last successful sync timestamp
+anytypeSyncVersion?: number;   // Monotonic counter for LWW tie-break
+```
+
+`AnytypeSyncSettings` in user settings (Dexie): `apiKey` (Electron `safeStorage` on DT — never in git), `spaceId`, optional `collectionId`/type filter, `syncIntervalMinutes`, `syncOnStartup`, `lastSyncAt`, `lastError`.
+
+**Field mapping (full parity)**
+
+| Blocks `Task` | Anytype Task object |
+|---------------|---------------------|
+| `name` | title / name relation |
+| `description`, `notes` | body / description |
+| `status` | status relation (6 Kanban states, explicit map below) |
+| `priority` | priority relation |
+| `tags` | tag relations |
+| `dueDate` | due date property |
+| `scheduledAt` | custom date property (Blocks timeline) |
+| `timeSpent`, `startedAt`, `completedAt` | custom numeric/date props |
+| `subtasks` | checklist or child objects |
+| `blockSize`, `blockCount`, `accessContexts` | custom relations / multi-select |
+| `updatedAt` | LWW authority |
+
+**Status map (Blocks ↔ Anytype):** `backlog` ↔ Backlog · `design` ↔ Planning · `todo` ↔ To Do · `doing` ↔ In Progress · `review` ↔ Review · `done` ↔ Done. Unknown Anytype states map to `backlog` and log a warning; the map is defined once in the mapper.
+
+**Sync algorithm**
+
+1. **Health check** — `GET` Anytype local API; fail fast with "Start Anytype Desktop" message.
+2. **Pull** — list Task-type objects in configured space/collection; for each: link or create the Blocks task; compare `updatedAt` (+ `anytypeSyncVersion` tie-break) → LWW winner. If the winner is Anytype and the `scheduledAt` change overlaps existing timeline tasks, queue `ScheduleConflictDialog`; on confirm, apply via `buildTimelineInsertPushBackUpdates` / `applyTimelinePushBackForInsert` (never a bare `scheduledAt` write).
+3. **Push** — for linked tasks where Blocks wins LWW, update the Anytype object via API.
+4. **Delete policy** — deletion on one side archives in Anytype and leaves the Blocks task unlinked (no mirror hard-deletes in v1).
+
+**Conflict audit (CI_OPS §4.1)**
+
+| Risk | Related | Mitigation |
+|------|---------|------------|
+| Overlapping timeline tasks | N-0020 · N-0021 | Schedule never commits without push-back; incoming Anytype schedule gated by conflict dialog |
+| Dual sync channels | N-0018 | Yjs = Blocks↔Blocks devices; Anytype = separate channel; LWW per task; Anytype link fields excluded from Yjs merge semantics |
+| Stale MCP export | N-0019 | Export mode writes through the shared engine after sync |
+| API key exposure | — | Target: Electron `safeStorage` on DT (see hardening below); `.cursor/mcp.json` gitignored |
+| Kanban manual order | N-0048 | `kanbanOrder` is local-only presentation — excluded from Anytype push/pull |
+| Saved views | N-0049 | Sync ignores views; views are local presentation only |
+
+**Acceptance criteria**
+
+Phase A — Core + MCP:
+
+- [ ] Task schema link fields + mapper unit tests
+- [ ] MCP tools `push_task_to_anytype` / `pull_tasks_from_anytype` / `sync_linked_tasks` documented in `.cursor/mcp.json.example`
+- [ ] LWW merge with `updatedAt` + version tie-break
+- [ ] `export_tasks_to_anytype_markdown` still works; export mode uses shared store
+- [ ] Integration tests: `@N-0050 @core` mapper + export path
+
+Phase B — Desktop in-app:
+
+- [ ] Desktop Settings: API key, space picker, interval, Sync now
+- [ ] Background sync while Anytype Desktop is running
+- [ ] Incoming schedule overlap triggers `ScheduleConflictDialog` before commit
+- [ ] Schedule commits use push-back engine (N-0021)
+- [ ] Playwright: `@N-0050` settings + mocked sync
+
+**Hardening (pre-ship, same N-0050)**
+
+Phase B currently persists the Anytype API key in renderer localStorage (same pattern as the AI provider key). Before shipping N-0050 as ✅:
+
+- [ ] Store Anytype API key via Electron `safeStorage` (main-process encrypt/decrypt)
+- [ ] IPC + preload bridge: `anytype:setApiKey` / `anytype:getApiKey` (never expose plaintext in git or logs)
+- [ ] Migrate existing localStorage key on first launch after upgrade; clear plaintext after migrate
+- [ ] MANUAL_TEST_PLAN: confirm key absent from export JSON and DevTools Application storage after migrate
+- [ ] Registry: `DT.BG.06.009.010` (safeStorage Anytype key) when implemented
+
+---
+
+### N-0051 · Anytype in-app sync (Web) {#n-0051-anytype-in-app-sync-web}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 📋 Proposed (Phase C placeholder) |
+| **Target release** | TBD — blocked on browser access to the Anytype local API |
+| **Platforms**  | WB · SB |
+| **Related**    | [N-0050](#n-0050-anytype-two-way-task-sync) |
+
+**Description:** Web-app parity for N-0050 in-app sync: Settings panel + background sync in the browser, reusing `AnytypeSyncEngine` from `@blocks/core`. Blocked until the Anytype local API is reachable from a browser context (CORS/proxy story) or a hosted bridge exists. Until shipped, Web users sync via the `blocks-export` MCP config and Cursor/Hermes agents — same as today.
+
+**Draft codes:** `WB.UI.06.009.010` (settings panel) · `WB.UI.06.009.020` (sync status/run) · reuses `SB.EN.02.080.*`.
+
+**Acceptance criteria**
+
+- [ ] Decide API access path (CORS allowance, local proxy, or hosted bridge)
+- [ ] Web Settings parity with DT.UI.06.009.*
+- [ ] Playwright: `@N-0051` mocked sync
 
 ---
 

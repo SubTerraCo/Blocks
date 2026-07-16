@@ -14,6 +14,11 @@ MCP tools for Hermes/Cursor to manage Blocks tasks and timeline.
 | `clear_timeline` | Midnight reset logic |
 | `spawn_routine` | Spawn routine tasks as doing + scheduled |
 | `export_tasks_to_anytype_markdown` | Markdown export for Anytype MCP import workflows |
+| `push_task_to_anytype` | N-0050 — push one task to the configured Anytype space |
+| `pull_tasks_from_anytype` | N-0050 — pull Anytype Task objects (LWW merge; schedule conflicts reported) |
+| `sync_linked_tasks` | N-0050 — full two-way sync pass (pull, merge, push, create both sides) |
+
+Anytype sync tools need `ANYTYPE_API_KEY` + `ANYTYPE_SPACE_ID` env vars (optional `ANYTYPE_API_BASE_URL`). See [INTEGRATIONS_ANYTYPE_SYNC.md](./INTEGRATIONS_ANYTYPE_SYNC.md).
 
 ## Data modes
 

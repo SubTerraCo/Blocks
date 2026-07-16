@@ -38,7 +38,7 @@
 | [B-0022](#b-0022-drag-pushback-jumps-unselected-tasks) | Drag overlap push-back jumps other tasks |    P1    | In Progress | v26.06.12 | — |
 | [B-0027](#b-0027-timeline-add-task-nav-broken) | Timeline Add nav does not open add-task page |    P1    | In Progress | v26.06.14 | — |
 | [B-0028](#b-0028-shell-now-task-alignment) | Shell Now task not aligned to clock |    P3    | In Progress | v26.06.14 | — |
-| [B-0029](#b-0029-global-spacing-regression) | Global spacing/margins regressed vs June 9 |    P2    | In Progress | v26.07.01 | — |
+| [B-0029](#b-0029-global-spacing-regression) | Global spacing/margins regressed vs June 9 |    P1    | Fixed  | v26.07.01 | v26.07.16 |
 
 ---
 
@@ -902,32 +902,35 @@
 
 | Field | Value |
 | ----- | ----- |
-| **Severity** | P2 |
-| **Status** | In Progress |
+| **Severity** | P1 |
+| **Status** | Fixed |
 | **Opened** | v26.07.01 |
+| **Fixed** | v26.07.16 (**v26.07.16b3**) |
 | **Related** | [N-0048](./ROADMAP.md#n-0048-kanban-sort--manual-order) · [N-0049](./ROADMAP.md#n-0049-kanban-filter--saved-views) |
-| **Playwright** | `@B-0029` |
-| **Logic note** | Restore June 9 desktop accent baseline; **v26.07.02:** web localhost = source of truth — desktop shell parity via shared TopBar, pb-nav, @blocks/ui/styles tokens |
+| **Playwright** | `@B-0029` · `apps/desktop/tests/e2e/spacing-cascade.spec.ts` · `tests/visual/desktop-web-parity.spec.ts` |
+| **Logic note** | Web = source of truth. **B-0029-002:** unlayered `* { padding:0 }` in desktop `index.css` beat Tailwind `@layer utilities`; reset moved into `@layer base` to match web `globals.css`. |
 
-**Symptoms:** Desktop margins/padding/spacing wrong since ~v26.6.30 (Kanban filters + web/desktop linking). v26.6.14b3 desktop was last fully correct. **Web on localhost looks correct today; desktop must match it.**
+**Symptoms (pre-fix):** Desktop margins/padding/spacing wrong since ~v26.6.30 — Kanban cards, Timeline blocks, Calendar cells, shell buttons flush to edges. Web remained correct.
 
-**Expected:** Desktop matches current web localhost shell (TopBar, pt-bar/pb-nav rhythm, shared tokens). N-0048/N-0049 sort/filter/views remain functional.
+**Expected:** Desktop matches web: Tailwind `p-*` / `px-*` / `py-*` apply; TaskCards, toolbar chips, timeline blocks, calendar cells have breathing room.
 
-**Actual:** Desktop used custom in-flow top bar (bg-bg-primary), pb-20 hardcoded padding, separate gray index.css tokens (#0d0d0d) — diverged from web AppShell.
+**Actual (B-0029-001):** Shell diverged (custom top bar, tokens). Addressed via shared TopBar / pb-nav (v26.07.01b1 · v26.07.02b1).  
+**Actual (B-0029-002):** Components declared padding (`TaskCard` `p-4`, etc.) but desktop CSS had an **unlayered** universal reset after `@import "tailwindcss"`, so utilities lost under Tailwind v4.
 
 **Affects matrix**
 
 ```text
-|            Feature             |    DT    |    WB    |    SB    |
+|            Feature             |    DT    |    WB    |    SH    |
 |--------------------------------|----------|----------|----------|
-|  Kanban column/board padding   | B-0029   | B-0029   | B-0029   |
-|  Kanban sort/filter toolbar    | N-0048/9 | N-0048/9 | N-0048/9 |
-|  Task card spacing             | B-0029   | B-0029   | B-0029   |
-|  Bottom nav / top bar rhythm   | B-0029   | B-0029   | B-0029   |
-|  Accent tokens (#ff3366)       | B-0029   | B-0029   | B-0029   |
+|  CSS base reset layering       | ✅ B-0029 |    ✅     |    —     |
+|  Kanban column/board padding   | ✅ B-0029 |    ✅     | ✅ share |
+|  Task card spacing             | ✅ B-0029 |    ✅     | ✅ share |
+|  Timeline block text padding   | ✅ B-0029 |    ✅     | ✅ share |
+|  Calendar month cell padding   | ✅ B-0029 |    ✅     | ✅ share |
+|  Bottom nav / top bar rhythm   | ✅ B-0029 |    ✅     | ✅ share |
 ```
 
-**Fix UX:** Desktop-web shell parity — shared `@blocks/ui` TopBar (static layout + TitleBar offset), `pb-nav` main padding, import `@blocks/ui/styles` tokens; Playwright parity suite (`PLAYWRIGHT_PARITY=1`) compares web vs desktop renderer chrome.
+**Fix:** Desktop `* { margin/padding }` moved into `@layer base` (parity with web). E2e asserts non-zero computed padding; `PLAYWRIGHT_PARITY=1` suite retains cross-shell check. QA confirmed on `Blocks-Setup-26.7.16-b3.exe`.
 
 ---
 

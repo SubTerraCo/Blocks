@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { useTheme, type Theme } from "../hooks/useTheme";
 import { useNotifications } from "../hooks/useNotifications";
+import { AnytypeSyncSettings } from "./AnytypeSyncSettings";
 
 // ============================================================================
 // Types
@@ -605,6 +606,11 @@ export function SettingsPage() {
           >
             <span className="text-sm text-text-muted">Not synced</span>
           </SettingRow>
+        </SettingsSection>
+        
+        {/* Anytype sync (N-0050) */}
+        <SettingsSection title="Anytype Sync" icon={<RefreshCw className="h-4 w-4" />}>
+          <AnytypeSyncSettings />
         </SettingsSection>
         
         {/* About */}

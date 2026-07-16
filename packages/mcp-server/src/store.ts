@@ -88,6 +88,20 @@ export class BlocksMcpStore {
     return this.data.tasks;
   }
 
+  /** N-0050: replace the full task list after an Anytype sync pass. */
+  async replaceTasks(tasks: Task[]): Promise<void> {
+    this.data.tasks = tasks;
+    await this.save();
+  }
+
+  /** N-0050: persist a single updated task (e.g. after push linking). */
+  async updateTask(task: Task): Promise<void> {
+    const idx = this.data.tasks.findIndex((t) => t.id === task.id);
+    if (idx === -1) throw new Error(`Task not found: ${task.id}`);
+    this.data.tasks[idx] = task;
+    await this.save();
+  }
+
   async listTimelineTasks(): Promise<Task[]> {
     return tasksToTimeBlocks(this.data.tasks).map((b) => b.task!);
   }

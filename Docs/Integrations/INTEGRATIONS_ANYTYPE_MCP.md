@@ -60,6 +60,6 @@ Default local endpoint: `http://127.0.0.1:31009`
 
 ## Blocks ↔ Anytype Data Model Alignment
 
-Blocks task schema mirrors Anytype object properties (status, priority, tags, recurrence). Future `blocks-mcp` will sync selected fields bidirectionally.
+Blocks task schema mirrors Anytype object properties (status, priority, tags, recurrence). Two-way sync (N-0050) is specified in [INTEGRATIONS_ANYTYPE_SYNC.md](./INTEGRATIONS_ANYTYPE_SYNC.md).
 
 See also: [HERMES_ECOSYSTEM_ARCHITECTURE.md](./HERMES_ECOSYSTEM_ARCHITECTURE.md)

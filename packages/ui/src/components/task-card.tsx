@@ -52,6 +52,7 @@ export function TaskCard({
 
   return (
     <div
+      data-testid="task-card"
       className={cn(
         "group relative rounded-lg border border-border-default bg-bg-secondary p-4 transition-all",
         "hover:border-border-hover hover:bg-bg-tertiary",

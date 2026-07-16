@@ -1,0 +1,15 @@
+---
+description: Always use AskQuestion when needing user input or decisions
+alwaysApply: true
+---
+
+# AskQuestion for user input
+
+When you need a decision, preference, confirmation, or any other input back from the user:
+
+1. **Always use the AskQuestion tool** — do not ask as plain chat markdown with A/B/C lists.
+2. Prefer clear option labels; include an **Open discussion / Other** option when the choice set may be incomplete.
+3. Wait for the user's AskQuestion responses before proceeding with design gates (`/NF`, `/NB`, `/RD`) or ambiguous implementation choices.
+4. If AskQuestion is unavailable in the current session, say so in one line, fall back to a numbered list labeled **"AskQuestion fallback"**, and retry AskQuestion on the next turn when the tool may be restored.
+
+Do not bury blocking questions inside long prose when a structured AskQuestion form would work.

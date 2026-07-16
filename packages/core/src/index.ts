@@ -187,6 +187,39 @@ export type {
 } from "./calendar";
 export type { CalendarWeekRow } from "./calendar";
 
+// Anytype two-way sync (N-0050)
+export {
+  ANYTYPE_DEFAULT_BASE_URL,
+  ANYTYPE_DEFAULT_API_VERSION,
+  AnytypeUnavailableError,
+  BLOCKS_TO_ANYTYPE_STATUS,
+  ANYTYPE_PROP_KEYS,
+  anytypeStatusToBlocks,
+  taskToAnytypeObject,
+  applyAnytypeObjectToTask,
+  decodeAnytypeApiObject,
+  encodeAnytypeApiObject,
+  AnytypeClient,
+  resolveLww,
+  planTwoWaySync,
+  applyPull,
+  createTaskFromAnytypeObject,
+  AnytypeSyncEngine,
+} from "./integrations/anytype";
+export type {
+  AnytypeTaskObject,
+  AnytypeApiObject,
+  AnytypeApiProperty,
+  AnytypeSpace,
+  AnytypeClientConfig,
+  LwwWinner,
+  SyncPlan,
+  PendingPull,
+  ApplyPullResult,
+  SyncResult,
+  AnytypeSyncEngineConfig,
+} from "./integrations/anytype";
+
 // Sync (Yjs CRDT)
 export {
   YjsStore,

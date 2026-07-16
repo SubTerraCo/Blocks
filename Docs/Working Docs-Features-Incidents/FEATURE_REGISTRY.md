@@ -1600,6 +1600,9 @@ Migrated from spec § Phase 2 Required Features.
 |      list_timeline_tasks       |    ✅     |    ✅     |    ✅     |
 |         spawn_routine          |    ✅     |    ✅     |    —     |
 |  export_tasks_to_anytype_md    |    ✅     |    —     |    —     |
+|     push_task_to_anytype       | 🔄 N-0050 |    —     |    —     |
+|    pull_tasks_from_anytype     | 🔄 N-0050 |    —     |    —     |
+|       sync_linked_tasks        | 🔄 N-0050 |    —     |    —     |
 ```
 
 ---
@@ -1621,8 +1624,8 @@ Migrated from spec § Phase 2 Required Features.
 
 | Code             | Feature                          | Health | Playwright         |
 | ---------------- | -------------------------------- | :----: | ------------------ |
-| DT.UI.00.001.010 | Top bar (menu · title · profile) |   ✅    | `navigation.spec.ts` |
-| DT.UI.00.002.010 | Bottom navigation bar            |   ✅    | `navigation.spec.ts` |
+| DT.UI.00.001.010 | Top bar (menu · title · profile) |   ✅    | B-0029 · `spacing-cascade.spec.ts` |
+| DT.UI.00.002.010 | Bottom navigation bar            |   ✅    | B-0029 · `spacing-cascade.spec.ts` |
 | DT.UI.00.003.010 | Page routing                     |   ✅    | `navigation.spec.ts` |
 | DT.UI.00.004.010 | Keyboard shortcuts               |   ✅    | `keyboard.spec.ts` |
 | DT.UI.00.020.020 | Bottom action row + Kanban pad   |   🔄    | N-0012 · `bottom-action-kanban-clearance.spec.ts` |
@@ -1817,6 +1820,14 @@ Migrated from spec § Phase 2 Required Features.
 | DT.BG.06.008.010 | Desktop Google OAuth IPC | 🐛 | B-0017 · `oauth-proxy-health.spec.ts` |
 | CX.EN.06.007.010 | OAuth proxy (PKCE)   |   🐛    | B-0017 · `oauth-proxy-health.spec.ts`   |
 
+### DT.UI.06.009 · Anytype sync {#dt-ui-06-009}
+
+| Code             | Feature                          | Health | Playwright                    |
+| ---------------- | -------------------------------- | :----: | ----------------------------- |
+| DT.UI.06.009.010 | API key + space/collection picker |   🔄    | N-0050 · `settings.spec.ts`   |
+| DT.UI.06.009.020 | Sync status · Sync now · interval |   🔄    | N-0050 · `settings.spec.ts`   |
+| WB.UI.06.009.010 | Anytype settings panel (web)      |   📋    | N-0051 · blocked on API access |
+
 ### DT.UI.06.006 · About {#dt-ui-06-006}
 
 | Code             | Feature           | Health | Playwright       |
@@ -1868,6 +1879,10 @@ Migrated from spec § Phase 2 Required Features.
 | SB.EN.08.020.010 | Task engine                 |   ✅    | integration           |
 | SB.EN.08.040.010 | P2P sync (Yjs/WebRTC)       |   🔄    | N-0018 · `sync.spec.ts` · `dexie-yjs-bridge.spec.ts` |
 | SB.EN.08.050.010 | Notification engine         |   ✅    | `notifications.spec.ts` |
+| SB.EN.02.080.010 | Anytype HTTP client + health check |   🔄    | N-0050 · `anytype-sync.spec.ts` |
+| SB.EN.02.080.020 | Task ↔ Anytype field mapper |   🔄    | N-0050 · `anytype-sync.spec.ts` |
+| SB.EN.02.080.030 | Anytype LWW merge + link table |   🔄    | N-0050 · `anytype-sync.spec.ts` |
+| SB.EN.02.080.040 | Anytype schedule conflict gate |   🔄    | N-0050 · integration |
 
 ---
 
@@ -1883,6 +1898,9 @@ Migrated from spec § Phase 2 Required Features.
 | MC.EN.02.100.010 | File-backed MCP store |   ✅    | manual       |
 | MC.EN.02.110.010 | export_tasks_to_anytype_markdown | 🔄 | N-0019 · `mcp-export-store.spec.ts` |
 | MC.EN.02.120.010 | Dexie export mode     |   🔄    | N-0019 · manual / MCP config |
+| MC.EN.02.130.010 | push_task_to_anytype  |   🔄    | N-0050 · `anytype-sync.spec.ts` |
+| MC.EN.02.130.020 | pull_tasks_from_anytype |  🔄   | N-0050 · `anytype-sync.spec.ts` |
+| MC.EN.02.130.030 | sync_linked_tasks     |   🔄    | N-0050 · `anytype-sync.spec.ts` |
 
 ---
 
