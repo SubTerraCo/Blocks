@@ -12,9 +12,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased] — Sprint 5 · v26.07.02
+## [Unreleased] — Sprint 5 · v26.07.16
 
 > Full batch detail: [ROADMAP.md](./ROADMAP.md) batch log
+
+### v26.07.16b1 (ready for QA)
+
+- Open **v26.07.16** release branch; docs hub consolidated into root `README.md`
 
 ### v26.07.02b1 (ready for QA)
 
@@ -220,6 +224,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Description |
 |---------|------|-------------|
+| v26.07.16 | 2026-07-16 | Release branch opened — **v26.07.16b1** QA |
 | v26.07.02 | 2026-07-02 | Desktop–web shell parity (B-0029) — **v26.07.02b1** QA |
 | v26.07.01 | 2026-07-01 | Spacing/accent restore (B-0029) — **v26.07.01b1** QA |
 | v26.06.30 | 2026-06-30 | Kanban sort/filter/views + reusable blocks (N-0045–N-0049) — **b1/b2** QA |

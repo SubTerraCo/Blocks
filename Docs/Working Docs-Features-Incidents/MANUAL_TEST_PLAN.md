@@ -1,6 +1,6 @@
 # Blocks Manual Feature Test Plan
 
-> **Release:** v26.07.02 · **Active batch:** v26.07.02b1  
+> **Release:** v26.07.16 · **Active batch:** v26.07.16b1  
 > **Companion:** [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md) · [ROADMAP.md](./ROADMAP.md) · [CHANGELOG.md](./CHANGELOG.md)  
 > **Automation:** `pnpm test:features` · `pnpm test:features:headed` · `pnpm test:integration`  
 > **Purpose:** Human QA on top of Playwright — covers live OAuth, multi-device sync, desktop-only flows, shell parity, and MCP tooling that automation mocks or skips.

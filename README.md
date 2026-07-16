@@ -4,7 +4,7 @@
 
 Blocks is a cross-platform time/task management application that uses AI to help schedule tasks and optimize your time. Built with a local-first architecture, your data stays on your device with optional sync capabilities.
 
-**Current Release: v26.07.02** (Sprint 5 — active QA / pre-release development)
+**Current Release: v26.07.16** (Sprint 5 — active QA / pre-release development)
 
 ## Features
 
@@ -252,7 +252,7 @@ pnpm --filter desktop build:win
 ## Versioning
 
 We use date-based versioning for active development:
-- `v26.07.02` — Sprint 5 active release (batches `v26.07.02b1`, `b2`, ...)
+- `v26.07.16` — Sprint 5 active release (batches `v26.07.16b1`, `b2`, ...)
 - `0.1.0` - First MVP release (planned)
 - `1.0.0` - Production release (future)
 

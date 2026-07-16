@@ -1,8 +1,8 @@
 # Blocks Roadmap & Sprint Log
 
-> **Release:** v26.07.02  
+> **Release:** v26.07.16  
 > **Last Updated:** 2026-07-16  
-> **Status:** Sprint 5 — Timeline, scheduling, events, calendar UX (active release v26.07.02)
+> **Status:** Sprint 5 — Timeline, scheduling, events, calendar UX (active release v26.07.16)
 > **Source of truth** for active sprint planning, N-#### specs, acceptance criteria, and batch log  
 > **Core product specification:** [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md)  
 > **Feature codes & health:** [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md) · **Bugs:** [INCIDENTS.md](./INCIDENTS.md)
@@ -105,9 +105,9 @@ This file now focuses on:
 
 **Status:** 📋 Proposed · 🔄 In progress · 🧪 QA · ✅ Shipped · ⏸ On hold · ❌ Dropped
 
-### Active sprint 5 (v26.07.01)
+### Active sprint 5 (v26.07.16)
 
-All items not yet ✅ Shipped belong to **Sprint 5** at release **v26.07.01**. **Google** (N-0017, N-0022, N-0023) is **on hold** per product decision.
+All items not yet ✅ Shipped belong to **Sprint 5** at release **v26.07.16**. **Google** (N-0017, N-0022, N-0023) is **on hold** per product decision.
 
 | Track | IDs | Focus |
 | ----- | --- | ----- |
@@ -138,6 +138,7 @@ One `/NF` · `/NB` · `/RD` design session = one batch (`v26.06.12bX`). QA via `
 | v26.06.30b2 | Nightly dev push seal · v26.06.30 | N-0045 · N-0046 · N-0047 · N-0048 · N-0049 | 🧪 QA |
 | v26.07.01b1 | Global spacing restore · June 9 accent baseline · Kanban toolbar header | B-0029 | 🧪 QA |
 | v26.07.02b1 | Desktop-web shell parity · shared TopBar · Playwright parity gate | B-0029 | 🧪 QA |
+| v26.07.16b1 | Open release branch · docs hub in root README | — | 🧪 QA |
 
 ---
 
