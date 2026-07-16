@@ -905,12 +905,18 @@ export default function App() {
   const handleBack = useCallback(() => {
     setEditingTask(null);
     setPrefillBlock(null);
-    if (currentPage === "settings" || currentPage === "profile") {
-      setCurrentPage("kanban");
-      return;
-    }
     setCurrentPage(returnPage);
-  }, [currentPage, returnPage]);
+  }, [returnPage]);
+
+  const openSettingsOrProfile = useCallback(
+    (page: "settings" | "profile") => {
+      if (!["settings", "profile", "add-task", "edit-task"].includes(currentPage)) {
+        setReturnPage(currentPage);
+      }
+      setCurrentPage(page);
+    },
+    [currentPage],
+  );
 
   // N-0045: first use of a Quick Block opens the editor prefilled from it.
   const handleFirstUseBlock = useCallback((block: QuickAddBlock) => {
@@ -965,7 +971,7 @@ export default function App() {
       );
       case "edit-task": return editingTask ? <TaskEditPage task={editingTask} onBack={handleBack} /> : <KanbanPage onEditTask={handleEditTask} onAddTask={handleAddTask} />;
       case "settings": return <SettingsPage />;
-      case "profile": return <ProfilePage onBack={() => setCurrentPage("kanban")} />;
+      case "profile": return <ProfilePage onBack={handleBack} />;
       default: return <KanbanPage onEditTask={handleEditTask} onAddTask={handleAddTask} />;
     }
   };
@@ -985,12 +991,12 @@ export default function App() {
   };
 
   const handleOpenSettings = useCallback(() => {
-    setCurrentPage("settings");
-  }, []);
+    openSettingsOrProfile("settings");
+  }, [openSettingsOrProfile]);
 
   const handleOpenProfile = useCallback(() => {
-    setCurrentPage("profile");
-  }, []);
+    openSettingsOrProfile("profile");
+  }, [openSettingsOrProfile]);
 
   // Show back button on sub-pages (edit-task, add-task)
   const showBackButton = ["add-task", "edit-task", "settings", "profile"].includes(currentPage);

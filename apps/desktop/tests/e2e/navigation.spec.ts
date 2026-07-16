@@ -51,14 +51,35 @@ test.describe("Navigation", () => {
     await expect(page.locator("text=Profile")).toBeVisible();
   });
 
-  test("back button should work on sub-pages", async ({ page }) => {
-    // Navigate to settings
+  test("back button should return to originating page from settings", async ({ page }) => {
+    await page.click("text=Timeline");
+    await expect(page.locator("[data-testid='top-bar']").getByText("Timeline")).toBeVisible();
+
     await page.click("[aria-label='Open menu'], [aria-label='Settings Menu'], [aria-label='Settings']");
-    await expect(page.locator("text=Settings")).toBeVisible();
-    
-    // Click back
+    await expect(page.locator("[data-testid='top-bar']").getByText("Settings")).toBeVisible();
+
     await page.click("[aria-label='Back']");
-    await expect(page.locator("text=Kanban")).toBeVisible();
+    await expect(page.locator("[data-testid='top-bar']").getByText("Timeline")).toBeVisible();
+  });
+
+  test("back button should return to originating page from profile", async ({ page }) => {
+    await page.click("text=Blocks");
+    await expect(page.locator("[data-testid='top-bar']").getByText("Blocks")).toBeVisible();
+
+    await page.click("[aria-label='Profile']");
+    await expect(page.locator("[data-testid='top-bar']").getByText("Profile")).toBeVisible();
+
+    await page.click("[aria-label='Back']");
+    await expect(page.locator("[data-testid='top-bar']").getByText("Blocks")).toBeVisible();
+  });
+
+  test("back button should work on settings from kanban", async ({ page }) => {
+    await page.click("text=Kanban");
+    await page.click("[aria-label='Open menu'], [aria-label='Settings Menu'], [aria-label='Settings']");
+    await expect(page.locator("[data-testid='top-bar']").getByText("Settings")).toBeVisible();
+
+    await page.click("[aria-label='Back']");
+    await expect(page.locator("[data-testid='top-bar']").getByText("Kanban")).toBeVisible();
   });
 
   test("nav highlights active tab", async ({ page }) => {
