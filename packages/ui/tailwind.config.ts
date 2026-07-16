@@ -12,10 +12,10 @@ const config: Config = {
         "bg-elevated": "#1e1e32",
         
         // Accent
-        "accent-magenta": "#9b4dca",
-        "accent-magenta-light": "#b366d9",
-        "accent-magenta-dark": "#7a3da1",
-        "accent-teal": "#00bcd4",
+        "accent-magenta": "#ff3366",
+        "accent-magenta-light": "#ff5c85",
+        "accent-magenta-dark": "#cc2952",
+        "accent-teal": "#00d9ff",
         "accent-teal-light": "#26c6da",
         "accent-teal-dark": "#00acc1",
         
@@ -34,7 +34,7 @@ const config: Config = {
         // Border
         "border-default": "#2a2a3e",
         "border-hover": "#3a3a4e",
-        "border-focus": "#9b4dca",
+        "border-focus": "#ff3366",
         
         // Status
         "status-success": "#22c55e",

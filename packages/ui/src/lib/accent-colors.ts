@@ -1,5 +1,5 @@
-export const DEFAULT_ACCENT_PRIMARY = "#9b4dca";
-export const DEFAULT_ACCENT_SECONDARY = "#00bcd4";
+export const DEFAULT_ACCENT_PRIMARY = "#ff3366";
+export const DEFAULT_ACCENT_SECONDARY = "#00d9ff";
 
 const SETTINGS_KEY = "blocks-settings";
 

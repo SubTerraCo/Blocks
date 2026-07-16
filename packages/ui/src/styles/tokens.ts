@@ -16,10 +16,10 @@ export const colors = {
   
   // Accent colors
   accent: {
-    magenta: "#9b4dca",      // Primary accent (Backlog headers, active states)
-    magentaLight: "#b366d9", // Hover state
-    magentaDark: "#7a3da1",  // Pressed state
-    teal: "#00bcd4",         // Secondary accent (some task blocks)
+    magenta: "#ff3366",      // Primary accent (Backlog headers, active states)
+    magentaLight: "#ff5c85", // Hover state
+    magentaDark: "#cc2952",  // Pressed state
+    teal: "#00d9ff",         // Secondary accent (some task blocks)
     tealLight: "#26c6da",
     tealDark: "#00acc1",
   },
@@ -47,7 +47,7 @@ export const colors = {
   border: {
     default: "#2a2a3e",
     hover: "#3a3a4e",
-    focus: "#9b4dca",
+    focus: "#ff3366",
   },
   
   // Status colors

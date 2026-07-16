@@ -1,9 +1,9 @@
 # Blocks Manual Feature Test Plan
 
-> **Version:** 0.0.5 Alpha  
-> **Companion:** [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md) · [ROADMAP.md](./ROADMAP.md)  
+> **Release:** v26.07.02 · **Active batch:** v26.07.02b1  
+> **Companion:** [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md) · [ROADMAP.md](./ROADMAP.md) · [CHANGELOG.md](./CHANGELOG.md)  
 > **Automation:** `pnpm test:features` · `pnpm test:features:headed` · `pnpm test:integration`  
-> **Purpose:** Human QA on top of Playwright — covers live OAuth, multi-device sync, desktop-only flows, and MCP tooling that automation mocks or skips.
+> **Purpose:** Human QA on top of Playwright — covers live OAuth, multi-device sync, desktop-only flows, shell parity, and MCP tooling that automation mocks or skips.
 
 ---
 
@@ -14,15 +14,23 @@
 3. **Mark each row:** Pass / Fail / Skip · note platform (WB / DT) · link incident **B-####** if broken.
 4. **Automated coverage:** Where a Playwright file is listed, run the tagged suite first; manual steps focus on gaps.
 
-### Tag reference (v0.0.4–0.0.5)
+### Tag reference (Sprint 5 · v26.06.12–v26.07.02)
 
 | Tag | Feature area |
 |-----|----------------|
 | N-0001–N-0008 | Rolling timeline, week strip, calendar view, scroll/snap |
 | N-0010–N-0016 | Tracking chrome, player, bottom actions |
-| N-0017 | Google Calendar |
+| N-0017 | Google Calendar (on hold — manual only if enabled) |
 | N-0018 | P2P Yjs sync |
 | N-0019 | MCP export mode |
+| N-0024–N-0027 | Events, drag snap pause, Doing lock, continuous scroll calendar |
+| N-0030–N-0031 | Calendar sticky strip, timeline nav exits calendar |
+| N-0045 | Quick Blocks → reusable linked task + placement picker |
+| N-0046 | Event section below Task Name |
+| N-0047 | Events/calendar right column on overlap |
+| N-0048 | Kanban sort + manual column order |
+| N-0049 | Kanban filter + saved views |
+| B-0029 | Spacing/accent restore + desktop–web shell parity |
 
 ---
 
@@ -30,7 +38,8 @@
 
 | ID | Feature | WB | DT | Steps | Expected | Auto |
 |----|---------|:--:|:--:|-------|----------|------|
-| DT.UI.00.001.010 | Top bar | ✓ | ✓ | Open any page | Menu, title, profile visible | `navigation.spec.ts` |
+| DT.UI.00.001.010 | Top bar | ✓ | ✓ | Open Kanban, Timeline, Settings, Profile | Shared shell: title, back on settings/profile, profile control | `navigation.spec.ts` · `@B-0029` |
+| SH.UI.00.001.010 | Desktop–web shell parity | ✓ | ✓ | Compare web localhost vs desktop on main nav pages | Matching titles, top bar layout, accent `#ff3366`, nav padding | `@B-0029` · `desktop-web-parity.spec.ts` (parity gate) |
 | DT.UI.00.002.010 | Bottom nav | ✓ | ✓ | Tap each nav item | Routes: Kanban, Timeline, Blocks, Search, Profile | `navigation.spec.ts` |
 | DT.UI.00.003.010 | Routing | ✓ | ✓ | Deep-link `/timeline`, `/settings` | Correct page loads, no 404 | `navigation.spec.ts` |
 | DT.UI.00.004.010 | Keyboard shortcuts | ✓ | ✓ | Press shortcut keys (see in-app help) | Expected navigation/actions | `keyboard.spec.ts` |
@@ -50,6 +59,12 @@
 | DT.UI.01.012.010 | Task card | ✓ | ✓ | Inspect cards | Name, duration, status visible | `task-card.spec.ts` |
 | DT.UI.01.013.010 | Per-column quick add | ✓ | ✓ | Add task from column footer | Task created in column | `kanban.spec.ts` |
 | DT.UI.01.040.010 | Bulk actions | ✓ | ✓ | Select multiple → bulk move/delete | All selected update | `bulk-actions.spec.ts` |
+| DT.UI.01.050.010 | Kanban toolbar header | ✓ | ✓ | Open Kanban | Compact second header row: view/sort/filter controls above columns | `@N-0048` `@N-0049` `@B-0029` |
+| DT.UI.01.051.010 | Sort field + direction | ✓ | ✓ | Change sort to due date desc, then priority asc | Board reorders; default priority asc (P1 top) | `@N-0048` · `kanban-sort-filter.spec.ts` |
+| DT.UI.01.052.010 | Manual column order | ✓ | ✓ | Drag card within one column | Order persists after reload (`kanbanOrder`) | `@N-0048` |
+| DT.UI.01.053.010 | Refresh sort | ✓ | ✓ | After manual reorder, tap refresh on column | Manual order cleared; active sort reapplies | `@N-0048` |
+| DT.UI.01.054.010 | Filter panel | ✓ | ✓ | Open filter; set priority + tag | Board narrows (AND semantics) | `@N-0049` |
+| DT.UI.01.055.010 | Saved views | ✓ | ✓ | Save current filter+sort as named view; switch views | Default view present; named view restores state | `@N-0049` |
 
 ---
 
@@ -82,7 +97,19 @@
 | DT.UI.02.050.010 | Due-date calendar view | ✓ | ✓ | Toggle calendar view (bottom-left) | Month grid with due tasks | `@N-0005` |
 | SB.EN.02.040.070 | Now-bar offset | ✓ | ✓ | Settings → adjust now-bar slider | Red line shifts in viewport | `@N-0014` |
 
-### 3.3 Google Calendar (N-0017)
+### 3.3 Events & calendar UX (N-0024–N-0027 · N-0030–N-0031)
+
+| ID | Feature | WB | DT | Steps | Expected | Auto |
+|----|---------|:--:|:--:|-------|----------|------|
+| DT.UI.02.040.080 | Pause snap during drag | ✓ | ✓ | Drag-reschedule a block | Live snap pauses until drop; resumes after | `@N-0024` |
+| SB.EN.02.060.030 | Schedule Doing lock current | ✓ | ✓ | Schedule doing tasks with one active | Current doing task not displaced by pack | `@N-0025` |
+| DT.UI.02.037.010 | User events on timeline | ✓ | ✓ | Create event task; schedule on timeline | Event block + all-day strip when applicable | `@N-0026` |
+| DT.UI.02.050.020 | Continuous scroll calendar | ✓ | ✓ | Toggle calendar; scroll weeks | Continuous scroll (not month pager); lookback setting works | `@N-0027` |
+| DT.UI.02.050.040 | Sticky weekday strip | ✓ | ✓ | Scroll calendar | Global weekday strip (N-0030) | `@N-0030` |
+| DT.UI.02.050.050 | Timeline nav exits calendar | ✓ | ✓ | In calendar mode, tap Timeline nav | Returns to rolling timeline; toggle still works | `@N-0031` |
+| SB.EN.02.050.040 | Event right column on overlap | ✓ | ✓ | Overlap event with task | Event/calendar in right column; task left | `@N-0047` |
+
+### 3.4 Google Calendar (N-0017)
 
 | ID | Feature | WB | DT | Steps | Expected | Auto |
 |----|---------|:--:|:--:|-------|----------|------|
@@ -115,7 +142,8 @@ See [GOOGLE_OAUTH_ROLLOUT.md](../../Integrations/GOOGLE_OAUTH_ROLLOUT.md) for de
 |----|---------|:--:|:--:|-------|----------|------|
 | DT.UI.03.010.010 | Quick block grid | ✓ | ✓ | Open Blocks | Tiles with icons/durations | `blocks.spec.ts` |
 | DT.UI.03.020.010 | Tap-to-create | ✓ | ✓ | Tap block (web) or picker (desktop) | Task created | `blocks.spec.ts` |
-| DT.UI.03.020.020 | Schedule immediately | ✓ | ✓ | Web: tap block; DT: pick “Schedule immediately” | Task on timeline at now | `@N-0011` |
+| DT.UI.03.020.020 | Reusable block task (N-0045) | ✓ | ✓ | First tap unconfigured block → save task → placement picker; second tap → picker only | Same linked task rescheduled; long-press opens editor | `@N-0045` · `blocks-reusable-task.spec.ts` |
+| DT.UI.03.020.030 | Placement picker | ✓ | ✓ | Choose Now / After current / Next free / End of day / Custom | Single-focus push-back honored | `@N-0045` `@N-0021` |
 | DT.UI.03.030.010 | Edit / reorder | ✓ | ✓ | Edit mode → reorder/delete | Order persists | `blocks.spec.ts` |
 | DT.UI.03.040.010 | Stats bar | ✓ | ✓ | Log time via blocks | Today totals update | `blocks.spec.ts` |
 
@@ -126,6 +154,7 @@ See [GOOGLE_OAUTH_ROLLOUT.md](../../Integrations/GOOGLE_OAUTH_ROLLOUT.md) for de
 | ID | Feature | WB | DT | Steps | Expected | Auto |
 |----|---------|:--:|:--:|-------|----------|------|
 | DT.UI.04.001.010 | Unified edit page | ✓ | ✓ | Create + edit task | Same form both flows | `task-edit.spec.ts` |
+| DT.UI.04.005.010 | Event section placement | ✓ | ✓ | Open add/edit task | “Is event” toggle + time fields directly below Task Name | `@N-0046` |
 | DT.UI.04.010.010 | Required fields | ✓ | ✓ | Submit empty name | Validation prevents save | `task-crud.spec.ts` |
 | DT.UI.04.020.010 | Subtasks | ✓ | ✓ | Add/check subtasks | Progress reflected | `subtasks.spec.ts` |
 | DT.UI.04.030.010 | Recurrence | ✓ | ✓ | Set weekly recurrence | Instances generate | `recurring.spec.ts` |
@@ -187,7 +216,7 @@ See [GOOGLE_OAUTH_ROLLOUT.md](../../Integrations/GOOGLE_OAUTH_ROLLOUT.md) for de
 
 | ID | Feature | WB | DT | Steps | Expected | Auto |
 |----|---------|:--:|:--:|-------|----------|------|
-| DT.UI.06.006.010 | Version | ✓ | ✓ | Settings → About | Shows 0.0.5 (or current) | `settings.spec.ts` |
+| DT.UI.06.006.010 | Version | ✓ | ✓ | Settings → About | Shows `v26.07.02bX` (or current batch) | `settings.spec.ts` |
 | DT.UI.06.006.020 | Check updates | — | ✓ | Check for updates | Updater UI or “latest” | Manual |
 
 ---
@@ -246,9 +275,9 @@ See [GOOGLE_OAUTH_ROLLOUT.md](../../Integrations/GOOGLE_OAUTH_ROLLOUT.md) for de
 
 ---
 
-## 12 · Incident regression (B-0003–B-0013)
+## 12 · Incident regression (B-0003–B-0029)
 
-Run after any timeline/settings change:
+Run after any timeline/settings/shell change:
 
 | Incident | Verify manually |
 |----------|-----------------|
@@ -261,25 +290,33 @@ Run after any timeline/settings change:
 | B-0011 | Timeline card title readable |
 | B-0012 | Remove X works without deleting task |
 | B-0013 | Add-time menu opens upward; items clickable (desktop) |
+| B-0019–B-0022 | Event editor hides block fields; GCal clock picker; drag snap + passive overlap |
+| B-0027 | Timeline Add nav opens add-task flow |
+| B-0028 | Shell “Now” task aligns with clock |
+| B-0029 | Spacing/margins match web baseline; `#ff3366` accent; Kanban toolbar header; desktop shell parity |
 
-**Automated incident suite:** `PLAYWRIGHT_GREP=@B- pnpm test:e2e`
+**Automated incident suite:** `PLAYWRIGHT_GREP=@B- pnpm test:e2e`  
+**B-0029 parity (optional):** `PLAYWRIGHT_PARITY=1 pnpm test:integration tests/visual/desktop-web-parity.spec.ts`
 
 ---
 
 ## 13 · Suggested QA session order
 
-1. **Smoke (15 min):** Navigation → Kanban CRUD → Timeline scroll → Settings theme  
-2. **v0.0.4 timeline (30 min):** N-0001–N-0008 tagged tests headed + manual scroll/snap  
-3. **Tracking (20 min):** N-0010–N-0016 on desktop  
-4. **Sprint 5 (45 min):** Google OAuth live → calendar on timeline → P2P two-tab sync → MCP export  
-5. **Regression (20 min):** B-0003–B-0013 checklist  
+1. **Smoke (15 min):** Navigation → Kanban CRUD → Timeline scroll → Settings theme → About version  
+2. **Shell parity (15 min):** Web vs desktop on Kanban/Timeline/Settings/Profile — `@B-0029`  
+3. **Timeline + events (30 min):** N-0001–N-0008, N-0024–N-0027, N-0047 headed + manual scroll/snap  
+4. **Kanban views (20 min):** N-0048 sort/order + N-0049 filter/saved views  
+5. **Quick Blocks (15 min):** N-0045 reusable task + placement picker; N-0046 event section on forms  
+6. **Integrations (45 min):** Google OAuth live (if enabled) → P2P two-tab sync → MCP export  
+7. **Regression (20 min):** B-0003–B-0029 checklist  
 
 ---
 
 ## 14 · Sign-off template
 
 ```
-Release: 0.0.5 Alpha
+Release: v26.07.02
+Batch: v26.07.02b1
 Tester:
 Date:
 Platforms tested: [ ] Web  [ ] Desktop Win  [ ] Android (partial)

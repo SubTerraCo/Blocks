@@ -15,6 +15,10 @@ export interface TopBarProps {
   userName?: string;
   userAvatarUrl?: string;
   notificationCount?: number;
+  /** When set, replaces the centered title (e.g. desktop tracking clock). */
+  centerContent?: React.ReactNode;
+  /** Web uses fixed under viewport top; desktop uses static below TitleBar. */
+  layout?: "fixed" | "static";
   className?: string;
 }
 
@@ -28,20 +32,23 @@ export function TopBar({
   userName,
   userAvatarUrl,
   notificationCount = 0,
+  centerContent,
+  layout = "fixed",
   className,
 }: TopBarProps) {
   return (
     <header
+      data-testid="top-bar"
       className={cn(
-        "fixed left-0 right-0 top-0 z-30",
+        layout === "fixed" && "fixed left-0 right-0 top-0 z-30 pt-[env(safe-area-inset-top)]",
+        layout === "static" && "relative shrink-0",
         "border-b border-border-default bg-bg-secondary",
-        "pt-[env(safe-area-inset-top)]",
         className
       )}
     >
-      <div className="flex h-14 items-center justify-between px-4">
+      <div className="relative flex h-14 items-center justify-between px-4">
         {/* Left section */}
-        <div className="flex items-center gap-2">
+        <div className="z-10 flex items-center gap-2">
           {showBackButton ? (
             <button
               onClick={onBackPress}
@@ -61,11 +68,15 @@ export function TopBar({
           )}
         </div>
 
-        {/* Title */}
-        <h1 className="text-lg font-semibold text-text-primary">{title}</h1>
+        {/* Title or custom center (tracking clock on desktop) */}
+        <div className="absolute left-12 right-12 flex items-center justify-center">
+          {centerContent ?? (
+            <h1 className="truncate text-lg font-semibold text-text-primary">{title}</h1>
+          )}
+        </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-2">
+        <div className="z-10 flex items-center gap-2">
           {/* Notifications */}
           {onNotificationPress && (
             <button

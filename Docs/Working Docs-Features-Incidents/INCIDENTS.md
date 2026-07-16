@@ -38,6 +38,7 @@
 | [B-0022](#b-0022-drag-pushback-jumps-unselected-tasks) | Drag overlap push-back jumps other tasks |    P1    | In Progress | v26.06.12 | — |
 | [B-0027](#b-0027-timeline-add-task-nav-broken) | Timeline Add nav does not open add-task page |    P1    | In Progress | v26.06.14 | — |
 | [B-0028](#b-0028-shell-now-task-alignment) | Shell Now task not aligned to clock |    P3    | In Progress | v26.06.14 | — |
+| [B-0029](#b-0029-global-spacing-regression) | Global spacing/margins regressed vs June 9 |    P2    | In Progress | v26.07.01 | — |
 
 ---
 
@@ -894,6 +895,39 @@
 **Symptoms:** While tracking, **Now** task name sits at the far left of the header instead of hugging the clock with right-aligned text (mirror of **Next** on the right).
 
 **Fix UX:** Left column uses `justify-end`; Now chip keeps `text-right` / `items-end`; Next unchanged with `justify-start` / `text-left`.
+
+---
+
+### B-0029 · Global spacing/margins regressed vs June 9 {#b-0029-global-spacing-regression}
+
+| Field | Value |
+| ----- | ----- |
+| **Severity** | P2 |
+| **Status** | In Progress |
+| **Opened** | v26.07.01 |
+| **Related** | [N-0048](./ROADMAP.md#n-0048-kanban-sort--manual-order) · [N-0049](./ROADMAP.md#n-0049-kanban-filter--saved-views) |
+| **Playwright** | `@B-0029` |
+| **Logic note** | Restore June 9 desktop accent baseline; **v26.07.02:** web localhost = source of truth — desktop shell parity via shared TopBar, pb-nav, @blocks/ui/styles tokens |
+
+**Symptoms:** Desktop margins/padding/spacing wrong since ~v26.6.30 (Kanban filters + web/desktop linking). v26.6.14b3 desktop was last fully correct. **Web on localhost looks correct today; desktop must match it.**
+
+**Expected:** Desktop matches current web localhost shell (TopBar, pt-bar/pb-nav rhythm, shared tokens). N-0048/N-0049 sort/filter/views remain functional.
+
+**Actual:** Desktop used custom in-flow top bar (bg-bg-primary), pb-20 hardcoded padding, separate gray index.css tokens (#0d0d0d) — diverged from web AppShell.
+
+**Affects matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SB    |
+|--------------------------------|----------|----------|----------|
+|  Kanban column/board padding   | B-0029   | B-0029   | B-0029   |
+|  Kanban sort/filter toolbar    | N-0048/9 | N-0048/9 | N-0048/9 |
+|  Task card spacing             | B-0029   | B-0029   | B-0029   |
+|  Bottom nav / top bar rhythm   | B-0029   | B-0029   | B-0029   |
+|  Accent tokens (#ff3366)       | B-0029   | B-0029   | B-0029   |
+```
+
+**Fix UX:** Desktop-web shell parity — shared `@blocks/ui` TopBar (static layout + TitleBar offset), `pb-nav` main padding, import `@blocks/ui/styles` tokens; Playwright parity suite (`PLAYWRIGHT_PARITY=1`) compares web vs desktop renderer chrome.
 
 ---
 

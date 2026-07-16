@@ -16,6 +16,12 @@ import { cn } from "../lib/utils";
 import { useKanbanViewStore } from "../hooks/use-kanban-view";
 import { useTaskStore } from "../hooks/use-task-store";
 
+const TOOLBAR_BTN =
+  "flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-border-default bg-bg-secondary px-3.5 text-sm text-text-primary hover:border-accent-magenta";
+
+const TOOLBAR_SELECT =
+  "h-9 shrink-0 appearance-none rounded-lg border border-border-default bg-bg-secondary pl-3 pr-8 text-sm text-text-primary focus:border-accent-magenta focus:outline-none";
+
 const SORT_FIELDS: { value: KanbanSortField; label: string }[] = [
   { value: "priority", label: "Priority" },
   { value: "dueDate", label: "Due date" },
@@ -93,15 +99,15 @@ export function KanbanToolbar({
   };
 
   return (
-    <div className="flex flex-col gap-2" data-testid="kanban-toolbar">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-2.5" data-testid="kanban-toolbar">
+      <div className="flex flex-wrap items-center gap-2.5">
         {/* View selector */}
-        <div className="relative">
+        <div className="relative min-w-[8.5rem]">
           <select
             value={activeViewId}
             onChange={(e) => setActiveView(e.target.value)}
             data-testid="kanban-view-select"
-            className="h-9 appearance-none rounded-lg border border-border-default bg-bg-secondary pl-3 pr-8 text-sm font-medium text-text-primary focus:border-accent-magenta focus:outline-none"
+            className={cn(TOOLBAR_SELECT, "w-full min-w-[8.5rem] font-medium")}
           >
             {views.map((v) => (
               <option key={v.id} value={v.id}>
@@ -124,14 +130,14 @@ export function KanbanToolbar({
         )}
 
         {/* Sort field */}
-        <div className="relative">
+        <div className="relative min-w-[9.5rem]">
           <select
             value={sort.field}
             onChange={(e) =>
               setSort({ ...sort, field: e.target.value as KanbanSortField })
             }
             data-testid="kanban-sort-field"
-            className="h-9 appearance-none rounded-lg border border-border-default bg-bg-secondary pl-3 pr-8 text-sm text-text-primary focus:border-accent-magenta focus:outline-none"
+            className={cn(TOOLBAR_SELECT, "w-full min-w-[9.5rem]")}
           >
             {SORT_FIELDS.map((f) => (
               <option key={f.value} value={f.value}>
@@ -152,7 +158,7 @@ export function KanbanToolbar({
           }
           data-testid="kanban-sort-direction"
           aria-label={`Sort ${sort.direction === "asc" ? "ascending" : "descending"}`}
-          className="flex h-9 items-center gap-1 rounded-lg border border-border-default bg-bg-secondary px-3 text-sm text-text-primary hover:border-accent-magenta"
+          className={cn(TOOLBAR_BTN, "min-w-[5.75rem]")}
         >
           {sort.direction === "asc" ? (
             <ArrowUp className="h-4 w-4" />
@@ -167,7 +173,7 @@ export function KanbanToolbar({
           onClick={refreshSort}
           data-testid="kanban-refresh-sort"
           title="Refresh sort — reapply to all columns"
-          className="flex h-9 items-center gap-1 rounded-lg border border-border-default bg-bg-secondary px-3 text-sm text-text-primary hover:border-accent-magenta"
+          className={cn(TOOLBAR_BTN, "min-w-[6.75rem]")}
         >
           <RefreshCw className="h-4 w-4" />
           Refresh
@@ -178,10 +184,11 @@ export function KanbanToolbar({
           onClick={() => setShowFilter((s) => !s)}
           data-testid="kanban-filter-toggle"
           className={cn(
-            "flex h-9 items-center gap-1 rounded-lg border px-3 text-sm hover:border-accent-magenta",
+            TOOLBAR_BTN,
+            "min-w-[5.75rem] border px-3.5",
             isFilterActive
               ? "border-accent-magenta bg-accent-magenta/10 text-accent-magenta"
-              : "border-border-default bg-bg-secondary text-text-primary",
+              : "",
           )}
         >
           <Filter className="h-4 w-4" />
@@ -192,7 +199,7 @@ export function KanbanToolbar({
         <button
           onClick={() => setShowSave((s) => !s)}
           data-testid="kanban-save-view-toggle"
-          className="flex h-9 items-center gap-1 rounded-lg border border-border-default bg-bg-secondary px-3 text-sm text-text-primary hover:border-accent-magenta"
+          className={cn(TOOLBAR_BTN, "min-w-[7.25rem]")}
         >
           <Plus className="h-4 w-4" />
           Save view

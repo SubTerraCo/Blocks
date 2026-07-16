@@ -15,6 +15,8 @@ import {
   useSettingsStore,
   useOnlineStatus,
   BottomNav,
+  TopBar,
+  ThemeSync,
   exitToTimelineView,
   TaskCard,
   EditableQuickAddGrid,
@@ -47,10 +49,7 @@ import {
   Plus,
   Pencil,
   Check,
-  Menu,
-  ChevronLeft,
   RefreshCw,
-  User
 } from "lucide-react";
 import {
   DndContext,
@@ -394,13 +393,13 @@ function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => voi
 
   return (
     <div className="flex h-full flex-col">
-      <div className="px-4 pt-3">
+      <header className="shrink-0 border-b border-border-default px-4 py-3">
         <KanbanToolbar
           availableTags={availableTags}
           availableCategories={availableCategories}
           allTaskIds={allTaskIds}
         />
-      </div>
+      </header>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -408,7 +407,7 @@ function KanbanPage({ onEditTask, onAddTask }: { onEditTask: (task: Task) => voi
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex flex-1 gap-4 overflow-x-auto p-4">
+        <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto p-4">
           {KANBAN_COLUMNS.map((column) => (
             <DroppableColumn
               key={column.id}
@@ -825,16 +824,17 @@ export default function App() {
   const [pendingPlacementBlockId, setPendingPlacementBlockId] = useState<string | null>(null);
   const loadTasks = useTaskStore((state) => state.loadTasks);
   const loadBlocks = useQuickBlocksStore((state) => state.loadBlocks);
+  const loadSettings = useSettingsStore((state) => state.loadSettings);
   const linkBlockToTask = useQuickBlocksStore((state) => state.linkBlockToTask);
   const initializeDefaultBlocks = useQuickBlocksStore((state) => state.initializeDefaultBlocks);
   
-  // Initialize theme on app load
   useTheme();
 
   useEffect(() => {
+    void loadSettings();
     loadTasks();
     loadBlocks().then(() => initializeDefaultBlocks());
-  }, [loadTasks, loadBlocks, initializeDefaultBlocks]);
+  }, [loadTasks, loadBlocks, loadSettings, initializeDefaultBlocks]);
   
   // Daily summary notification listener
   useEffect(() => {
@@ -905,8 +905,12 @@ export default function App() {
   const handleBack = useCallback(() => {
     setEditingTask(null);
     setPrefillBlock(null);
+    if (currentPage === "settings" || currentPage === "profile") {
+      setCurrentPage("kanban");
+      return;
+    }
     setCurrentPage(returnPage);
-  }, [returnPage]);
+  }, [currentPage, returnPage]);
 
   // N-0045: first use of a Quick Block opens the editor prefilled from it.
   const handleFirstUseBlock = useCallback((block: QuickAddBlock) => {
@@ -968,9 +972,9 @@ export default function App() {
 
   const getPageTitle = () => {
     const titles: Record<Page, string> = { 
-      kanban: "Kanban Board", 
+      kanban: "Kanban", 
       timeline: "Timeline", 
-      blocks: "Quick Blocks", 
+      blocks: "Blocks", 
       ai: "AI Assistant", 
       "add-task": "Add Task", 
       "edit-task": "Edit Task",
@@ -989,7 +993,7 @@ export default function App() {
   }, []);
 
   // Show back button on sub-pages (edit-task, add-task)
-  const showBackButton = ["add-task", "edit-task"].includes(currentPage);
+  const showBackButton = ["add-task", "edit-task", "settings", "profile"].includes(currentPage);
 
   const activeTaskId = useTimerStore((s) => s.activeTaskId);
   const isRunning = useTimerStore((s) => s.isRunning);
@@ -998,75 +1002,29 @@ export default function App() {
   const isTaskEditPage = currentPage === "add-task" || currentPage === "edit-task";
   
   return (
-    <div className="flex flex-col h-screen bg-bg-primary">
+    <div className="flex h-screen flex-col bg-bg-primary">
+      <ThemeSync />
       <AccentSync />
       <TitleBar />
-      {/* ============================================================
-          TOP BAR - Figma Design: [☰ Menu] [Page Title] [Profile 👤]
-          ============================================================ */}
-      <div className="flex items-center justify-between border-b border-border-default bg-bg-primary px-4 h-14 relative">
-        {/* LEFT: Hamburger Menu (Settings) or Back button */}
-        <div className="flex items-center w-12">
-          {showBackButton ? (
-            <button
-              onClick={handleBack}
-              className="h-10 w-10 rounded-lg flex items-center justify-center text-text-secondary hover:bg-bg-tertiary hover:text-text-primary transition-colors"
-              aria-label="Back"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-          ) : (
-            <button
-              onClick={handleOpenSettings}
-              className={cn(
-                "h-10 w-10 rounded-lg flex items-center justify-center transition-colors",
-                currentPage === "settings" 
-                  ? "bg-accent-magenta/20 text-accent-magenta" 
-                  : "text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
-              )}
-              aria-label="Settings Menu"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
-          )}
-        </div>
-        
-        {/* CENTER: tracking clock or page title — colon anchored at horizontal center (N-0041) */}
-        <div className="absolute left-12 right-12 flex items-center justify-center">
-          {showTrackingChrome ? (
+      <TopBar
+        layout="static"
+        title={getPageTitle()}
+        showBackButton={showBackButton}
+        onBackPress={handleBack}
+        onMenuPress={handleOpenSettings}
+        onProfilePress={handleOpenProfile}
+        centerContent={
+          showTrackingChrome ? (
             <AppTrackingClock
               onEditTask={(taskId) => {
                 const task = useTaskStore.getState().tasks.find((t) => t.id === taskId);
                 if (task) handleEditTask(task);
               }}
             />
-          ) : (
-            <h1 className="text-lg font-semibold text-text-primary truncate">
-              {getPageTitle()}
-            </h1>
-          )}
-        </div>
-        
-        {/* RIGHT: Profile button */}
-        <div className="flex items-center w-12 justify-end">
-          <button
-            onClick={handleOpenProfile}
-            className={cn(
-              "h-10 w-10 rounded-lg flex items-center justify-center transition-colors",
-              currentPage === "profile" 
-                ? "bg-accent-magenta/20 text-accent-magenta" 
-                : "text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
-            )}
-            aria-label="Profile"
-          >
-            <User className="h-6 w-6" />
-          </button>
-        </div>
-      </div>
-      {/* ============================================================
-          MAIN CONTENT - pb-24 ensures nav bar doesn't cover content
-          ============================================================ */}
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden pb-20">
+          ) : undefined
+        }
+      />
+      <main className="flex min-h-0 flex-1 flex-col overflow-auto pb-nav">
         {renderPage()}
       </main>
       <TrackingControlBar hidden={isTaskEditPage} />

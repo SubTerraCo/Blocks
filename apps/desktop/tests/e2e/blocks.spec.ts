@@ -13,8 +13,8 @@ test.describe("Blocks Page", () => {
   });
 
   test.describe("Layout", () => {
-    test("should display Quick Blocks title", async ({ page }) => {
-      await expect(page.locator("text=Quick Blocks")).toBeVisible();
+    test("should display Blocks title", async ({ page }) => {
+      await expect(page.locator("text=Blocks")).toBeVisible();
     });
 
     test("should display Edit button", async ({ page }) => {

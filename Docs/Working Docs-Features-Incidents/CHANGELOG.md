@@ -1,12 +1,69 @@
 # Changelog
 
+> **Canonical file** — do not duplicate. Former `Docs/CHANGELOG.md` is deprecated.
+
 All notable changes to the Blocks project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-**Versioning:** date-based releases `vYY.MM.DD` with implementation batches `vYY.MM.DDbX` (e.g. `v26.06.12b1`, `v26.06.12b10`). See [CI_OPS_FRAMEWORK.md](./CI_OPS_FRAMEWORK.md).
+**Versioning:** date-based releases `vYY.MM.DD` with implementation batches `vYY.MM.DDbX` (e.g. `v26.06.12b1`, `v26.06.12b10`). See [CI_OPS_FRAMEWORK.md](./CI_OPS_FRAMEWORK.md). Legacy `0.0.x` entries below predate the date scheme.
 
-## [Unreleased] — Sprint 5 · v26.06.12
+**Batch log (full detail):** [ROADMAP.md](./ROADMAP.md)
+
+---
+
+## [Unreleased] — Sprint 5 · v26.07.02
+
+> Full batch detail: [ROADMAP.md](./ROADMAP.md) batch log
+
+### v26.07.02b1 (ready for QA)
+
+- **B-0029**: Desktop–web shell parity — shared `TopBar`, web-aligned titles, settings/profile back nav, Playwright parity gate
+
+### v26.07.01b1 (ready for QA)
+
+- **B-0029**: Global spacing restore · June 9 accent baseline (`#ff3366`) · compact Kanban toolbar as second header
+
+### v26.06.30b2 (ready for QA)
+
+- Nightly dev push seal for release **v26.06.30** (same feature set as b1)
+
+### v26.06.30b1 (ready for QA)
+
+- **N-0045**: Quick Blocks as reusable linked tasks + placement picker
+- **N-0046**: Event section below Task Name on add/edit forms
+- **N-0047**: Events/calendar right column on timeline overlap
+- **N-0048**: Kanban sort + manual column order + refresh sort
+- **N-0049**: Kanban filter + saved views (Anytype-style)
+
+### v26.06.19b1 (ready for QA)
+
+- Nightly dev push seal for release **v26.06.19**
+
+### v26.06.14b3 (ready for QA)
+
+- **B-0028**: Shell “Now” task alignment to clock
+
+### v26.06.14b2 (ready for QA)
+
+- **B-0027**: Timeline Add nav opens add-task flow
+- **N-0044**: Task edit bottom action bar
+
+### v26.06.14b1 (ready for QA)
+
+- **B-0025** · **B-0026**: Now-bar, calendar, accent polish
+- **N-0038**–**N-0043**: QA polish batch (calendar, shell clock, accents)
+
+### v26.06.13b1 (ready for QA)
+
+- **B-0023** · **B-0024**: Slide toggles, calendar, shell clock fixes
+- **N-0032**–**N-0037**: UI polish (toggles, calendar UX, tracking chrome)
+
+### v26.06.12b3 (ready for QA)
+
+- **B-0019**–**B-0022**: Event editor fields, GCal clock picker, drag snap, passive overlap
+- **N-0030**: Calendar sticky weekday strip
+- **N-0031**: Timeline nav exits calendar mode
 
 ### v26.06.12b2 (ready for QA)
 
@@ -14,12 +71,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **N-0025**: Schedule Doing lock current; exclude `isEvent` from pack
 - **N-0026**: User events — timeline blocks, all-day strip, GCal overlap, event drag
 - **N-0027**: Continuous scroll calendar replaces month pager; calendar lookback setting
+- **B-0018**: Events & calendar scheduling UX (batch umbrella)
 
 ### v26.06.09b1 (shipped 2026-06-09)
 
 - **CI Ops v3**: Date+batch versioning, two-round design phase, `/RD` skill, Sprint 5 alignment
 
-## [v26.06.09] - 2026-06-09 (was 0.0.4)
+---
+
+## [v26.06.09] - 2026-06-09
+
+> Supersedes legacy `0.0.4` (fixes) and `0.0.3` sprint work (desktop focus).
 
 ### Fixed
 
@@ -29,14 +91,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### CI Ops & docs
 - **CI Ops Framework**: Feature registry (`PP.PR.AA.SSS.FFF`), incidents (`B-####`), roadmap (`N-####`), `/NB` + `/NF` skills
 - **CI Ops docs**: [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md), [INCIDENTS.md](./INCIDENTS.md), [ROADMAP.md](./ROADMAP.md), doc polish scripts
 
-## [v26.06.09] - 2026-06-09 (was 0.0.3)
-
-### Added
-
-#### Sprint v0.0.3 — Windows Desktop Focus
+#### Sprint — Windows Desktop Focus (was 0.0.3)
 - **PoweredUpLabs migration**: GitHub owner, CI branding check, resolved conflicted package files
 - **Timeline visibility rule**: Only `status=doing` tasks with a schedule appear on the timeline
 - **Remove from timeline**: X button moves task to **To Do** (keeps on Kanban)
@@ -48,7 +107,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **@blocks/mcp-server**: MCP tools for list/add/remove timeline, clear_timeline, spawn_routine
 - **Windows desktop polish**: Tray icon fallback, Timeline tray shortcut, Ctrl+Shift+B global shortcut
 
+---
+
 ## [0.0.3] - 2024-12-27
+
+> Legacy semver. Feature work continued under [v26.06.09](#v260609---2026-06-09).
 
 ### Added
 
@@ -98,12 +161,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added TaskTemplate and Tag types to core
 - Database migrated to version 2
 
+---
+
 ## [0.0.2] - 2024-12-27
 
 ### Added
 - **Desktop App Installer**: Full NSIS installer with Install/Uninstall/Modify support
 - **Auto-Updater**: Automatic update checking and installation via GitHub Releases
-- **Blocks Page Overhaul**: 
+- **Blocks Page Overhaul**:
   - Tap block tiles to instantly create and schedule tasks
   - Edit mode with drag-and-drop reordering
   - Delete blocks with confirmation
@@ -123,6 +188,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - Desktop Kanban page scaling issues
 - Block tiles now use category-based color presets
+
+---
 
 ## [0.1.0] - 2024-12-26
 
@@ -149,49 +216,49 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## Version History
+## Version history
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.0.2 | 2024-12-27 | Desktop installer, optional auto-updater, Blocks page overhaul |
-| 0.0.1 | 2024-12-26 | Initial development release |
-
-**Note:** We're using 0.0.x versioning during active development. Version 0.1.0 will be the first MVP release.
+| v26.07.02 | 2026-07-02 | Desktop–web shell parity (B-0029) — **v26.07.02b1** QA |
+| v26.07.01 | 2026-07-01 | Spacing/accent restore (B-0029) — **v26.07.01b1** QA |
+| v26.06.30 | 2026-06-30 | Kanban sort/filter/views + reusable blocks (N-0045–N-0049) — **b1/b2** QA |
+| v26.06.19 | 2026-06-19 | Nightly seal — **v26.06.19b1** QA |
+| v26.06.14 | 2026-06-14 | Timeline add-task, shell Now alignment — **b1–b3** QA |
+| v26.06.13 | 2026-06-13 | UI polish — slide toggles, calendar — **v26.06.13b1** QA |
+| v26.06.12 | 2026-06-12 | Events & calendar UX — **v26.06.12b2–b3** QA |
+| v26.06.09 | 2026-06-09 | CI Ops v3, themes, installer fixes, desktop sprint work |
+| 0.0.3 | 2024-12-27 | Time tracking, recurring tasks, mobile app, shortcuts (legacy semver) |
+| 0.0.2 | 2024-12-27 | Desktop installer, Blocks page overhaul |
+| 0.1.0 | 2024-12-26 | Initial development release |
 
 ---
 
-## Versioning Guidelines
+## Versioning guidelines
 
+**Current (CI Ops):** `vYY.MM.DD` release + `vYY.MM.DDbX` implementation batches. See [CI_OPS_FRAMEWORK.md](./CI_OPS_FRAMEWORK.md).
+
+**Legacy semver (pre-2026):**
 - **MAJOR** (X.0.0): Breaking changes, major UI overhauls, architectural changes
 - **MINOR** (0.X.0): New features, significant enhancements
 - **PATCH** (0.0.X): Bug fixes, minor improvements
 
-## Release Process
+---
 
-1. Update version in:
-   - `/package.json` (root)
-   - `/apps/desktop/package.json`
-   
-2. Update `CHANGELOG.md` with new version notes
+## Release process
 
-3. Commit and tag:
-   ```bash
-   git add -A
-   git commit -m "chore: release v0.X.X"
-   git tag v0.X.X
-   git push origin dev --tags
-   ```
+1. Ship batch via `pnpm build:release` (or `/BUILD` skill) — see [CI_OPS_FRAMEWORK.md](./CI_OPS_FRAMEWORK.md).
+2. Update this file under **[Unreleased]** or the matching `vYY.MM.DD` section.
+3. On incident fix: add **Fixed** line + link **B-####** in [INCIDENTS.md](./INCIDENTS.md).
+4. On feature ship: registry row ✅ in [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md) + ROADMAP batch log.
 
-4. Merge to master and create GitHub Release:
-   ```bash
-   git checkout master
-   git merge dev
-   git push origin master
-   ```
+**Legacy tag flow (semver releases only):**
 
-5. Build and publish desktop app:
-   ```bash
-   cd apps/desktop
-   pnpm build:win
-   ```
+```bash
+git add -A
+git commit -m "chore: release v0.X.X"
+git tag v0.X.X
+git push origin dev --tags
+```
 
+Desktop installer: `pnpm build:win` or `pnpm build:release` from repo root.

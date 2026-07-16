@@ -300,16 +300,16 @@ export default function KanbanPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col">
+    <div className="flex min-h-full flex-col">
       {/* Toolbar stays mounted during task load so its local UI state (open
           filter panel, etc.) is never reset by a loading remount. */}
-      <div className="px-4 pt-3">
+      <header className="shrink-0 border-b border-border-default bg-bg-primary px-4 py-3">
         <KanbanToolbar
           availableTags={availableTags}
           availableCategories={availableCategories}
           allTaskIds={allTaskIds}
         />
-      </div>
+      </header>
       {isLoading ? (
         <div className="flex flex-1 items-center justify-center">
           <div className="animate-pulse text-text-secondary">Loading tasks...</div>
@@ -322,7 +322,7 @@ export default function KanbanPage() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex flex-1 gap-4 overflow-x-auto px-4 py-4 pb-20">
+          <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto p-4 pb-4">
             {KANBAN_COLUMNS.map((column) => (
               <DroppableColumn
                 key={column.id}

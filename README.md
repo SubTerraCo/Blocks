@@ -4,7 +4,7 @@
 
 Blocks is a cross-platform time/task management application that uses AI to help schedule tasks and optimize your time. Built with a local-first architecture, your data stays on your device with optional sync capabilities.
 
-**Current Release: v26.06.12** (Sprint 5 — pre-release development)
+**Current Release: v26.07.02** (Sprint 5 — active QA / pre-release development)
 
 ## Features
 
@@ -141,14 +141,39 @@ pnpm build:win
 # Tip: close Blocks (or let prebuild:win stop it) if build fails on locked app.asar
 ```
 
-### Tracking & CI ops
+### Documentation
+
+All project documentation lives under `Docs/`. **This README is the single entry point.**
+
+#### Core working docs
 
 | Doc | Purpose |
 |-----|---------|
-| [FEATURE_REGISTRY.md](docs/Working%20Docs-Features-Incidents/FEATURE_REGISTRY.md) | `PP.PR.AA.SSS.FFF` codes · health · matrices |
-| [INCIDENTS.md](docs/Working%20Docs-Features-Incidents/INCIDENTS.md) | **B-####** bug groups |
-| [ROADMAP.md](docs/Working%20Docs-Features-Incidents/ROADMAP.md) | Core specs, UX, acceptance criteria, **N-####** roadmap |
-| [CI_OPS_FRAMEWORK.md](docs/Working%20Docs-Features-Incidents/CI_OPS_FRAMEWORK.md) | Portable template for other projects |
+| [FEATURE_REGISTRY.md](Docs/Working%20Docs-Features-Incidents/FEATURE_REGISTRY.md) | Canonical product spec, feature codes, matrices, page UX, data models |
+| [ROADMAP.md](Docs/Working%20Docs-Features-Incidents/ROADMAP.md) | Active sprint planning, `N-####` specs, acceptance criteria, batch log |
+| [INCIDENTS.md](Docs/Working%20Docs-Features-Incidents/INCIDENTS.md) | `B-####` incident history and regression tracking |
+| [CHANGELOG.md](Docs/Working%20Docs-Features-Incidents/CHANGELOG.md) | Shipped release and batch summaries |
+| [MANUAL_TEST_PLAN.md](Docs/Working%20Docs-Features-Incidents/MANUAL_TEST_PLAN.md) | Human QA checklist for flows automation skips |
+| [CI_OPS_FRAMEWORK.md](Docs/Working%20Docs-Features-Incidents/CI_OPS_FRAMEWORK.md) | Versioning, IDs, release workflow, doc operating model |
+
+#### Supporting folders
+
+| Folder | Contents |
+|--------|----------|
+| [Integrations/](Docs/Integrations/) | OAuth, MCP, Hermes, Anytype, local-first architecture |
+| [UI Graphics/](Docs/UI%20Graphics/) | Figma and GUI reference PNGs used by specs and QA |
+
+#### Reading order
+
+1. Product behavior or UX → `FEATURE_REGISTRY.md`
+2. In-flight feature work → `ROADMAP.md`
+3. Bugs or regressions → `INCIDENTS.md`
+4. Release status → `CHANGELOG.md`
+5. Manual verification → `MANUAL_TEST_PLAN.md`
+
+**Deprecated doc stubs** (safe to delete): `Docs/CHANGELOG (Deprecated).md` · `Docs/README (Deprecated).md` — canonical content is root `README.md` + `Docs/Working Docs-Features-Incidents/CHANGELOG.md`.
+
+### Tracking & CI ops
 
 **Platforms:** DT Desktop · WB Web · AD Android · AP macOS · IO iOS · SH Shared UI · SB backend · MC MCP · CX CI
 
@@ -226,43 +251,20 @@ pnpm --filter desktop build:win
 
 ## Versioning
 
-We use semantic versioning:
-- `v26.06.12` — Sprint 5 active release (date-based; batches `v26.06.12b1`, `b2`, …)
+We use date-based versioning for active development:
+- `v26.07.02` — Sprint 5 active release (batches `v26.07.02b1`, `b2`, ...)
 - `0.1.0` - First MVP release (planned)
 - `1.0.0` - Production release (future)
 
 ## Roadmap
 
-### Sprint 5 (Current) · v26.06.12
-- [x] Dependency health check and GitHub repo migration (PoweredUpLabs)
-- [x] Hermes AI ecosystem planning (Poe, Blocks, BillBot, Mailbot)
-- [x] Anytype MCP + Hermes/Cursor integration setup
-- [x] Daily Clear Timeline at 00:00
-- [x] Timeline shows **Doing** tasks only; remove-from-timeline via status (todo)
-- [x] Grouped tasks / scheduled routines (Morning Routine, etc.)
-- [x] `@blocks/mcp-server` for Hermes/Cursor integration
-- [x] Windows desktop polish (tray, shortcuts, auto-update)
+Active sprint work, `N-####` specs, and the batch log live in **[ROADMAP.md](Docs/Working%20Docs-Features-Incidents/ROADMAP.md)**. Shipped summaries are in **[CHANGELOG.md](Docs/Working%20Docs-Features-Incidents/CHANGELOG.md)**.
 
-### Phase 1 - MVP Web + Desktop
-- [x] Core task management
-- [x] Kanban board with drag-drop
-- [x] Timeline view
-- [x] Quick blocks for fast time logging
-- [x] AI assistant (Gemini)
-- [x] Windows desktop app
-- [x] Auto-update system
-- [ ] Polish and bug fixes
+High-level phases (see ROADMAP for current status):
 
-### Phase 2 - Sync & Mobile
-- [ ] Local-first P2P sync (Yjs/WebRTC)
-- [ ] React Native mobile app
-- [ ] iOS/Android builds
-- [ ] Cross-device sync
-
-### Phase 3 - Integrations
-- [ ] Google Calendar sync
-- [ ] Anytype integration
-- [ ] Advanced AI scheduling
+- **Phase 1 — MVP Web + Desktop:** Core task management, Kanban, Timeline, Quick Blocks, AI, Windows installer
+- **Phase 2 — Sync & Mobile:** P2P Yjs sync, React Native app
+- **Phase 3 — Integrations:** Google Calendar, Anytype, advanced AI scheduling
 
 ## Contributing
 

@@ -1,45 +1,46 @@
 @import "tailwindcss";
 @config "../../tailwind.config.ts";
 
-/* CSS Variables for theming */
+/* Shared design tokens — aligned with apps/web/src/app/globals.css (B-0029) */
 :root {
-  /* Dark theme (default) */
-  --bg-primary: #0d0d0d;
-  --bg-secondary: #1a1a1a;
-  --bg-tertiary: #262626;
+  --bg-primary: #0a0a14;
+  --bg-secondary: #12121f;
+  --bg-tertiary: #1a1a2e;
+  --bg-elevated: #1e1e32;
+  --accent-magenta: #ff3366;
+  --accent-magenta-light: #ff5c85;
+  --accent-magenta-dark: #cc2952;
+  --accent-teal: #00d9ff;
+  --accent-teal-light: #26c6da;
+  --accent-teal-dark: #00acc1;
   --text-primary: #ffffff;
-  --text-secondary: #a3a3a3;
-  --text-muted: #525252;
-  --border-default: #333333;
-  --accent-magenta: #9b4dca;
-  --accent-magenta-light: #b366d9;
-  --accent-magenta-dark: #7a3da1;
-  --scrollbar-track: #1a1a1a;
-  --scrollbar-thumb: #333333;
-  --scrollbar-thumb-hover: #444444;
-  /* Shell chrome — rolling timeline height calc (B-0018) */
-  --top-bar-height: 56px;
+  --text-secondary: #a0a0b0;
+  --text-tertiary: #6b6b7b;
+  --text-muted: #4a4a5a;
+  --border-default: #2a2a3e;
+  --border-hover: #3a3a4e;
+  --border-focus: #ff3366;
   --bottom-nav-height: 64px;
+  --top-bar-height: 56px;
   --title-bar-height: 40px;
+  --scrollbar-track: var(--bg-secondary);
+  --scrollbar-thumb: var(--border-default);
+  --scrollbar-thumb-hover: var(--border-hover);
 }
 
 .light {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f5;
-  --bg-tertiary: #e5e5e5;
+  --bg-primary: #f8f9fc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eef0f6;
+  --bg-elevated: #ffffff;
   --text-primary: #171717;
   --text-secondary: #525252;
+  --text-tertiary: #6b6b7b;
   --text-muted: #a3a3a3;
-  --border-default: #e5e5e5;
-  --accent-magenta: #9b4dca;
-  --accent-magenta-light: #b366d9;
-  --accent-magenta-dark: #7a3da1;
-  --scrollbar-track: #f5f5f5;
-  --scrollbar-thumb: #d4d4d4;
-  --scrollbar-thumb-hover: #a3a3a3;
+  --border-default: #e5e7ef;
+  --border-hover: #d4d8e4;
 }
 
-/* Base styles */
 * {
   margin: 0;
   padding: 0;
@@ -57,6 +58,8 @@ body,
 body {
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-primary);
@@ -64,7 +67,6 @@ body {
   transition: background-color 0.2s, color 0.2s;
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -83,7 +85,6 @@ body {
   background: var(--scrollbar-thumb-hover);
 }
 
-/* Drag region for title bar */
 .drag-region {
   -webkit-app-region: drag;
 }
@@ -92,203 +93,36 @@ body {
   -webkit-app-region: no-drag;
 }
 
-/* Disable text selection in UI elements */
 .no-select {
   user-select: none;
   -webkit-user-select: none;
 }
 
-/* Animation utilities */
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
+@layer utilities {
+  .pb-nav {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-.animate-wiggle {
-  animation: wiggle 0.3s ease-in-out infinite;
-}
-
-@keyframes wiggle {
-  0%, 100% {
-    transform: rotate(-1deg);
+  .pt-bar {
+    padding-top: calc(var(--top-bar-height) + env(safe-area-inset-top, 0px));
   }
-  50% {
-    transform: rotate(1deg);
+
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
-/* Slide animations */
-.animate-slide-up {
-  animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-slide-down {
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-slide-left {
-  animation: slideLeft 0.3s ease-out;
-}
-
-@keyframes slideLeft {
-  from {
-    opacity: 0;
-    transform: translateX(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.animate-slide-right {
-  animation: slideRight 0.3s ease-out;
-}
-
-@keyframes slideRight {
-  from {
-    opacity: 0;
-    transform: translateX(-16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Scale animation */
-.animate-scale-in {
-  animation: scaleIn 0.2s ease-out;
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Bounce animation */
-.animate-bounce-in {
-  animation: bounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-@keyframes bounceIn {
-  from {
-    opacity: 0;
-    transform: scale(0.3);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Pulse animation */
-.animate-pulse-soft {
-  animation: pulseSoft 2s ease-in-out infinite;
-}
-
-@keyframes pulseSoft {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-/* Shimmer loading effect */
-.animate-shimmer {
-  animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(
-    90deg,
-    var(--bg-tertiary) 0%,
-    var(--bg-secondary) 50%,
-    var(--bg-tertiary) 100%
-  );
-  background-size: 200% 100%;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* Tooltip animation */
-.animate-tooltip {
-  animation: tooltipIn 0.15s ease-out;
-}
-
-@keyframes tooltipIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Success checkmark animation */
-.animate-checkmark {
-  animation: checkmark 0.3s ease-out;
-}
-
-@keyframes checkmark {
-  0% {
-    transform: scale(0);
-  }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* Focus ring — plain CSS; opacity modifiers don't work with @apply on CSS-var colors */
 .focus-ring:focus-visible {
   outline: none;
   box-shadow:
@@ -296,7 +130,6 @@ body {
     0 0 0 4px color-mix(in srgb, var(--accent-magenta) 50%, transparent);
 }
 
-/* Interactive hover effects */
 .hover-lift {
   @apply transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0;
 }
@@ -307,7 +140,6 @@ body {
 
 .hover-glow:hover {
   box-shadow:
-    0 10px 15px -3px rgba(155, 77, 202, 0.2),
-    0 4px 6px -4px rgba(155, 77, 202, 0.2);
+    0 10px 15px -3px rgba(255, 51, 102, 0.2),
+    0 4px 6px -4px rgba(255, 51, 102, 0.1);
 }
-

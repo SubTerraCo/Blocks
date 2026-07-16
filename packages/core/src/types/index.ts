@@ -522,9 +522,9 @@ export const SettingsSchema = z.object({
   // Appearance
   theme: ThemeSchema.default("dark"),
   /** N-0040 · User primary accent (today, active chrome) */
-  accentPrimary: z.string().default("#9b4dca"),
+  accentPrimary: z.string().default("#ff3366"),
   /** N-0040 · User secondary accent (selected calendar day, etc.) */
-  accentSecondary: z.string().default("#00bcd4"),
+  accentSecondary: z.string().default("#00d9ff"),
   
   // AI Configuration
   aiProvider: AIProviderSchema.default("openai"),

@@ -18,7 +18,7 @@ test.describe("Navigation", () => {
 
   test("should navigate to Kanban page", async ({ page }) => {
     await page.click("text=Kanban");
-    await expect(page.locator("text=Kanban Board")).toBeVisible();
+    await expect(page.locator("text=Kanban")).toBeVisible();
   });
 
   test("should navigate to Timeline page", async ({ page }) => {
@@ -28,7 +28,7 @@ test.describe("Navigation", () => {
 
   test("should navigate to Blocks page", async ({ page }) => {
     await page.click("text=Blocks");
-    await expect(page.locator("text=Quick Blocks")).toBeVisible();
+    await expect(page.locator("text=Blocks")).toBeVisible();
   });
 
   test("should navigate to AI/Search page", async ({ page }) => {
@@ -42,7 +42,7 @@ test.describe("Navigation", () => {
   });
 
   test("should navigate to Settings page via hamburger menu", async ({ page }) => {
-    await page.click("[aria-label='Settings Menu'], [aria-label='Settings']");
+    await page.click("[aria-label='Open menu'], [aria-label='Settings Menu'], [aria-label='Settings']");
     await expect(page.locator("text=Settings")).toBeVisible();
   });
 
@@ -53,12 +53,12 @@ test.describe("Navigation", () => {
 
   test("back button should work on sub-pages", async ({ page }) => {
     // Navigate to settings
-    await page.click("[aria-label='Settings Menu'], [aria-label='Settings']");
+    await page.click("[aria-label='Open menu'], [aria-label='Settings Menu'], [aria-label='Settings']");
     await expect(page.locator("text=Settings")).toBeVisible();
     
     // Click back
     await page.click("[aria-label='Back']");
-    await expect(page.locator("text=Kanban Board")).toBeVisible();
+    await expect(page.locator("text=Kanban")).toBeVisible();
   });
 
   test("nav highlights active tab", async ({ page }) => {
