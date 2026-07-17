@@ -21,7 +21,7 @@ Full release pipeline: **pre-flight → install → packages → batch integrati
 
 | Phase | Skill | Command |
 |-------|-------|---------|
-| Dev server | [/buildserver](../build-server/SKILL.md) | `pnpm dev:web` |
+| Dev server (optional) | [/buildserver](../build-server/SKILL.md) | Only when debugging; avoid persistent `dev:web` |
 | Pre-release tests | [/testrelease](../test-release/SKILL.md) | integration + e2e + `test:build` |
 | Web compile only | [/Buildweb](../build-web/SKILL.md) | `pnpm build --filter web …` |
 | Desktop compile/installer | [/buildwin](../build-win/SKILL.md) | `build:check` / `build:win` |
@@ -103,6 +103,7 @@ ROADMAP → ✅ Shipped · FEATURE_REGISTRY · CHANGELOG
 - Skip compile/tests unless PM explicitly requests `--skip-tests`
 - Report batch done without installer path + batch id
 - Run `build:win` without closing Blocks (prebuild stops it on Windows)
+- Keep `dev:web` running after build unless PM explicitly wants a live dev server
 
 ## Troubleshooting
 

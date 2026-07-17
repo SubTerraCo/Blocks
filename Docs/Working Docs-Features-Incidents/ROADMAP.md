@@ -104,6 +104,9 @@ This file now focuses on:
 | [N-0049](#n-0049-kanban-filter--saved-views) | Kanban filter + saved views | DT · WB · SB | 🧪 QA | v26.06.30 |
 | [N-0050](#n-0050-anytype-two-way-task-sync) | Anytype two-way task sync (phased) | MC · SB · DT | 🔄 In progress | v26.07.16 |
 | [N-0051](#n-0051-anytype-in-app-sync-web) | Anytype in-app sync (Web) | WB · SB | 📋 Proposed | TBD |
+| [N-0052](#n-0052-calendar-day-number-squarcle-accent) | Calendar day number centered text + squarcle accent states | DT · WB | 🔄 In progress | v26.07.16 |
+| [N-0053](#n-0053-calendar-first-of-month-label-refresh) | Calendar first-of-month top-left large transparent label | DT · WB | 🔄 In progress | v26.07.16 |
+| [N-0054](#n-0054-calendar-alternating-month-gray-tones) | Calendar alternating month gray tones (+ current month gray3) | DT · WB | 🔄 In progress | v26.07.16 |
 
 **Status:** 📋 Proposed · 🔄 In progress · 🧪 QA · ✅ Shipped · ⏸ On hold · ❌ Dropped
 
@@ -144,6 +147,10 @@ One `/NF` · `/NB` · `/RD` design session = one batch (`v26.06.12bX`). QA via `
 | v26.07.16b1 | Open release branch · docs hub in root README | — | 🧪 QA |
 | v26.07.16b2 | Anytype two-way sync — Phase A (core + MCP) + Phase B (Desktop Settings) | N-0050 · N-0051 | 🧪 QA |
 | v26.07.16b3 | Desktop padding cascade fix — unlayered CSS reset vs Tailwind utilities | B-0029 | ✅ Shipped |
+| v26.07.16b4 | Calendar snap-to-day restore · settings parity with timeline now-bar snap | B-0030 | 🧪 QA |
+| v26.07.16b5 | Calendar cosmetics pass — gutter spacing, day-number styling, month labels, month gray alternation | B-0031 · N-0052 · N-0053 · N-0054 | 🧪 QA |
+| v26.07.16b6 | Calendar cosmetics second pass — column alignment, day badge sizing/colors, month text sizing, gray mapping tune | B-0031 · N-0052 · N-0053 · N-0054 | 🧪 QA |
+| v26.07.16b7 | N-0052 pass 3 — absolute top-center day numbers (Desktop alignment fix) | N-0052 | 🧪 QA |
 
 ---
 
@@ -1616,6 +1623,45 @@ Phase B currently persists the Anytype API key in renderer localStorage (same pa
 - [ ] Decide API access path (CORS allowance, local proxy, or hosted bridge)
 - [ ] Web Settings parity with DT.UI.06.009.*
 - [ ] Playwright: `@N-0051` mocked sync
+
+---
+
+### N-0052 · Calendar day number squarcle accent {#n-0052-calendar-day-number-squarcle-accent}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🔄 In progress |
+| **Target release** | v26.07.16 |
+| **Platforms**  | DT · WB |
+| **Related**    | [N-0027](#n-0027-continuous-scroll-calendar) · [N-0039](#n-0039-calendar-day-number-size-up) |
+
+**Description:** Center day numbers in calendar cells as text-first presentation. Keep transparent day-number frames for standard days. Use button-matching squarcle radius for highlighted states: current day uses theme accent; selected day uses Accent 1.
+
+---
+
+### N-0053 · Calendar first-of-month label refresh {#n-0053-calendar-first-of-month-label-refresh}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🔄 In progress |
+| **Target release** | v26.07.16 |
+| **Platforms**  | DT · WB |
+| **Related**    | [N-0027](#n-0027-continuous-scroll-calendar) |
+
+**Description:** Render first-of-month month text top-left with larger typography and transparent frame (text-only, no chip fill) while preserving day-cell alignment.
+
+---
+
+### N-0054 · Calendar alternating month gray tones {#n-0054-calendar-alternating-month-gray-tones}
+
+| Field          | Value |
+| -------------- | ----- |
+| **Status**     | 🔄 In progress |
+| **Target release** | v26.07.16 |
+| **Platforms**  | DT · WB |
+| **Related**    | [N-0027](#n-0027-continuous-scroll-calendar) · [N-0038](#n-0038-calendar-month-accent-banding) |
+
+**Description:** Alternate month tones by fixed month index (Jan Gray1, Feb Gray2, etc.). Override visible current month to Gray3. Remove selected-month gray special-case.
 
 ---
 

@@ -1680,7 +1680,8 @@ Migrated from spec § Phase 2 Required Features.
 | DT.UI.02.037.020 | Events → right column on conflict |   🔄    | N-0047 · `timeline-scheduling.spec.ts` |
 | SB.EN.02.037.020 | Overlap column rank (events right) | 🔄 | N-0047 · `timeline-scheduling.spec.ts` |
 | DT.UI.02.040.070 | Pause snap during drag           |   🔄    | N-0024 |
-| DT.UI.02.050.020 | Continuous scroll calendar       |   🔄    | N-0027 (replaces N-0005) |
+| DT.UI.02.050.020 | Continuous scroll calendar       |   🐛    | N-0027 · B-0030 · B-0031 · N-0052 · N-0053 · N-0054 · `timeline-calendar-view.spec.ts` |
+| WB.UI.02.050.020 | Continuous scroll calendar (web) |   🐛    | N-0027 · B-0030 · B-0031 · N-0052 · N-0053 · N-0054 · `timeline-calendar-view.spec.ts` |
 | DT.UI.02.036.010 | Google Calendar timeline events  |   🔄    | N-0017 · `timeline-calendar-events.spec.ts` |
 | DT.UI.02.040.010 | Rolling timeline window (±7 days)|   🔄    | N-0003 · B-0018 · `rolling-timeline.spec.ts` |
 | DT.UI.02.040.050 | Timeline entry snap to now       |   🐛    | N-0006 · B-0016 · `timeline-entry-snap.spec.ts` |

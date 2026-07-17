@@ -66,7 +66,7 @@ export function TimelineWeekStrip({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 border-b border-border-default bg-bg-secondary px-2 py-2",
+        "flex items-center gap-0 border-b border-border-default bg-bg-secondary px-2 py-2",
         className,
       )}
       data-testid="timeline-week-strip"
@@ -76,7 +76,7 @@ export function TimelineWeekStrip({
       {gutter && onJumpToToday ? (
         <div
           className={cn(
-            "flex flex-col items-center justify-center gap-0.5 border-r border-border-default/60 pr-2",
+            "flex flex-col items-center justify-center gap-0.5",
             CALENDAR_GUTTER_CLASS,
           )}
           data-testid="calendar-strip-gutter"
@@ -105,7 +105,7 @@ export function TimelineWeekStrip({
           </button>
         )
       )}
-      <div ref={rowRef} className="relative flex flex-1 gap-1">
+      <div ref={rowRef} className="relative grid flex-1 grid-cols-7 gap-1">
         {showIndicator && (
           <div
             data-testid="timeline-week-strip-indicator"
@@ -133,7 +133,7 @@ export function TimelineWeekStrip({
               data-testid={`timeline-week-day-${day.getDay()}`}
               onClick={() => onSelectDay(day)}
               className={cn(
-                "relative z-10 flex min-w-0 flex-1 flex-col items-center rounded-lg px-1 py-1.5 text-xs transition-colors",
+                "relative z-10 flex min-w-0 flex-col items-center rounded-lg px-1 py-1.5 text-xs transition-colors",
                 isSelected && !showIndicator
                   ? "bg-accent-magenta text-white"
                   : isToday

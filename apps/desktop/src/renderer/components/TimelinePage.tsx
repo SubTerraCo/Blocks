@@ -479,13 +479,13 @@ export function TimelinePage({ onEditTask }: { onEditTask: (task: Task) => void 
       <>
 
         <ContinuousScrollCalendar
-
           tasks={tasks}
-
           weekStartsOn={weekStartsOn}
-
+          selectedDay={selectedDay}
+          onSelectedDayChange={setSelectedDay}
+          snapDelaySec={snapDelaySec}
+          nowBarViewportRatio={nowBarViewportRatio}
           onTaskPress={onEditTask}
-
         />
 
         <TimelineViewToggle mode={viewMode} onToggle={toggleViewMode} />

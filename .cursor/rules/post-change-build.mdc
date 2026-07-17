@@ -1,18 +1,18 @@
 ---
-description: Run compile build checks after making code changes so the user can test immediately
+description: After /NF /NB and substantive code changes — always /testrelease then /buildrelease for QA
 alwaysApply: true
 ---
 
-# Post-change build verification
+# Post-change test + release gate
 
-After completing substantive code changes (not question-only or review-only turns):
+After completing any **`/NF`**, **`/NB`**, or other **substantive code change** (not question-only or review-only turns):
 
-1. Run `pnpm test:build` before telling the user the work is done.
-2. If the build fails, fix the errors and run `pnpm test:build` again until it passes.
-3. Do not ask the user to build manually when you can run the check yourself.
+1. **Always run `/testrelease`** — follow `.cursor/skills/test-release/SKILL.md` (context validate → Playwright batch suites → `pnpm test:build`).
+2. If any step fails, **fix the errors and re-run `/testrelease` until it passes**.
+3. After a **successful `/testrelease`**, **always run `/buildrelease`** — follow `.cursor/skills/build-release/SKILL.md` (`pnpm build:release`).
+4. When done, **tell the user the exact batch/release that was built** (e.g. `v26.07.16b4`) and the installer path under `apps/desktop/release/` so they can QA.
+5. Do not ask the user to test-release or build-release manually when you can run them yourself.
 
-The project also has a Cursor **stop hook** (`.cursor/hooks.json`) that runs the same compile checks automatically after each agent turn. When build output appears as an auto follow-up message, treat it as a required fix before finishing.
+The Cursor **stop hook** (`.cursor/hooks.json`) still runs compile checks after agent turns. Treat hook failures as required fixes. That hook does **not** replace `/testrelease` or `/buildrelease`.
 
-Compile checks cover: `@blocks/core`, `@blocks/ui`, `web` (`next build`), and desktop (`tsc` + `vite build`). They intentionally skip electron installer packaging for speed.
-
-Skip build verification only when the turn was read-only (no edits to `apps/`, `packages/`, or build scripts).
+Skip this full gate only when the turn was read-only (no edits to `apps/`, `packages/`, or build scripts) or the PM explicitly waives packaging for docs-only work.

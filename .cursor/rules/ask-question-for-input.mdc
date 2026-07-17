@@ -1,15 +1,52 @@
 ---
-description: Always use AskQuestion when needing user input or decisions
+description: Auto-continue workflow + AskQuestion gates + CI_OPS default process
 alwaysApply: true
 ---
 
-# AskQuestion for user input
+# Workflow defaults (speed mode)
 
-When you need a decision, preference, confirmation, or any other input back from the user:
+## Continue by default
 
-1. **Always use the AskQuestion tool** — do not ask as plain chat markdown with A/B/C lists.
-2. Prefer clear option labels; include an **Open discussion / Other** option when the choice set may be incomplete.
-3. Wait for the user's AskQuestion responses before proceeding with design gates (`/NF`, `/NB`, `/RD`) or ambiguous implementation choices.
-4. If AskQuestion is unavailable in the current session, say so in one line, fall back to a numbered list labeled **"AskQuestion fallback"**, and retry AskQuestion on the next turn when the tool may be restored.
+1. **Always continue automatically** through analysis/design/build steps until blocked by required user input.
+2. Do not pause for status-only confirmations.
+3. Stop only when a real decision or preference is required.
 
-Do not bury blocking questions inside long prose when a structured AskQuestion form would work.
+## Required stop behavior
+
+When a stop is required for user input:
+
+1. Use **AskQuestion** (never plain markdown A/B/C lists).
+2. Include in every AskQuestion set:
+   - **Need More Context**
+   - **Open discussion**
+   - **OTHER**
+3. Wait for AskQuestion answers before continuing.
+
+## CI_OPS default for project requests
+
+For user requests in this project, follow `Docs/Working Docs-Features-Incidents/CI_OPS_FRAMEWORK.md` by default:
+
+1. Use design rounds and conflict audits where required.
+2. For `/NF` `/NB` `/RD`, follow CI_OPS gate order before implementation.
+3. During implementation, keep conflict checks and continue automatically unless blocked by required input.
+
+## Pre-flight for `/NF` `/NB` `/RD`
+
+Before ingesting/researching/responding to any `/NF`, `/NB`, `/RD`, Round 1/2 set, or multi-option design lock:
+
+1. Check AskQuestion availability in the current session.
+2. If AskQuestion is missing:
+   - **STOP immediately** (no codebase deep-dive, no long gate draft).
+   - Tell the user to switch to **GPT Codex** or **Claude Opus** (not Auto) and resend the same prompt.
+   - Do not use fallback lists for design gates.
+3. If AskQuestion is available: run gate questions with AskQuestion.
+
+## Before implementation (after design lock)
+
+1. **STOP once** and remind the user to switch back to **Auto** for implementation.
+2. Wait for acknowledgment (or confirmation they already switched) before large implementation turns.
+3. If user explicitly says stay on Opus/Codex, continue without repeating reminders.
+
+## Non-gate only fallback
+
+If AskQuestion is missing for a quick non-gate clarification, use one-line notice plus an **AskQuestion fallback** numbered list with Need More Context, Open discussion, and OTHER.

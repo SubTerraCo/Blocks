@@ -19,17 +19,21 @@ pnpm build:release:context --validate
 
 Note **batch**, **grep**, **integrationGrep**, **N/B IDs**.
 
-## Phase 2 — Dev server
+## Phase 2 — Dev server policy (non-persistent by default)
 
 ```bash
-pnpm dev:web    # background — :3004
+# Preferred: let Playwright manage webServer lifecycle (auto-start/reuse/stop)
+# No manual dev:web needed for normal /testrelease runs
 ```
 
-Optional desktop renderer for parity:
+Only start dev servers manually when debugging flaky tests or doing parity follow-along:
 
 ```bash
+pnpm dev:web
 pnpm --filter blocks-desktop dev    # :5173
 ```
+
+If you manually start `dev:web`, stop it when the gate is done.
 
 ## Phase 3 — Playwright (debug until green)
 
@@ -74,7 +78,7 @@ pnpm build:release
 
 ```
 - [ ] build:release:context --validate
-- [ ] dev:web up (:3004)
+- [ ] no persistent dev:web left running (unless PM requested)
 - [ ] integration @batch grep green
 - [ ] e2e @batch grep green
 - [ ] pnpm test:build green

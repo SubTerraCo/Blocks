@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Task, WeekStartsOn } from "@blocks/core";
 import {
+  clampTimelineNowBarRatio,
   formatDayKey,
   generateContinuousCalendarWeeks,
   getTasksForCalendarDay,
@@ -17,6 +18,10 @@ import { CALENDAR_GUTTER_CLASS, TimelineWeekStrip } from "./timeline-week-strip"
 export interface ContinuousScrollCalendarProps {
   tasks: Task[];
   weekStartsOn?: WeekStartsOn;
+  selectedDay?: Date;
+  onSelectedDayChange?: (day: Date) => void;
+  snapDelaySec?: number;
+  nowBarViewportRatio?: number;
   onTaskPress?: (task: Task) => void;
   className?: string;
 }
@@ -45,51 +50,87 @@ function daysInWeek(weekStart: Date): Date[] {
   });
 }
 
-function dayCellFillClass(day: Date, today: Date, selectedDay: Date): string {
+export function getCalendarMonthTone(day: Date, today: Date): "gray1" | "gray2" | "gray3" {
   const todayMonth = today.getMonth();
   const todayYear = today.getFullYear();
-  const selectedMonth = selectedDay.getMonth();
-  const selectedYear = selectedDay.getFullYear();
   const dayMonth = day.getMonth();
   const dayYear = day.getFullYear();
 
   const inTodayMonth = dayMonth === todayMonth && dayYear === todayYear;
-  const inSelectedMonth = dayMonth === selectedMonth && dayYear === selectedYear;
+  if (inTodayMonth) return "gray2";
 
-  if (inTodayMonth) return "bg-bg-secondary";
-  if (inSelectedMonth) return "bg-bg-tertiary/80";
-  return "bg-black/40";
+  // Jan/Mar/... => Gray1, Feb/Apr/... => Gray3.
+  return dayMonth % 2 === 0 ? "gray1" : "gray3";
 }
 
-function dayHeaderAccentStyle(
-  isToday: boolean,
-  isSelected: boolean,
-  accentPrimary: string,
-  accentSecondary: string,
-): React.CSSProperties | undefined {
-  if (isToday) return { backgroundColor: accentPrimary };
-  if (isSelected) return { backgroundColor: accentSecondary };
-  return undefined;
+function dayCellFillClass(day: Date, today: Date): string {
+  const tone = getCalendarMonthTone(day, today);
+
+  if (tone === "gray1") return "bg-bg-secondary/90";
+  if (tone === "gray2") return "bg-bg-tertiary/85";
+  return "bg-bg-primary/85";
 }
 
 /** N-0027 + N-0030 + N-0038–N-0039 + N-0042 · Scroll calendar. */
 export function ContinuousScrollCalendar({
   tasks,
   weekStartsOn = "monday",
+  selectedDay: selectedDayProp,
+  onSelectedDayChange,
+  snapDelaySec = 15,
+  nowBarViewportRatio = 0.5,
   onTaskPress,
   className,
 }: ContinuousScrollCalendarProps) {
   const today = useMemo(() => startOfDay(new Date()), []);
-  const [selectedDay, setSelectedDay] = useState(today);
+  const [internalSelectedDay, setInternalSelectedDay] = useState(today);
+  const selectedDay = useMemo(
+    () => startOfDay(selectedDayProp ?? internalSelectedDay),
+    [internalSelectedDay, selectedDayProp],
+  );
   const [accents, setAccents] = useState(readAccentColorsFromStorage);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const currentWeekRef = useRef<HTMLDivElement>(null);
+  const snapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollResetToken = useCalendarScrollResetToken();
 
-  /** N-0042 · Always show current calendar week on sticky strip */
+  const setSelectedDay = useCallback(
+    (day: Date) => {
+      const normalized = startOfDay(day);
+      setInternalSelectedDay(normalized);
+      onSelectedDayChange?.(normalized);
+    },
+    [onSelectedDayChange],
+  );
+
+  const scrollDayIntoView = useCallback(
+    (day: Date, behavior: ScrollBehavior = "auto") => {
+      const container = scrollRef.current;
+      if (!container) return false;
+
+      const key = formatDayKey(day);
+      const el = container.querySelector<HTMLElement>(`[data-calendar-day-cell="${key}"]`);
+      if (!el) return false;
+
+      const containerRect = container.getBoundingClientRect();
+      const cellRect = el.getBoundingClientRect();
+      const ratio = clampTimelineNowBarRatio(nowBarViewportRatio);
+      const top =
+        cellRect.top -
+        containerRect.top +
+        container.scrollTop -
+        container.clientHeight * ratio +
+        cellRect.height / 2;
+
+      container.scrollTo({ top: Math.max(0, top), behavior });
+      return true;
+    },
+    [nowBarViewportRatio],
+  );
+
+  /** Snap strip to selected day week (calendar snap-to-day parity). */
   const stripDays = useMemo(
-    () => daysInWeek(getWeekStart(today, weekStartsOn)),
-    [today, weekStartsOn],
+    () => daysInWeek(getWeekStart(selectedDay, weekStartsOn)),
+    [selectedDay, weekStartsOn],
   );
 
   const weeks = useMemo(
@@ -100,8 +141,29 @@ export function ContinuousScrollCalendar({
   const gutterMonth = MONTH_SHORT[today.getMonth()] ?? "Jan";
 
   useEffect(() => {
-    currentWeekRef.current?.scrollIntoView({ block: "center" });
-  }, [weeks.length, scrollResetToken]);
+    scrollDayIntoView(selectedDay, "auto");
+  }, [selectedDay, scrollResetToken, weeks.length, scrollDayIntoView]);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const scheduleSnap = () => {
+      if (snapTimerRef.current) clearTimeout(snapTimerRef.current);
+      if (snapDelaySec <= 0) return;
+      snapTimerRef.current = setTimeout(() => {
+        scrollDayIntoView(selectedDay, "smooth");
+      }, snapDelaySec * 1000);
+    };
+
+    container.addEventListener("wheel", scheduleSnap, { passive: true });
+    container.addEventListener("touchmove", scheduleSnap, { passive: true });
+    return () => {
+      container.removeEventListener("wheel", scheduleSnap);
+      container.removeEventListener("touchmove", scheduleSnap);
+      if (snapTimerRef.current) clearTimeout(snapTimerRef.current);
+    };
+  }, [selectedDay, snapDelaySec, scrollDayIntoView]);
 
   useEffect(() => {
     const refresh = () => setAccents(readAccentColorsFromStorage());
@@ -115,15 +177,13 @@ export function ContinuousScrollCalendar({
 
   const jumpToToday = useCallback(() => {
     setSelectedDay(today);
-    currentWeekRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
-  }, [today]);
+    scrollDayIntoView(today, "smooth");
+  }, [scrollDayIntoView, setSelectedDay, today]);
 
   const handleSelectStripDay = useCallback((day: Date) => {
     setSelectedDay(startOfDay(day));
-    const key = formatDayKey(day);
-    const el = scrollRef.current?.querySelector(`[data-calendar-day-cell="${key}"]`);
-    el?.scrollIntoView({ block: "center", behavior: "smooth" });
-  }, []);
+    scrollDayIntoView(day, "smooth");
+  }, [scrollDayIntoView, setSelectedDay]);
 
   return (
     <div
@@ -146,16 +206,13 @@ export function ContinuousScrollCalendar({
         data-testid="due-date-calendar"
       >
         {weeks.map((week) => {
-          const isNowWeek = week.days.some((d) => isSameCalendarDay(d, today));
           const weekStartKey = formatDayKey(week.weekStart);
 
           return (
             <section
               key={week.weekKey}
-              ref={isNowWeek ? currentWeekRef : undefined}
               data-testid={`calendar-week-${week.weekKey}`}
               data-calendar-week-start={weekStartKey}
-              data-current-week={isNowWeek ? "true" : undefined}
             >
               <div className="flex gap-0 px-2 py-1">
                 <div className={CALENDAR_GUTTER_CLASS} aria-hidden />
@@ -166,12 +223,11 @@ export function ContinuousScrollCalendar({
                     const isSelected = isSameCalendarDay(day, selectedDay);
                     const dayKey = formatDayKey(day);
                     const isFirstOfMonth = day.getDate() === 1;
-                    const headerStyle = dayHeaderAccentStyle(
-                      isToday,
-                      isSelected && !isToday,
-                      accents.accentPrimary,
-                      accents.accentSecondary,
-                    );
+                    const numberPillStyle: React.CSSProperties | undefined = isToday
+                      ? { backgroundColor: "var(--accent-magenta)" }
+                      : isSelected
+                        ? { backgroundColor: accents.accentSecondary }
+                        : undefined;
 
                     return (
                       <button
@@ -179,49 +235,38 @@ export function ContinuousScrollCalendar({
                         type="button"
                         data-testid={`calendar-day-${dayKey}`}
                         data-calendar-day-cell={dayKey}
-                        onClick={() => setSelectedDay(startOfDay(day))}
+                        onClick={() => {
+                          setSelectedDay(startOfDay(day));
+                          scrollDayIntoView(day, "smooth");
+                        }}
                         className={cn(
-                          "flex min-h-[144px] flex-col overflow-hidden rounded-lg border border-border-default/60 text-left transition-colors",
-                          dayCellFillClass(day, today, selectedDay),
-                          isToday && "ring-2 ring-[var(--accent-primary)]/60",
-                          isSelected && !isToday && "ring-1 ring-[var(--accent-secondary)]",
+                          "flex min-h-[144px] flex-col overflow-hidden rounded-lg border border-border-default/60 transition-colors",
+                          dayCellFillClass(day, today),
                         )}
                       >
-                        <div
-                          className={cn(
-                            "min-h-[1.75rem] px-1 py-0.5",
-                            !headerStyle && "bg-bg-primary/20",
+                        {/* N-0052 pass 3: absolute horizontal center at top — avoid flex/text-align drift on Desktop */}
+                        <div className="relative h-12 w-full shrink-0">
+                          {isFirstOfMonth && (
+                            <span
+                              data-testid={`calendar-month-label-${dayKey}`}
+                              className="pointer-events-none absolute left-1 top-1 z-10 text-[17px] font-extrabold uppercase leading-none tracking-wide text-text-secondary"
+                            >
+                              {MONTH_SHORT[day.getMonth()]}
+                            </span>
                           )}
-                          style={headerStyle}
-                          data-testid={
-                            isToday
-                              ? "calendar-day-header-today"
-                              : isSelected
-                                ? "calendar-day-header-selected"
-                                : undefined
-                          }
-                        >
-                          <div
+                          <span
+                            data-testid={`calendar-day-number-${dayKey}`}
                             className={cn(
-                              "flex items-start justify-end gap-1 text-right font-semibold leading-none",
+                              "pointer-events-none absolute left-1/2 top-1 z-0 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-xl text-2xl font-semibold tabular-nums",
                               isToday || isSelected ? "text-white" : "text-text-secondary",
                             )}
+                            style={numberPillStyle}
                           >
-                            {isFirstOfMonth && (
-                              <span
-                                className={cn(
-                                  "text-xs font-bold uppercase tracking-wide",
-                                  isToday || isSelected ? "text-white/90" : "text-text-tertiary",
-                                )}
-                              >
-                                {MONTH_SHORT[day.getMonth()]}
-                              </span>
-                            )}
-                            <span className="text-2xl tabular-nums">{day.getDate()}</span>
-                          </div>
+                            {day.getDate()}
+                          </span>
                         </div>
 
-                        <div className="flex-1 space-y-0.5 p-1">
+                        <div className="flex-1 space-y-0.5 p-1 text-left">
                           {dayTasks.slice(0, MAX_TASKS_PER_CELL).map((task) => (
                             <span
                               key={task.id}

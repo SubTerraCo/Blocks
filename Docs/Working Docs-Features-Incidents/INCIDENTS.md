@@ -39,6 +39,8 @@
 | [B-0027](#b-0027-timeline-add-task-nav-broken) | Timeline Add nav does not open add-task page |    P1    | In Progress | v26.06.14 | — |
 | [B-0028](#b-0028-shell-now-task-alignment) | Shell Now task not aligned to clock |    P3    | In Progress | v26.06.14 | — |
 | [B-0029](#b-0029-global-spacing-regression) | Global spacing/margins regressed vs June 9 |    P1    | Fixed  | v26.07.01 | v26.07.16 |
+| [B-0030](#b-0030-calendar-snap-to-day-regression) | Calendar snap-to-day missing (settings parity with now-bar snap) |    P1    | In Progress | v26.07.16 | — |
+| [B-0031](#b-0031-calendar-header-column-misalignment) | Calendar header divider causes week/day column misalignment |    P2    | In Progress | v26.07.16 | — |
 
 ---
 
@@ -190,6 +192,61 @@
 | DT.UI.06.007.010-001 | Connect / disconnect Google     |    1    |
 | DT.BG.06.008.010-001 | Desktop Google OAuth IPC        |    1    |
 | CX.EN.06.007.010-001 | OAuth proxy (PKCE)              |    1    |
+
+---
+
+### B-0030 · Calendar snap-to-day regression {#b-0030-calendar-snap-to-day-regression}
+
+| Field    | Value |
+| -------- | ----- |
+| **Status** | In Progress |
+| **Severity** | P1 |
+| **Opened** | v26.07.16 |
+| **Related** | [N-0007](./ROADMAP.md#n-0007-live-scroll-lock--snap-delay) · [N-0014](./ROADMAP.md#n-0014-now-bar-viewport-offset) · [N-0027](./ROADMAP.md#n-0027-continuous-scroll-calendar) · [N-0031](./ROADMAP.md#n-0031-timeline-nav-exits-calendar) |
+| **Playwright** | `tests/e2e/timeline-calendar-view.spec.ts` · `@B-0030` |
+| **Fix** | Restore calendar snap-to-day using timeline snap settings (`timelineSnapDelaySec`, `timelineNowBarViewportRatio`) with selected-day priority and delay=0 manual-scroll stick behavior |
+
+**Symptoms:** Calendar no longer snaps to selected day on re-entry, and does not honor timeline now-bar snap settings parity.
+
+**Expected:** Calendar re-entry snaps to the selected day using the same snap controls as Timeline (delay + viewport ratio). With delay `0`, manual scroll stays where left until explicit re-entry/reset.
+
+**Actual:** Calendar relies on static current-week centering and ignores timeline snap settings for day targeting/recenter behavior.
+
+**Affects matrix**
+
+```text
+|            Feature             |    DT    |    WB    |    SH    |    SB    |
+|--------------------------------|----------|----------|----------|----------|
+|  Calendar re-entry snap target | 🐛 B-0030 | 🐛 B-0030 | 🐛 B-0030 |    —     |
+|  Snap delay parity             | 🐛 B-0030 | 🐛 B-0030 | 🐛 B-0030 | 🐛 B-0030 |
+|  Viewport ratio parity         | 🐛 B-0030 | 🐛 B-0030 | 🐛 B-0030 | 🐛 B-0030 |
+```
+
+| Code                 | Feature                                | Break # |
+| -------------------- | -------------------------------------- | :-----: |
+| DT.UI.02.050.020-001 | Continuous scroll calendar snap target |    1    |
+| WB.UI.02.050.020-001 | Continuous scroll calendar snap target |    1    |
+| DT.UI.06.002.040-001 | Timeline snap delay parity in calendar |    1    |
+| DT.UI.06.002.060-001 | Now-bar ratio parity in calendar       |    1    |
+
+---
+
+### B-0031 · Calendar header column misalignment {#b-0031-calendar-header-column-misalignment}
+
+| Field    | Value |
+| -------- | ----- |
+| **Status** | In Progress |
+| **Severity** | P2 |
+| **Opened** | v26.07.16 |
+| **Related** | [N-0027](./ROADMAP.md#n-0027-continuous-scroll-calendar) · [N-0052](./ROADMAP.md#n-0052-calendar-day-number-squarcle-accent) · [N-0053](./ROADMAP.md#n-0053-calendar-first-of-month-label-refresh) · [N-0054](./ROADMAP.md#n-0054-calendar-alternating-month-gray-tones) |
+| **Playwright** | `tests/e2e/timeline-calendar-view.spec.ts` · `@B-0031` |
+| **Fix** | Remove the gutter divider break between Month/Today and week headers; align strip gutter spacing directly to the 7-column day grid |
+
+**Symptoms:** The vertical divider in the calendar strip gutter creates offset spacing so week header columns no longer align with day-cell columns.
+
+**Expected:** Week strip columns line up width-wise with day blocks on calendar view.
+
+**Actual:** Gutter divider/padding introduces a horizontal offset and visible break.
 
 ---
 

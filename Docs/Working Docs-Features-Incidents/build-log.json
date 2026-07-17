@@ -110,6 +110,47 @@
       "gitSha": "04c01dd",
       "platform": "win32",
       "installer": "apps/desktop/release/Blocks-Setup-26.7.16-b3.exe"
+    },
+    {
+      "batch": "v26.07.16b4",
+      "release": "v26.07.16",
+      "displayVersion": "v26.07.16b4",
+      "npmVersion": "26.7.16-b4",
+      "builtAt": "2026-07-16T15:49:30.842Z",
+      "gitSha": "d4c9f58",
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.7.16-b4.exe"
+    },
+    {
+      "batch": "v26.07.16b5",
+      "release": "v26.07.16",
+      "displayVersion": "v26.07.16b5",
+      "npmVersion": "26.7.16-b5",
+      "builtAt": "2026-07-17T04:48:28.104Z",
+      "gitSha": "d4c9f58",
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.7.16-b5.exe",
+      "rebuildCount": 2
+    },
+    {
+      "batch": "v26.07.16b6",
+      "release": "v26.07.16",
+      "displayVersion": "v26.07.16b6",
+      "npmVersion": "26.7.16-b6",
+      "builtAt": "2026-07-17T05:23:09.022Z",
+      "gitSha": "d4c9f58",
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.7.16-b6.exe"
+    },
+    {
+      "batch": "v26.07.16b7",
+      "release": "v26.07.16",
+      "displayVersion": "v26.07.16b7",
+      "npmVersion": "26.7.16-b7",
+      "builtAt": "2026-07-17T06:12:41.961Z",
+      "gitSha": "d4c9f58",
+      "platform": "win32",
+      "installer": "apps/desktop/release/Blocks-Setup-26.7.16-b7.exe"
     }
   ]
 }
