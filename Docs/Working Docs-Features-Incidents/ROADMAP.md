@@ -1,8 +1,8 @@
 # Blocks Roadmap & Sprint Log
 
-> **Release:** v26.07.16  
-> **Last Updated:** 2026-07-16  
-> **Status:** Sprint 5 — Timeline, scheduling, events, calendar UX (active release v26.07.16)
+> **Release:** v26.07.17  
+> **Last Updated:** 2026-07-17  
+> **Status:** Sprint 5 — Timeline, scheduling, events, calendar UX (active release v26.07.17)
 > **Source of truth** for active sprint planning, N-#### specs, acceptance criteria, and batch log  
 > **Core product specification:** [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md)  
 > **Feature codes & health:** [FEATURE_REGISTRY.md](./FEATURE_REGISTRY.md) · **Bugs:** [INCIDENTS.md](./INCIDENTS.md)
@@ -110,9 +110,9 @@ This file now focuses on:
 
 **Status:** 📋 Proposed · 🔄 In progress · 🧪 QA · ✅ Shipped · ⏸ On hold · ❌ Dropped
 
-### Active sprint 5 (v26.07.16)
+### Active sprint 5 (v26.07.17)
 
-All items not yet ✅ Shipped belong to **Sprint 5** at release **v26.07.16**. **Google** (N-0017, N-0022, N-0023) is **on hold** per product decision.
+All items not yet ✅ Shipped belong to **Sprint 5** at release **v26.07.17**. **Google** (N-0017, N-0022, N-0023) is **on hold** per product decision.
 
 | Track | IDs | Focus |
 | ----- | --- | ----- |
@@ -151,6 +151,7 @@ One `/NF` · `/NB` · `/RD` design session = one batch (`v26.06.12bX`). QA via `
 | v26.07.16b5 | Calendar cosmetics pass — gutter spacing, day-number styling, month labels, month gray alternation | B-0031 · N-0052 · N-0053 · N-0054 | 🧪 QA |
 | v26.07.16b6 | Calendar cosmetics second pass — column alignment, day badge sizing/colors, month text sizing, gray mapping tune | B-0031 · N-0052 · N-0053 · N-0054 | 🧪 QA |
 | v26.07.16b7 | N-0052 pass 3 — absolute top-center day numbers (Desktop alignment fix) | N-0052 | 🧪 QA |
+| v26.07.17b1 | Open release branch · v26.07.17 | — | 🧪 QA |
 
 ---
 
