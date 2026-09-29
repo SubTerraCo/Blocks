@@ -62,8 +62,6 @@ interface Message {
 type TabType = "chat" | "search";
 
 // Gemini API integration
-const GEMINI_API_KEY = "AIzaSyCFWVLLZfrEwlZkhq70i9k_JC_C2WWXfOE";
-
 async function sendToGemini(
   message: string,
   tasks: any[],
@@ -187,10 +185,23 @@ export default function AIPage() {
       scrollRef.current?.scrollToEnd({ animated: true });
     }, 100);
 
+    if (!ai.apiKey) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content:
+            "Add your Gemini API key in Settings to use the AI assistant.",
+          timestamp: new Date(),
+        },
+      ]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Use stored API key or fallback to default
-      const apiKey = ai.apiKey || GEMINI_API_KEY;
-      const response = await sendToGemini(input.trim(), tasks, apiKey);
+      const response = await sendToGemini(input.trim(), tasks, ai.apiKey);
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
