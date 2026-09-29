@@ -1,5 +1,7 @@
 # Blocks Roadmap & Core Functionality
 
+> **Screen spec only.** Kanban, timeline, quick-add, and task fields still describe Blocks (`BK`). The platform order below (Windows desktop, then Android, then PWA) is superseded. New work ships inside Luna OS (Tauri, including Arch) and the web shell. Blueprint: `subterra-governance` `Docs/ARCHITECTURE.md`.
+
 > **Version:** 0.0.5  
 > **Last Updated:** 2026-06-09  
 > **Status:** Sprint v0.0.5 — Timeline enhancements  
