@@ -1,5 +1,7 @@
 # Hermes AI Ecosystem Architecture (PoweredUpLabs)
 
+> **Superseded.** Do not split Poe, Blocks, Billbot, and Mailbot into separate product repos, and do not make MCP the architecture. The agent is `packages/luna` (`LU`) inside the monorepo. Packages stand alone and talk through the shell hub. Blueprint: `subterra-governance` `Docs/ARCHITECTURE.md`.
+
 > Planning document for v0.0.3 — local-first "Jarvis-style" agent orchestration
 
 ## Executive Summary
